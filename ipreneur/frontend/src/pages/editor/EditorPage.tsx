@@ -6,19 +6,15 @@ import toast from "react-hot-toast";
 
 import { projectsApi } from "@/services/api/projects";
 import { Button } from "@/components/ui/Button";
-import { TemplatedDeckSection } from "@/components/workspace/deckTemplates/TemplatedDeckSection";
+import { DeckWorkspace } from "@/components/workspace/deckTemplates/DeckWorkspace";
 import type { TemplateDeckData } from "@/components/workspace/deckTemplates/types";
 import type { EditPath } from "@/components/workspace/deckTemplates/editing/editableText";
 import { setByPath } from "@/components/workspace/deckTemplates/editing/setByPath";
 
 const ep = {
-  topbar: { position: "sticky", top: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 28px", background: "rgba(255,255,255,0.82)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", borderBottom: "1px solid var(--border-subtle)" } as React.CSSProperties,
-  topLeft: { display: "flex", alignItems: "center", gap: 16, minWidth: 0 } as React.CSSProperties,
-  backLink: { display: "inline-flex", alignItems: "center", gap: 6, font: "500 13px var(--font-body)", color: "var(--text-muted)", textDecoration: "none" } as React.CSSProperties,
-  divider: { width: 1, height: 18, background: "var(--border-default)", flexShrink: 0 } as React.CSSProperties,
-  projName: { font: "700 14px var(--font-display)", color: "var(--text-strong)" } as React.CSSProperties,
+  backLink: { display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0, font: "500 13px var(--font-body)", color: "var(--text-muted)", textDecoration: "none" } as React.CSSProperties,
+  projName: { font: "700 14px var(--font-display)", color: "var(--text-strong)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } as React.CSSProperties,
   dirtyDot: { display: "inline-flex", alignItems: "center", gap: 6, font: "500 12px var(--font-body)", color: "var(--warning, #B45309)" } as React.CSSProperties,
-  topActions: { display: "flex", gap: 10, flexShrink: 0, alignItems: "center" } as React.CSSProperties,
   body: { maxWidth: 1180, margin: "0 auto", padding: "28px 28px 50px" } as React.CSSProperties,
   notReady: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 12, textAlign: "center" } as React.CSSProperties,
 };
@@ -136,22 +132,32 @@ export default function EditorPage() {
   }
 
   return (
-    <div style={{ background: "transparent", minHeight: "100vh" }}>
-      <div style={ep.topbar}>
-        <div style={ep.topLeft}>
+    <DeckWorkspace
+      data={draft}
+      deckType={(project.deckContent as any)?.deckType ?? project.deckType}
+      slideOrder={(project.deckContent as any)?.slideOrder}
+      initialKey={(project as any).templateKey}
+      assets={(project as any).assets}
+      onPersist={(key) => saveTemplate(key)}
+      fileName={project.name}
+      editable
+      onEdit={handleEdit}
+      lead={
+        <>
           <Link to={`/projects/${projectId}`} onClick={handleBackClick} style={ep.backLink}>
-            <ArrowLeft size={15} /> {project.name}
+            <ArrowLeft size={15} style={{ flexShrink: 0 }} />
+            <span style={ep.projName}>{project.name}</span>
           </Link>
-          <span style={ep.divider} />
-          <span style={{ font: "500 13px var(--font-body)", color: "var(--text-muted)" }}>Editing deck text</span>
           {isDirty && (
             <span style={ep.dirtyDot}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
-              Unsaved changes
+              Unsaved
             </span>
           )}
-        </div>
-        <div style={ep.topActions}>
+        </>
+      }
+      actions={
+        <>
           <Button variant="secondary" icon={<Undo2 size={15} />} disabled={!isDirty} onClick={handleDiscard}>
             Discard
           </Button>
@@ -164,21 +170,8 @@ export default function EditorPage() {
           >
             {saveMutation.isPending ? "Saving…" : "Save"}
           </Button>
-        </div>
-      </div>
-
-      <div style={ep.body}>
-        <TemplatedDeckSection
-          data={draft}
-          deckType={(project.deckContent as any)?.deckType ?? project.deckType}
-          slideOrder={(project.deckContent as any)?.slideOrder}
-          initialKey={(project as any).templateKey}
-          assets={(project as any).assets}
-          onPersist={(key) => saveTemplate(key)}
-          editable
-          onEdit={handleEdit}
-        />
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }

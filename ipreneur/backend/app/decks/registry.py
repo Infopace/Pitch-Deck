@@ -59,21 +59,28 @@ class DeckType:
     # Only where the slide list genuinely differs by stage. Emphasis-only
     # differences live in STAGE_EMPHASIS instead of being faked as new slides.
     stage_overrides: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    # The Appendix has no fixed slide list — the spec is explicit that it
+    # "should be dynamically generated from the company's available data".
+    # `sections` then holds only the fixed bookends and the rest is resolved
+    # from the profile at generation time.
+    dynamic_sections: bool = False
 
 
 # ─── The seven deck types ─────────────────────────────────────────────────────
 
 _INVESTOR_SECTIONS = (
-    "cover", "summary", "probsol", "product", "market", "model",
-    "traction", "competition", "roadmap", "galleryS", "team", "ask", "closing",
+    "cover", "summary", "story", "probsol", "persona", "product", "galleryS", "techIp",
+    "market", "segmentation", "model", "traction", "proof", "unitEconomics", "competition",
+    "moat", "gtm", "financials", "roadmap", "risks", "team", "ask", "capTable", "closing",
 )
 
 # Idea/pre-revenue companies have no traction to chart. Showing an empty or
 # invented growth curve is worse than not showing one — swap it for the vision
 # slide, which is what actually carries a pre-product raise.
 _EARLY_STAGE_SECTIONS = (
-    "cover", "summary", "vision", "probsol", "product", "market", "model",
-    "competition", "roadmap", "galleryS", "team", "ask", "closing",
+    "cover", "summary", "story", "probsol", "persona", "product", "galleryS", "techIp",
+    "market", "segmentation", "model", "vision", "proof", "competition", "moat", "gtm",
+    "roadmap", "risks", "team", "ask", "capTable", "closing",
 )
 
 DECK_TYPES: dict[str, DeckType] = {
@@ -104,7 +111,11 @@ DECK_TYPES: dict[str, DeckType] = {
         audience="a prospective buyer deciding whether this is worth their budget and switching cost",
         goal="move this buyer to a pilot or a purchase decision",
         eyebrow="Sales Presentation",
-        sections=("cover", "probsol", "competition", "product", "proof", "roi", "model", "roadmap", "closing"),
+        sections=(
+            "cover", "probsol", "persona", "competition", "product", "galleryS", "proof",
+            "roi", "unitEconomics", "security", "model", "partnerships", "roadmap",
+            "closing",
+        ),
         research="light",
         guidance=(
             "Write in the BUYER's language about the BUYER's problem — the company\n"
@@ -136,7 +147,10 @@ DECK_TYPES: dict[str, DeckType] = {
         audience="users, product stakeholders, or technical evaluators who want to see the thing work",
         goal="make the product's value obvious in the first two minutes",
         eyebrow="Product Overview",
-        sections=("cover", "persona", "probsol", "product", "galleryS", "competition", "roadmap", "closing"),
+        sections=(
+            "cover", "persona", "probsol", "product", "galleryS", "techIp", "security",
+            "proof", "competition", "moat", "model", "traction", "roadmap", "closing",
+        ),
         research="light",
         guidance=(
             "This deck is visual and concrete. Describe real screens, real flows, real\n"
@@ -162,7 +176,11 @@ DECK_TYPES: dict[str, DeckType] = {
         audience="a prospective partner's BD or leadership team weighing this against other partnerships",
         goal="get to a pilot, MoU, or joint working group",
         eyebrow="Partnership Proposal",
-        sections=("cover", "summary", "product", "partnerRole", "partnershipModel", "gtm", "ask", "traction", "closing"),
+        sections=(
+            "cover", "summary", "probsol", "product", "partnerRole", "partnershipModel",
+            "segmentation", "gtm", "distribution", "traction", "proof", "techIp",
+            "roadmap", "ask", "closing",
+        ),
         research="full",
         guidance=(
             "Address the partner as an equal, not a buyer. Every slide answers 'what's in\n"
@@ -270,6 +288,139 @@ DECK_TYPES: dict[str, DeckType] = {
         ),
         manual_required=("company_name", "vision_statement"),
     ),
+
+    # ─── The spec's deck types (Phase 3) ──────────────────────────────────────
+    # general / elevator / demoday are pure section lists over the existing
+    # catalogue — no new models, renderers or React. That is the payoff of
+    # keeping section keys separable from renderers (see sections.py).
+
+    "general": DeckType(
+        key="general",
+        label="General / Company Overview",
+        description="The foundational company story. Problem, solution, market, model, team.",
+        audience="a mixed room — investors, partners, candidates — meeting the company for the first time",
+        goal="make the company understandable and credible in twelve slides",
+        eyebrow="Company Overview",
+        sections=(
+            "cover", "summary", "story", "probsol", "persona", "product", "galleryS",
+            "market", "model", "traction", "proof", "competition", "moat", "gtm",
+            "roadmap", "team", "vision", "ask", "risks", "closing",
+        ),
+        research="full",
+        guidance=(
+            "This is the default deck: broad, balanced, no single axe to grind.\n"
+            "Assume the reader knows nothing about the company and little about the\n"
+            "industry. Explain the problem before the product, and the market before\n"
+            "the ask. Nothing here should require prior context to follow."
+        ),
+    ),
+
+    "elevator": DeckType(
+        key="elevator",
+        label="Elevator / Five Slides",
+        description="Five slides. Hook, problem, product, proof, ask — nothing else.",
+        audience="someone giving this ninety seconds before deciding whether to give it more",
+        goal="earn the next conversation, not close anything",
+        eyebrow="Elevator Pitch",
+        sections=("cover", "probsol", "product", "traction", "closing"),
+        research="light",
+        guidance=(
+            "Five slides is a severe constraint and the whole point — the spec is\n"
+            "explicit that this must not be a compressed investor deck. Carry ONE idea\n"
+            "per slide and pick only the single strongest fact available for each.\n"
+            "If a number is not genuinely impressive, leave it out rather than padding:\n"
+            "a sparse elevator deck beats a cluttered one every time."
+        ),
+    ),
+
+    "demoday": DeckType(
+        key="demoday",
+        label="Demo Day",
+        description="A ten-minute stage pitch. Hook, pain, product, market, proof, ask.",
+        audience="a demo-day audience watching twenty pitches in a row, from a distance",
+        goal="be the one pitch the room still remembers at the end of the day",
+        eyebrow="Demo Day",
+        sections=("cover", "probsol", "persona", "product", "market",
+                  "traction", "competition", "team", "ask", "closing"),
+        research="full",
+        guidance=(
+            "Built for a stage, not a desk. Momentum and memorability beat completeness:\n"
+            "the spec is explicit that a Demo Day deck is NOT a compressed investor deck.\n"
+            "Short declarative headlines, one number per slide, no dense tables — a back\n"
+            "row cannot read them. Put the detail in speaker_notes."
+        ),
+        stage_overrides={"idea": ("cover", "probsol", "persona", "product", "market",
+                                  "vision", "competition", "team", "ask", "closing"),
+                         "pre_revenue": ("cover", "probsol", "persona", "product", "market",
+                                         "vision", "competition", "team", "ask", "closing")},
+    ),
+
+    "gtm": DeckType(
+        key="gtm",
+        label="Go-to-Market",
+        description="How you reach, convert and keep customers. ICP, channels, funnel, economics.",
+        audience="a commercial leader or investor judging whether this company can actually distribute",
+        goal="show that growth is a repeatable system, not a series of lucky deals",
+        eyebrow="Go-to-Market Plan",
+        sections=(
+            "cover", "summary", "market", "persona", "segmentation", "positioning",
+            "messaging", "acquisition", "channels", "salesMotion", "funnel",
+            "distribution", "partnerships", "unitEconomics", "proof", "traction",
+            "scalePlan", "operations", "roadmap", "risks", "team", "closing",
+        ),
+        research="full",
+        guidance=(
+            "The spec's core GTM story is: market → ICP → positioning → acquisition →\n"
+            "sales → conversion → economics → channels → scale. Every claim about a\n"
+            "channel needs either a real number or an explicit label as a hypothesis.\n"
+            "An untested channel presented as a proven one is the failure mode here."
+        ),
+    ),
+
+    "business": DeckType(
+        key="business",
+        label="Business Plan",
+        description="How the company operates, earns and scales. Model, sales, ops, financials.",
+        audience="an operator, lender, or board member asking how this business actually works",
+        goal="show a coherent, funded, executable operating plan",
+        eyebrow="Business Plan",
+        sections=(
+            "cover", "summary", "probsol", "persona", "product", "model", "segmentation",
+            "positioning", "salesMotion", "gtm", "funnel", "channels", "traction", "proof",
+            "unitEconomics", "financials", "operations", "partnerships", "competition",
+            "team", "roadmap", "risks", "scalePlan", "closing",
+        ),
+        research="full",
+        guidance=(
+            "The spec draws the line clearly: the investor deck asks 'should I invest?',\n"
+            "the business deck asks 'how does this company work, grow, operate and\n"
+            "scale?'. Weight the operating system — model, pricing, sales process,\n"
+            "funnel, operations, partnerships — and go light on cap table, financing\n"
+            "history and investment thesis."
+        ),
+    ),
+
+    "master": DeckType(
+        key="master",
+        label="Extended / Master",
+        description="The complete company record. Every section, for reuse and reference.",
+        audience="a reader who wants the whole picture and will skim to the parts they care about",
+        goal="be the single source of truth every shorter deck is cut from",
+        eyebrow="Company Master Deck",
+        sections=("cover", "summary", "story", "probsol", "persona", "product",
+                  "techIp", "security", "market", "model", "traction",
+                  "unitEconomics", "gtm", "salesMotion", "operations",
+                  "partnerships", "competition", "moat", "financials",
+                  "ask", "capTable", "roadmap", "risks", "team", "closing"),
+        research="full",
+        guidance=(
+            "This is the reference document the other decks are selections from, so\n"
+            "completeness beats brevity — but never at the cost of inventing content.\n"
+            "A section with no real information should say plainly that the data is not\n"
+            "yet available rather than being filled with plausible-sounding text.\n"
+            "Because it will be read rather than presented, each slide must stand alone."
+        ),
+    ),
 }
 
 
@@ -347,6 +498,34 @@ def resolve_sections(deck_type: Optional[str], *, stage: Optional[str] = None) -
     return dt.sections
 
 
+def sections_for_stored_deck(
+    deck_type: Optional[str],
+    slide_order: Optional[Sequence[str]],
+    template_data: Optional[dict],
+) -> tuple[str, ...]:
+    """The slide sequence to re-render an ALREADY-GENERATED deck with.
+
+    Precedence:
+      1. the order the deck recorded at generation time — always authoritative;
+      2. otherwise the registry order, filtered to the sections this deck
+         actually has content for;
+      3. otherwise the registry order.
+
+    Step 2 matters because deck types get longer over time. The investor deck
+    grew from 13 sections to 24; a deck generated before `slide_order` was
+    persisted has no content for the 11 added sections, so re-rendering it
+    against today's registry would emit eleven blank slides.
+    """
+    if slide_order:
+        return tuple(slide_order)
+    default = resolve_sections(deck_type)
+    if template_data:
+        present = tuple(k for k in default if k == "cover" or template_data.get(k))
+        if len(present) > 1:
+            return present
+    return default
+
+
 def section_by_slide_number(sections: Sequence[str]) -> dict[int, str]:
     """Map 1-based slide position → section key.
 
@@ -373,6 +552,26 @@ def required_manual_fields(deck_type: Optional[str]) -> tuple[str, ...]:
     return get_deck_type(deck_type).manual_required
 
 
+def parameter_groups_for(deck_type: Optional[str], *, stage: Optional[str] = None) -> list[dict]:
+    """Which profile groups this deck consumes, with their relevance.
+
+    Imported lazily: `app.profile` imports nothing from `app.decks`, but this
+    keeps the dependency one-way at module-import time too, so the deck
+    registry stays usable in isolation (the drift-guard tests rely on that).
+    """
+    from app.profile.parameters import PARAMETER_GROUPS
+    from app.profile.relevance import relevance_for
+
+    out = []
+    for key, group in PARAMETER_GROUPS.items():
+        rel = relevance_for(deck_type, key, stage=stage)
+        if rel == "N":
+            continue
+        out.append({"key": key, "label": group.label, "relevance": rel,
+                    "param_count": len(group.params)})
+    return out
+
+
 def serialize_deck_types() -> list[dict]:
     """Registry as JSON for `GET /api/v1/deck-types` — drives the intake form."""
     out = []
@@ -389,6 +588,8 @@ def serialize_deck_types() -> list[dict]:
             # intake form drives its own validation off this, so the two can't
             # disagree about what is required.
             "manual_required": list(dt.manual_required),
+            "dynamic_sections": dt.dynamic_sections,
+            "parameter_groups": parameter_groups_for(dt.key),
             "brief_fields": [
                 {
                     "name": f.name,

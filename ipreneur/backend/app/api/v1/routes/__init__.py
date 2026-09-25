@@ -14,6 +14,7 @@ from app.api.v1.endpoints import (
     billing,
     webhooks,
     pipeline,
+    profiles,
 )
 
 router = APIRouter()
@@ -22,6 +23,7 @@ router.include_router(auth.router, prefix="/auth", tags=["auth"])
 router.include_router(users.router, prefix="/users", tags=["users"])
 router.include_router(projects.router, prefix="/projects", tags=["projects"])
 router.include_router(deck_types.router, prefix="/deck-types", tags=["deck-types"])
+router.include_router(profiles.router, prefix="/profiles", tags=["profiles"])
 router.include_router(decks.router, prefix="/decks", tags=["decks"])
 router.include_router(presentations.router, prefix="/presentations", tags=["presentations"])
 router.include_router(billing.router, prefix="/billing", tags=["billing"])

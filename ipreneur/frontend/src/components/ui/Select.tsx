@@ -40,10 +40,12 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   hint?: string;
   error?: string;
   options?: (SelectOption | string)[];
+  /** Rendered as an empty leading option — `placeholder` is not a valid <select> attribute. */
+  placeholder?: string;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  function Select({ label, hint, error, options = [], id, className = "", style, ...props }, ref) {
+  function Select({ label, hint, error, options = [], placeholder, id, className = "", style, ...props }, ref) {
     useInjectStyle("ipr-select-css", CSS);
     const autoId = React.useId();
     const fieldId = id || autoId;
@@ -53,7 +55,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {label ? <label className="ipr-field__label" htmlFor={fieldId}>{label}</label> : null}
         <div className="ipr-select-wrap">
           <select id={fieldId} ref={ref} className={["ipr-select", className].filter(Boolean).join(" ")} {...props}>
-            {props.placeholder && <option value="">{props.placeholder}</option>}
+            {placeholder && <option value="">{placeholder}</option>}
             {options.map((opt) => {
               const val = typeof opt === "string" ? opt : opt.value;
               const lbl = typeof opt === "string" ? opt : opt.label;

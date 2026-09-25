@@ -42,7 +42,7 @@ const ws = {
   divider: { width: 1, height: 18, background: "var(--border-default)", flexShrink: 0 } as React.CSSProperties,
   projName: { font: "700 14px var(--font-display)", color: "var(--text-strong)" } as React.CSSProperties,
   projUrl: { font: "400 12px var(--font-body)", color: "var(--text-faint)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const } as React.CSSProperties,
-  body: { display: "grid", gridTemplateColumns: "300px 1fr", gap: 26, maxWidth: 1180, margin: "0 auto", padding: "28px 28px 50px" } as React.CSSProperties,
+  body: { display: "grid", gridTemplateColumns: "250px 1fr", gap: 24, maxWidth: 1240, margin: "0 auto", padding: "24px 24px 50px" } as React.CSSProperties,
   topActions: { display: "flex", gap: 10, flexShrink: 0 } as React.CSSProperties,
 };
 

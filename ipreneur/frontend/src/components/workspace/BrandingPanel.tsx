@@ -23,8 +23,8 @@ const s = {
 export function BrandingPanel({ branding, project }: BrandingPanelProps) {
   const companyName = branding.companyName ?? project?.name ?? "Company";
   const companyUrl = (project?.companyUrl ?? project?.company_url ?? "").replace(/^https?:\/\//, "");
-  const fundingStage = branding.fundingStage ?? (branding as any).funding_stage;
-  const askAmount = (branding as any).askAmountUsd ?? (branding as any).ask_amount_usd;
+  const fundingStage = branding.fundingStage ?? branding.funding_stage;
+  const askAmount = branding.askAmountUsd ?? branding.ask_amount_usd;
   const hasPalette = branding.primaryColor || branding.secondaryColor;
 
   return (

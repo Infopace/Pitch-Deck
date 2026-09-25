@@ -44,9 +44,9 @@ export default {
       },
 
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        mono: ["JetBrains Mono", "Fira Code", "monospace"],
-        display: ['"Plus Jakarta Sans"', "Inter", "system-ui", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
+        mono: ["SF Mono", "ui-monospace", "Cascadia Code", "Segoe UI Mono", "Menlo", "Monaco", "Consolas", "monospace"],
+        display: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],
       },
 
       backgroundImage: {

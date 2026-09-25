@@ -565,6 +565,193 @@ SECTION_SPECS: dict[str, SectionSpec] = {
         skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Pillar", "d": "the bet, and what has to be true for it to pay off", "tags": ["Bet"]}, {"n": "02", "t": "...", "d": "...", "tags": ["..."]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
         rules="Each pillar states the bet AND the condition that would falsify it.",
     ),
+
+    # ── Go-to-market / business (Phase 3) ────────────────────────────────────
+    # Every one of these reuses an existing model and renderer. That reuse is
+    # why six new deck types need no new React code — see the module docstring.
+
+    "positioning": SectionSpec(
+        renderer="probsol", layout="two_column", label="Positioning",
+        prompt="where this sits in the buyer's mind, against the alternative they would otherwise pick",
+        model=ProbSolSection, caps={"problem": 3, "solution": 3},
+        skeleton='{"headline": "...", "sub": "the category and who it is for", "problemTitle": "The alternative", "problemLead": "what buyers do instead today", "solutionTitle": "Our position", "solutionLead": "the one thing we are best at", "problem": [{"k": "Bold lead", "t": "a limitation of the status quo"}, {"k": "...", "t": "..."}, {"k": "...", "t": "..."}], "solution": [{"k": "Bold lead", "t": "the claim we can defend"}, {"k": "...", "t": "..."}, {"k": "...", "t": "..."}], "problemFoot": "who we are explicitly NOT for", "solutionFoot": "the proof behind the claim"}',
+        rules=(
+            "A position is a claim someone could disagree with. 'High quality' and\n"
+            "'customer-focused' are not positions. Name the segment this is NOT for —\n"
+            "a position that excludes nobody positions nothing."
+        ),
+    ),
+
+    "messaging": SectionSpec(
+        renderer="product", layout="cards", label="Messaging",
+        prompt="the 3 messages that travel, each with the proof that makes it land",
+        model=ProductSection, caps={"steps": 3},
+        skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Message", "d": "the claim in the buyer own words, and the proof behind it", "tags": ["Proof"]}, {"n": "02", "t": "...", "d": "...", "tags": ["..."]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
+        rules="Each message pairs a claim with the evidence a sceptic would demand.",
+    ),
+
+    "segmentation": SectionSpec(
+        renderer="competition", layout="cards", label="Customer Segments",
+        prompt="the segments scored against the criteria that decide which to chase first",
+        model=CompetitionSection, caps={"rows": 6, "cols": 4},
+        skeleton='{"headline": "...", "cols": ["Beachhead segment", "Segment 2", "Segment 3", "Segment 4"], "rows": [{"f": "Urgency of pain", "v": [true, true, false, false]}, {"f": "Willingness to pay", "v": [true, false, true, false]}, {"f": "Ease of reach", "v": [true, false, false, false]}, {"f": "Low switching cost", "v": [true, true, false, false]}, {"f": "Reference value", "v": [true, false, true, false]}]}',
+        rules=(
+            "cols[0] is the beachhead — the segment being attacked first — and should\n"
+            "win most rows. Rows are the criteria that actually decide sequencing."
+        ),
+    ),
+
+    "acquisition": SectionSpec(
+        renderer="product", layout="cards", label="Acquisition",
+        prompt="the 3 motions that bring customers in, with their real economics",
+        model=ProductSection, caps={"steps": 3},
+        skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Motion", "d": "how it works and what it costs to acquire through it", "tags": ["CAC", "Volume"]}, {"n": "02", "t": "...", "d": "...", "tags": ["..."]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
+        rules="Name real motions (outbound, content, partner-led, PLG) — not 'marketing'.",
+    ),
+
+    "channels": SectionSpec(
+        renderer="competition", layout="cards", label="Channels",
+        prompt="channels scored on the dimensions that decide where to spend",
+        model=CompetitionSection, caps={"rows": 6, "cols": 4},
+        skeleton='{"headline": "...", "cols": ["Primary channel", "Channel 2", "Channel 3", "Channel 4"], "rows": [{"f": "Proven for us", "v": [true, false, false, false]}, {"f": "Scales with spend", "v": [true, true, false, false]}, {"f": "Low CAC", "v": [true, false, true, false]}, {"f": "Short payback", "v": [true, false, false, true]}, {"f": "Compounding", "v": [true, false, true, false]}]}',
+        rules="cols[0] is the channel that actually works today, not the aspirational one.",
+    ),
+
+    "funnel": SectionSpec(
+        renderer="roadmap", layout="timeline", label="Funnel",
+        prompt="the conversion path stage by stage, with the real rate at each step",
+        model=RoadmapSection, caps={"items": 4},
+        skeleton='{"headline": "...", "sub": "Lead to MQL to SQL to Opportunity to Customer", "items": [{"q": "Lead → MQL", "t": "32%", "d": "what qualifies a lead, and where the rest drop"}, {"q": "MQL → SQL", "t": "44%", "d": "..."}, {"q": "SQL → Opp", "t": "51%", "d": "..."}, {"q": "Opp → Won", "t": "28%", "d": "..."}]}',
+        rules=(
+            "q is the stage transition, t is the conversion rate at that step.\n"
+            "Use the founder's real rates where given; never invent a funnel that\n"
+            "multiplies out to a number the business does not actually produce."
+        ),
+    ),
+
+    "distribution": SectionSpec(
+        renderer="product", layout="cards", label="Distribution",
+        prompt="how the product reaches buyers — direct, partner, marketplace",
+        model=ProductSection, caps={"steps": 3},
+        skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Route", "d": "who sells, who delivers, who owns the customer", "tags": ["Direct"]}, {"n": "02", "t": "...", "d": "...", "tags": ["Partner"]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
+        rules="Each route names who owns the customer relationship — that is the decision.",
+    ),
+
+    "unitEconomics": SectionSpec(
+        renderer="traction", layout="big_number", label="Unit Economics",
+        prompt="the per-customer maths — a payback curve plus the 4 numbers that matter",
+        model=TractionSection, caps={"series": 8, "kpis": 4},
+        skeleton='{"headline": "...", "sub": "Cumulative contribution per customer ($K)", "series": [{"y": "M3", "v": -2}, {"y": "M6", "v": 3}, {"y": "M12", "v": 11}, {"y": "M24", "v": 26}], "kpis": [{"k": "3.4x", "l": "LTV:CAC"}, {"k": "9 mo", "l": "CAC payback"}, {"k": "78%", "l": "Gross margin"}, {"k": "118%", "l": "Net revenue retention"}]}',
+        rules=(
+            "Use the founder's CAC/LTV/margin exactly where supplied and derive the\n"
+            "rest from them. series[].v are NUMBERS and may start negative — the point\n"
+            "of a payback curve is the crossing point. If no unit economics were\n"
+            "provided, return kpis:[] rather than inventing a ratio."
+        ),
+    ),
+
+    "scalePlan": SectionSpec(
+        renderer="roadmap", layout="timeline", label="Scale Plan",
+        prompt="how distribution scales over 4 dated phases — geography, hiring, channels",
+        model=RoadmapSection, caps={"items": 4},
+        skeleton='{"headline": "...", "sub": "...", "items": [{"q": "Q1 2026", "t": "Phase", "d": "what expands, and the hire or channel it depends on"}, {"q": "Q2 2026", "t": "...", "d": "..."}, {"q": "Q3 2026", "t": "...", "d": "..."}, {"q": "Q4 2026", "t": "...", "d": "..."}]}',
+        rules="Each phase names the constraint it removes, not just the activity.",
+    ),
+
+    "salesMotion": SectionSpec(
+        renderer="roadmap", layout="timeline", label="Sales Motion",
+        prompt="the sales process end to end, with who does what at each stage",
+        model=RoadmapSection, caps={"items": 4},
+        skeleton='{"headline": "...", "sub": "Average cycle: N days", "items": [{"q": "Discovery", "t": "Who runs it", "d": "what has to be true to advance"}, {"q": "Evaluation", "t": "...", "d": "..."}, {"q": "Proposal", "t": "...", "d": "..."}, {"q": "Close", "t": "...", "d": "..."}]}',
+        rules="Each stage names its exit criterion — the thing that must be true to advance.",
+    ),
+
+    "financials": SectionSpec(
+        renderer="traction", layout="big_number", label="Financials",
+        prompt="the financial shape — a revenue curve plus 4 headline figures",
+        model=TractionSection, caps={"series": 8, "kpis": 4},
+        skeleton='{"headline": "...", "sub": "Revenue ($M)", "series": [{"y": "FY24", "v": 0.4}, {"y": "FY25", "v": 1.2}, {"y": "FY26", "v": 3.1}, {"y": "FY27", "v": 7.4}], "kpis": [{"k": "$3.1M", "l": "FY26 revenue"}, {"k": "72%", "l": "Gross margin"}, {"k": "$180K", "l": "Monthly burn"}, {"k": "14 mo", "l": "Runway"}]}',
+        rules=(
+            "Forecast years must follow from the founder's actual figures and stated\n"
+            "growth rate — state the assumption in sub. Never present a projection as\n"
+            "though it were history; label future periods clearly."
+        ),
+    ),
+
+    "operations": SectionSpec(
+        renderer="product", layout="cards", label="Operations",
+        prompt="how the business actually runs — delivery, support, the engine behind it",
+        model=ProductSection, caps={"steps": 3},
+        skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Function", "d": "how it works and what it costs to run", "tags": ["In-house"]}, {"n": "02", "t": "...", "d": "...", "tags": ["..."]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
+        rules="Name what is in-house versus outsourced — that is the operational risk.",
+    ),
+
+    # ── Master deck additions ────────────────────────────────────────────────
+    "story": SectionSpec(
+        renderer="summary", layout="big_number", label="Our Story",
+        prompt="why this company exists — the origin, in one paragraph and 4 markers",
+        model=SummarySection, caps={"highlights": 4},
+        skeleton='{"headline": "the insight the company was founded on", "lead": "2 sentences on where it came from and why these founders", "highlights": [{"k": "2023", "l": "Founded"}, {"k": "3", "l": "Founders"}, {"k": "12", "l": "Team"}, {"k": "2", "l": "Markets"}]}',
+        rules="An origin story earns its slide only if it explains founder-market fit.",
+    ),
+
+    "techIp": SectionSpec(
+        renderer="product", layout="cards", label="Technology & IP",
+        prompt="the technical substance — architecture, and what is genuinely hard to copy",
+        model=ProductSection, caps={"steps": 3},
+        skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Component", "d": "what it does and why it is hard to rebuild", "tags": ["Proprietary"]}, {"n": "02", "t": "...", "d": "...", "tags": ["..."]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
+        rules=(
+            "Only claim patents, proprietary data or IP that the research or the\n"
+            "founder actually evidenced. A fabricated patent is a diligence failure."
+        ),
+    ),
+
+    "security": SectionSpec(
+        renderer="product", layout="cards", label="Security & Compliance",
+        prompt="the controls and certifications an enterprise buyer will ask about",
+        model=ProductSection, caps={"steps": 3},
+        skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Area", "d": "the control, and its current status", "tags": ["In place"]}, {"n": "02", "t": "...", "d": "...", "tags": ["In progress"]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
+        rules=(
+            "NEVER claim a certification (SOC 2, ISO 27001, HIPAA, GDPR) that was not\n"
+            "evidenced — tag it 'In progress' or omit it. Claiming an audit you have\n"
+            "not passed is the fastest way to lose an enterprise deal."
+        ),
+    ),
+
+    "moat": SectionSpec(
+        renderer="probsol", layout="two_column", label="Moat & Defensibility",
+        prompt="what compounds in this company's favour, and what a rival would have to overcome",
+        model=ProbSolSection, caps={"problem": 3, "solution": 3},
+        skeleton='{"headline": "...", "sub": "why this gets harder to beat over time", "problemTitle": "What a rival faces", "problemLead": "the barrier in one bold line", "solutionTitle": "What compounds for us", "solutionLead": "the advantage that grows", "problem": [{"k": "Bold lead", "t": "a cost or delay any entrant must absorb"}, {"k": "...", "t": "..."}, {"k": "...", "t": "..."}], "solution": [{"k": "Bold lead", "t": "an advantage that strengthens with scale"}, {"k": "...", "t": "..."}, {"k": "...", "t": "..."}], "problemFoot": "the moat we do not yet have", "solutionFoot": "what widens it fastest"}',
+        rules=(
+            "Features are not moats. Real ones: proprietary data, network effects,\n"
+            "switching costs, regulatory position, distribution locks. Naming the moat\n"
+            "the company lacks is a credibility gain, not a loss."
+        ),
+    ),
+
+    "capTable": SectionSpec(
+        renderer="ask", layout="cards", label="Cap Table",
+        prompt="ownership split, totalling 100%",
+        model=AskSection, caps={"use": 4},
+        skeleton='{"headline": "Ownership", "sub": "fully diluted", "use": [{"l": "Founders", "p": 62}, {"l": "Investors", "p": 22}, {"l": "Option pool", "p": 12}, {"l": "Advisors", "p": 4}]}',
+        rules=(
+            "use[].p are percentages totalling 100. Use only ownership the founder\n"
+            "actually supplied — an invented cap table is a legal misstatement.\n"
+            "If none was given, return use:[]."
+        ),
+    ),
+
+    "partnerships": SectionSpec(
+        renderer="product", layout="cards", label="Partnerships",
+        prompt="the partnerships that matter, and what each actually delivers",
+        model=ProductSection, caps={"steps": 3},
+        skeleton='{"headline": "...", "sub": "...", "steps": [{"n": "01", "t": "Partner", "d": "what the relationship delivers in practice", "tags": ["Signed"]}, {"n": "02", "t": "...", "d": "...", "tags": ["In pilot"]}, {"n": "03", "t": "...", "d": "...", "tags": ["..."]}]}',
+        rules=(
+            "Name only real, evidenced partners and tag their true status. An LOI is\n"
+            "not a contract and a conversation is not a partnership."
+        ),
+    ),
 }
 
 

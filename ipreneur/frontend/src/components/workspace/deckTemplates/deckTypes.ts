@@ -73,7 +73,28 @@ const SECTIONS: Record<string, { renderer: RendererId; eyebrow: string }> = {
   vision: { renderer: "vision", eyebrow: "Vision" },
   values: { renderer: "product", eyebrow: "Operating principles" },
   pillars: { renderer: "product", eyebrow: "Strategic pillars" },
-};
+
+  // ── Go-to-market / business / master (Phase 3) ──────────────────────
+  // All of these route through renderers that already exist, which is why
+  // six new deck types needed no new React components.
+  positioning: { renderer: "probsol", eyebrow: "Positioning" },
+  messaging: { renderer: "product", eyebrow: "Messaging" },
+  segmentation: { renderer: "competition", eyebrow: "Customer Segments" },
+  acquisition: { renderer: "product", eyebrow: "Acquisition" },
+  channels: { renderer: "competition", eyebrow: "Channels" },
+  funnel: { renderer: "roadmap", eyebrow: "Funnel" },
+  distribution: { renderer: "product", eyebrow: "Distribution" },
+  unitEconomics: { renderer: "traction", eyebrow: "Unit Economics" },
+  scalePlan: { renderer: "roadmap", eyebrow: "Scale Plan" },
+  salesMotion: { renderer: "roadmap", eyebrow: "Sales Motion" },
+  financials: { renderer: "traction", eyebrow: "Financials" },
+  operations: { renderer: "product", eyebrow: "Operations" },
+  story: { renderer: "summary", eyebrow: "Our Story" },
+  techIp: { renderer: "product", eyebrow: "Technology & IP" },
+  security: { renderer: "product", eyebrow: "Security & Compliance" },
+  moat: { renderer: "probsol", eyebrow: "Moat & Defensibility" },
+  capTable: { renderer: "ask", eyebrow: "Cap Table" },
+  partnerships: { renderer: "product", eyebrow: "Partnerships" },};
 
 export interface DeckTypeSpec {
   key: string;
@@ -89,44 +110,125 @@ export const DECK_TYPES: Record<string, DeckTypeSpec> = {
     key: "investor",
     label: "Investor / Fundraising",
     description: "Raise capital from angels or VCs. Problem, market, traction, team, ask.",
-    sections: ["cover", "summary", "probsol", "product", "market", "model",
-      "traction", "competition", "roadmap", "galleryS", "team", "ask", "closing"],
+    sections: [
+      "cover", "summary", "story", "probsol", "persona", "product", "galleryS", "techIp",
+      "market", "segmentation", "model", "traction", "proof", "unitEconomics", "competition",
+      "moat", "gtm", "financials", "roadmap", "risks", "team", "ask", "capTable", "closing",
+    ],
   },
   sales: {
     key: "sales",
     label: "Sales / Customer",
     description: "Win a customer. Their pain, your fix, proof it works, pricing, next step.",
-    sections: ["cover", "probsol", "competition", "product", "proof", "roi", "model", "roadmap", "closing"],
+    sections: [
+      "cover", "probsol", "persona", "competition", "product", "galleryS", "proof", "roi",
+      "unitEconomics", "security", "model", "partnerships", "roadmap", "closing",
+    ],
   },
   product: {
     key: "product",
     label: "Product / Demo",
     description: "Show the product. User, workflow, screens, differentiators, roadmap.",
-    sections: ["cover", "persona", "probsol", "product", "galleryS", "competition", "roadmap", "closing"],
+    sections: [
+      "cover", "persona", "probsol", "product", "galleryS", "techIp", "security", "proof",
+      "competition", "moat", "model", "traction", "roadmap", "closing",
+    ],
   },
   partnership: {
     key: "partnership",
     label: "Partnership / Collaboration",
     description: "Propose a partnership. Mutual value, model, joint GTM, economics.",
-    sections: ["cover", "summary", "product", "partnerRole", "partnershipModel", "gtm", "ask", "traction", "closing"],
+    sections: [
+      "cover", "summary", "probsol", "product", "partnerRole", "partnershipModel",
+      "segmentation", "gtm", "distribution", "traction", "proof", "techIp", "roadmap", "ask",
+      "closing",
+    ],
   },
   internal: {
     key: "internal",
     label: "Internal / Decision Memo",
     description: "Get internal buy-in. Recommendation, options, plan, resources, risks.",
-    sections: ["cover", "recommendation", "probsol", "summary", "product", "options", "roadmap", "ask", "risks", "closing"],
+    sections: [
+      "cover", "recommendation", "probsol", "summary", "product", "options", "roadmap", "ask",
+      "risks", "closing",
+    ],
   },
   update: {
     key: "update",
     label: "Investor Update",
     description: "Report to existing investors. Metrics, wins, challenges, asks, outlook.",
-    sections: ["cover", "period", "traction", "wins", "roadmap", "market", "team", "closing"],
+    sections: [
+      "cover", "period", "traction", "wins", "roadmap", "market", "team", "closing",
+    ],
   },
   vision: {
     key: "vision",
     label: "Vision / Mission",
     description: "Align people on the long game. Vision, principles, pillars, horizons.",
-    sections: ["cover", "vision", "summary", "values", "pillars", "roadmap", "traction", "closing"],
+    sections: [
+      "cover", "vision", "summary", "values", "pillars", "roadmap", "traction", "closing",
+    ],
+  },
+
+  general: {
+    key: "general",
+    label: "General / Company Overview",
+    description: "The foundational company story. Problem, solution, market, model, team.",
+    sections: [
+      "cover", "summary", "story", "probsol", "persona", "product", "galleryS", "market",
+      "model", "traction", "proof", "competition", "moat", "gtm", "roadmap", "team", "vision",
+      "ask", "risks", "closing",
+    ],
+  },
+  elevator: {
+    key: "elevator",
+    label: "Elevator / Five Slides",
+    description: "Five slides. Hook, problem, product, proof, ask — nothing else.",
+    sections: [
+      "cover", "probsol", "product", "traction", "closing",
+    ],
+  },
+  demoday: {
+    key: "demoday",
+    label: "Demo Day",
+    description: "A ten-minute stage pitch. Hook, pain, product, market, proof, ask.",
+    sections: [
+      "cover", "probsol", "persona", "product", "market", "traction", "competition", "team",
+      "ask", "closing",
+    ],
+  },
+  gtm: {
+    key: "gtm",
+    label: "Go-to-Market",
+    description: "How you reach, convert and keep customers. ICP, channels, funnel, economics.",
+    sections: [
+      "cover", "summary", "market", "persona", "segmentation", "positioning", "messaging",
+      "acquisition", "channels", "salesMotion", "funnel", "distribution", "partnerships",
+      "unitEconomics", "proof", "traction", "scalePlan", "operations", "roadmap", "risks",
+      "team", "closing",
+    ],
+  },
+  business: {
+    key: "business",
+    label: "Business Plan",
+    description: "How the company operates, earns and scales. Model, sales, ops, financials.",
+    sections: [
+      "cover", "summary", "probsol", "persona", "product", "model", "segmentation",
+      "positioning", "salesMotion", "gtm", "funnel", "channels", "traction", "proof",
+      "unitEconomics", "financials", "operations", "partnerships", "competition", "team",
+      "roadmap", "risks", "scalePlan", "closing",
+    ],
+  },
+  master: {
+    key: "master",
+    label: "Extended / Master",
+    description: "The complete company record. Every section, for reuse and reference.",
+    sections: [
+      "cover", "summary", "story", "probsol", "persona", "product", "techIp", "security",
+      "market", "model", "traction", "unitEconomics", "gtm", "salesMotion", "operations",
+      "partnerships", "competition", "moat", "financials", "ask", "capTable", "roadmap",
+      "risks", "team", "closing",
+    ],
   },
 };
 
@@ -140,12 +242,26 @@ export const DECK_TYPES: Record<string, DeckTypeSpec> = {
  */
 export function slideOrder(
   deckType?: string | null,
-  stored?: readonly string[] | null
+  stored?: readonly string[] | null,
+  available?: Readonly<Record<string, unknown>> | null
 ): SlideSlot[] {
-  const keys =
-    stored && stored.length
-      ? stored
-      : (DECK_TYPES[deckType || DEFAULT_DECK_TYPE] ?? DECK_TYPES[DEFAULT_DECK_TYPE]).sections;
+  const spec = DECK_TYPES[deckType || DEFAULT_DECK_TYPE] ?? DECK_TYPES[DEFAULT_DECK_TYPE];
+  let keys: readonly string[];
+
+  if (stored && stored.length) {
+    // The deck recorded the sequence it was generated against — always wins.
+    keys = stored;
+  } else if (available) {
+    // A deck generated before `slide_order` was persisted. Using the current
+    // registry default would be wrong: deck types get longer over time, and the
+    // extra sections have no content in an older deck, so it would render a run
+    // of blank slides. Keep the registry's ORDER but only the sections this
+    // deck actually has data for.
+    const present = spec.sections.filter((k) => available[k] != null);
+    keys = present.length ? ["cover", ...present.filter((k) => k !== "cover")] : spec.sections;
+  } else {
+    keys = spec.sections;
+  }
 
   return keys
     .filter((k) => SECTIONS[k])

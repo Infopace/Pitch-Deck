@@ -1,4 +1,4 @@
-"""
+﻿"""
 Projects endpoints — CRUD + AI analysis trigger.
 
 POST   /projects          → create project
@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
 from app.api.deps.auth import get_current_user
-from app.db.session import get_db, get_db_context, get_background_db_context
+from app.db.session import get_db, get_db_context
 from app.decks.registry import DEFAULT_DECK_FORMAT, DEFAULT_DECK_TYPE, resolve_sections
 from app.models.models import Job, Project, User, Presentation
 from app.schemas.project import (
@@ -47,11 +47,11 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
     from datetime import datetime, timezone
 
     async def update_job(**kwargs):
-        async with get_background_db_context() as db:
+        async with get_db_context() as db:
             await db.execute(update(Job).where(Job.id == job_id).values(**kwargs))
 
     async def update_project(**kwargs):
-        async with get_background_db_context() as db:
+        async with get_db_context() as db:
             await db.execute(update(Project).where(Project.id == project_id).values(**kwargs))
 
     logger.info(f"🚀 Pipeline starting | project={project_id} job={job_id}")
@@ -59,12 +59,35 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
 
     try:
         # Load project data
-        async with get_background_db_context() as db:
+        async with get_db_context() as db:
             _proj = await db.get(Project, project_id)
             _user_input: dict = (_proj.branding_data or {}) if _proj else {}
             _company_url: Optional[str] = _proj.company_url if _proj else None
             _saved_template_key: Optional[str] = _proj.template_key if _proj else None
             _deck_type: str = (getattr(_proj, "deck_type", None) or DEFAULT_DECK_TYPE) if _proj else DEFAULT_DECK_TYPE
+            _profile_id: Optional[str] = getattr(_proj, "profile_id", None) if _proj else None
+
+        # The company profile, when this project is attached to one. It is the
+        # master parameter set the spec is built around: collected once per
+        # company, selected from per deck. Projects with no profile fall back to
+        # the flat branding_data path unchanged.
+        _profile_block = ""
+        if _profile_id:
+            try:
+                from app.models.models import CompanyProfile
+                from app.profile.prompt import render_profile_for_deck
+                from app.profile.values import ProfileValues
+                async with get_db_context() as db:
+                    _profile = await db.get(CompanyProfile, _profile_id)
+                if _profile is not None:
+                    _profile_block = render_profile_for_deck(
+                        ProfileValues.load(_profile.values),
+                        _deck_type,
+                        stage=(_user_input.get("funding_stage") or None),
+                    )
+            except Exception as exc:
+                # A profile problem must never cost the founder their deck.
+                logger.warning(f"profile load failed, continuing without it: {exc}")
 
         # Stage and presentation format are collected on the intake form and ride
         # in branding_data with the rest of the founder's answers.
@@ -116,6 +139,7 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
                 deck_type=_deck_type,
                 stage=_stage,
                 deck_format=_deck_format,
+                profile_block=_profile_block,
             )
             logger.info(f"✓ Master agent generated {len(master_result.slides)} slides | type={_deck_type}")
             
@@ -166,6 +190,14 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
         if master_result.branding.logo_url:
             logo_bytes = await fetch_image_bytes(master_result.branding.logo_url)
 
+        # Photos the founder uploaded for the Gallery slide. Without these the
+        # PPTX drew captioned placeholders while the on-screen deck showed the
+        # real images.
+        from app.services.storage.assets import load_gallery_bytes
+        async with get_db_context() as db:
+            _assets = (await db.get(Project, project_id)).assets or {}
+        gallery_bytes = await load_gallery_bytes(_assets)
+
         slide_backgrounds: dict = {}
 
         # ── Step 4: Render PPT ───────────────────────────────────────────────
@@ -182,6 +214,7 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
             template_key=_template_key,
             template_data=master_result.template_data,
             sections=master_result.slide_order or _sections,
+            gallery_bytes=gallery_bytes,
         )
         await update_job(total_progress=95, message="Presentation rendered")
 
@@ -197,7 +230,7 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
         # branding_data instead of replacing it, so founder-entered context (problem
         # statement, founders, financials, etc. — critical for no-website projects,
         # which have no other source of that data) survives a retry.
-        async with get_background_db_context() as db:
+        async with get_db_context() as db:
             await db.execute(
                 update(Project).where(Project.id == project_id).values(
                     status="ready",
@@ -252,7 +285,7 @@ async def _run_analysis_safe(project_id: str, job_id: str) -> None:
     
     # Immediate database update to confirm thread is running
     try:
-        async with get_background_db_context() as db:
+        async with get_db_context() as db:
             await db.execute(
                 update(Job).where(Job.id == job_id).values(
                     message="THREAD STARTED: Analysis pipeline initializing..."
@@ -308,6 +341,7 @@ async def create_project(
             company_url=str(payload.company_url) if payload.company_url else None,
             status="draft",
             deck_type=payload.deck_type,
+            profile_id=payload.profile_id,
             branding_data=payload.branding_data,
         )
         db.add(project)

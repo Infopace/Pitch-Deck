@@ -4,7 +4,8 @@
  * deck_content.template_data.
  */
 import { useEffect, useMemo, useState } from "react";
-import { THEMES, getTheme, ensureDeckFonts, DEFAULT_THEME_KEY } from "./themes";
+import { CLASSIC_THEMES, STUDIO_THEMES, VOLUME2_THEMES, INFOGRAPHIC_THEMES, getTheme, ensureDeckFonts, DEFAULT_THEME_KEY } from "./themes";
+import type { DeckTemplate } from "./themes";
 import { TemplateDeckData } from "./types";
 import { deckTypeLabel, slideOrder } from "./deckTypes";
 import { TemplatedDeck, renderSlide } from "./TemplatedDeck";
@@ -50,7 +51,13 @@ interface Props {
 export function TemplatedDeckSection({ data: rawData, deckType, slideOrder: storedOrder, initialKey, assets, onPersist, fileName, registerExport, editable, onEdit }: Props) {
   useEffect(() => { ensureDeckFonts(); }, []);
 
-  const order = useMemo(() => slideOrder(deckType, storedOrder), [deckType, storedOrder]);
+  // `data` is passed so a deck generated before slide_order was persisted
+  // renders only the sections it actually has, not the current (longer)
+  // registry default padded with blanks.
+  const order = useMemo(
+    () => slideOrder(deckType, storedOrder, rawData as unknown as Record<string, unknown>),
+    [deckType, storedOrder, rawData]
+  );
 
   // Normalize backend assets (camel/snake) → absolute URLs, inject into deck data.
   const data = useMemo(() => {
@@ -90,6 +97,20 @@ export function TemplatedDeckSection({ data: rawData, deckType, slideOrder: stor
     onPersist?.(key);
   };
 
+  const [activeFamily, setActiveFamily] = useState<string>("all");
+
+  const families: [string, DeckTemplate[]][] = useMemo(() => [
+    ["Classic", CLASSIC_THEMES],
+    ["Studio", STUDIO_THEMES],
+    ["Volume 2", VOLUME2_THEMES],
+    ["Infographic", INFOGRAPHIC_THEMES],
+  ], []);
+
+  const visibleFamilies = useMemo(() =>
+    activeFamily === "all" ? families : families.filter(([l]) => l === activeFamily),
+    [activeFamily, families]
+  );
+
   const THUMB_W = 150;
   const scale = THUMB_W / 1280;
 
@@ -97,46 +118,94 @@ export function TemplatedDeckSection({ data: rawData, deckType, slideOrder: stor
     <div className="space-y-5">
       {/* ── Template picker strip ─────────────────────────────────── */}
       <div>
-        <div className="flex items-center justify-between mb-2.5">
-          <h3 style={{ font: "600 13px var(--font-display)", color: "var(--text-strong)" }}>
-            Template
-          </h3>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <h3 style={{ font: "600 13px var(--font-display)", color: "var(--text-strong)" }}>
+              Templates
+            </h3>
+            <span style={{ fontSize: "11px", fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: "rgba(99, 102, 241, 0.12)", color: "#6366F1" }}>
+              40 Themes Total
+            </span>
+          </div>
           <span style={{ font: "400 12px var(--font-body)", color: "var(--text-muted)" }}>
-            {deckTypeLabel(deckType)} · {order.length} slides · {theme.name}
+            {deckTypeLabel(deckType)} · {order.length} slides · Current: <strong style={{ color: "var(--text-strong)" }}>{theme.name}</strong>
           </span>
         </div>
-        <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
-          {THEMES.map((t) => {
-            const selected = t.key === activeKey;
+
+        {/* Family tabs */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+          {[
+            ["all", "All Themes (40)"],
+            ["Infographic", "Infographic (10) ✨"],
+            ["Volume 2", "Volume 2 (10)"],
+            ["Studio", "Studio (10)"],
+            ["Classic", "Classic (10)"],
+          ].map(([key, tabLabel]) => {
+            const on = activeFamily === key;
             return (
               <button
-                key={t.key}
-                onClick={() => select(t.key)}
-                title={`${t.name} — ${t.mood}`}
+                key={key}
+                type="button"
+                onClick={() => setActiveFamily(key)}
                 style={{
-                  flexShrink: 0,
-                  padding: 0,
-                  borderRadius: 10,
-                  overflow: "hidden",
+                  padding: "4px 12px",
+                  borderRadius: 999,
+                  fontSize: "11.5px",
+                  fontWeight: on ? 600 : 500,
+                  background: on ? "#0F172A" : "var(--surface-card, #f8fafc)",
+                  color: on ? "#ffffff" : "var(--text-muted, #64748b)",
+                  border: on ? "1px solid #0F172A" : "1px solid var(--border-subtle, #e2e8f0)",
                   cursor: "pointer",
-                  background: "transparent",
-                  border: selected ? `2px solid ${t.accent}` : "2px solid var(--border-subtle)",
-                  boxShadow: selected ? `0 4px 16px ${t.accent}40` : "none",
-                  transition: "border-color .15s ease, box-shadow .15s ease",
+                  transition: "all 0.15s ease",
                 }}
               >
-                <div style={{ width: THUMB_W, height: 720 * scale, overflow: "hidden", position: "relative" }}>
-                  <div style={{ width: 1280, height: 720, transform: `scale(${scale})`, transformOrigin: "top left" }}>
-                    {renderSlide(t, data, 0, undefined, order)}
-                  </div>
-                </div>
-                <div style={{ padding: "5px 8px", background: "var(--surface-page)", textAlign: "left" }}>
-                  <div style={{ font: "600 10.5px var(--font-body)", color: "var(--text-strong)", whiteSpace: "nowrap" }}>{t.name}</div>
-                </div>
+                {tabLabel}
               </button>
             );
           })}
         </div>
+
+        {visibleFamilies.map(([label, group]) => (
+          <div key={label} style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "2px 0 6px" }}>
+              <span style={{ font: "600 10.5px var(--font-body)", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--text-faint)" }}>
+                {label} ({group.length} themes)
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
+              {group.map((t) => {
+                const selected = t.key === activeKey;
+                return (
+                  <button
+                    key={t.key}
+                    onClick={() => select(t.key)}
+                    title={`${t.name} — ${t.mood}`}
+                    style={{
+                      flexShrink: 0,
+                      padding: 0,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      cursor: "pointer",
+                      background: "transparent",
+                      border: selected ? `2px solid ${t.accent}` : "2px solid var(--border-subtle)",
+                      boxShadow: selected ? `0 4px 16px ${t.accent}40` : "none",
+                      transition: "border-color .15s ease, box-shadow .15s ease",
+                    }}
+                  >
+                    <div style={{ width: THUMB_W, height: 720 * scale, overflow: "hidden", position: "relative" }}>
+                      <div style={{ width: 1280, height: 720, transform: `scale(${scale})`, transformOrigin: "top left" }}>
+                        {renderSlide(t, data, 0, undefined, order)}
+                      </div>
+                    </div>
+                    <div style={{ padding: "5px 8px", background: "var(--surface-page)", textAlign: "left" }}>
+                      <div style={{ font: "600 10.5px var(--font-body)", color: "var(--text-strong)", whiteSpace: "nowrap" }}>{t.name}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* ── Live deck in the selected template ────────────────────── */}

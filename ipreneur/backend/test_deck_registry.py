@@ -134,11 +134,37 @@ def test_slide_number_map_matches_positions(key, stage, sections):
 
 
 def test_investor_order_is_unchanged():
-    """Regression lock: existing decks were generated against this exact order."""
+    """Regression lock on the investor sequence.
+
+    Deliberately updated when the deck was extended from 13 to 24 slides. Decks
+    generated before that keep rendering correctly regardless, because each deck
+    persists its own `slide_order` and that wins over the registry at render
+    time — this lock exists to make any *further* change a conscious one.
+    """
     assert resolve_sections("investor") == (
-        "cover", "summary", "probsol", "product", "market", "model",
-        "traction", "competition", "roadmap", "galleryS", "team", "ask", "closing",
+        "cover", "summary", "story", "probsol", "persona", "product", "galleryS",
+        "techIp", "market", "segmentation", "model", "traction", "proof",
+        "unitEconomics", "competition", "moat", "gtm", "financials", "roadmap",
+        "risks", "team", "ask", "capTable", "closing",
     )
+
+
+def test_long_form_decks_reach_the_target_length():
+    """The long-form types must land in the 20-30 slide band.
+
+    The short types are excluded on purpose: the spec is explicit that the
+    Elevator deck is five slides and Demo Day is a ten-minute stage pitch, and
+    an investor update or internal memo is not a 24-slide document. Padding
+    those would make them worse, not longer.
+    """
+    for key in ("investor", "general", "business", "gtm", "master"):
+        n = len(resolve_sections(key))
+        assert 20 <= n <= 30, f"{key} has {n} slides"
+
+
+def test_deliberately_short_decks_stay_short():
+    assert len(resolve_sections("elevator")) == 5
+    assert len(resolve_sections("demoday")) == 10
 
 
 def test_unknown_deck_type_falls_back_to_investor():
@@ -202,3 +228,38 @@ def test_prompt_blocks_build(key, stage, sections):
 
     build_section_rules(sections)
     assert str(len(sections)) in build_slides_skeleton(sections)
+
+
+# ── Re-rendering decks that predate `slide_order` ────────────────────────────
+
+def test_stored_order_always_wins():
+    from app.decks.registry import sections_for_stored_deck
+    assert sections_for_stored_deck("investor", ["cover", "team", "closing"], None) == \
+        ("cover", "team", "closing")
+
+
+def test_old_deck_without_stored_order_is_not_padded_with_blanks():
+    """The investor deck grew 13 -> 24. A deck generated before `slide_order`
+    was persisted has no content for the 11 added sections, so re-rendering it
+    against today's registry would emit eleven blank slides."""
+    from app.decks.registry import sections_for_stored_deck
+    legacy = {k: {"headline": "x"} for k in (
+        "summary", "probsol", "product", "market", "model", "traction",
+        "competition", "roadmap", "galleryS", "team", "ask", "closing")}
+    got = sections_for_stored_deck("investor", None, legacy)
+    assert len(got) == 13
+    assert got[0] == "cover"
+    assert "capTable" not in got and "techIp" not in got
+
+
+def test_order_is_preserved_not_just_filtered():
+    from app.decks.registry import sections_for_stored_deck
+    legacy = {k: {"headline": "x"} for k in ("closing", "team", "summary")}
+    got = sections_for_stored_deck("investor", None, legacy)
+    assert got == ("cover", "summary", "team", "closing")
+
+
+def test_no_template_data_falls_back_to_the_registry():
+    from app.decks.registry import sections_for_stored_deck
+    assert sections_for_stored_deck("investor", None, None) == resolve_sections("investor")
+    assert sections_for_stored_deck("investor", None, {}) == resolve_sections("investor")

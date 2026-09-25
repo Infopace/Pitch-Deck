@@ -21,6 +21,9 @@ class ProjectCreate(BaseModel):
     start_analysis: bool = False
     branding_data: Optional[dict[str, Any]] = None
     deck_type: str = DEFAULT_DECK_TYPE
+    #: The company profile to draw facts from. Optional — a project without one
+    #: reads branding_data exactly as it did before profiles existed.
+    profile_id: Optional[str] = None
 
     @field_validator("deck_type")
     @classmethod
@@ -86,6 +89,7 @@ class ProjectResponse(BaseModel):
     error_message: Optional[str] = None
     deck_type: str = DEFAULT_DECK_TYPE
     template_key: Optional[str] = None
+    profile_id: Optional[str] = None
     assets: Optional[dict] = None
     created_at: datetime
     updated_at: datetime

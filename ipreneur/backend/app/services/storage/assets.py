@@ -10,6 +10,7 @@ with an uploader that returns a public URL — nothing else changes.
 """
 import os
 import uuid
+from typing import Optional
 
 from fastapi import UploadFile
 
@@ -50,3 +51,49 @@ async def save_upload(project_id: str, file: UploadFile, kind: str) -> str:
         fh.write(data)
 
     return f"/uploads/{project_id}/{fname}"
+
+
+def read_asset_bytes(url: Optional[str]) -> Optional[bytes]:
+    """Read a locally-stored asset back by the relative URL save_upload() returned.
+
+    The PPTX renderer needs the raw bytes of user-uploaded gallery photos. They
+    live on this machine at backend/uploads/<project_id>/<file>, so read them off
+    disk rather than issuing an HTTP request back to our own StaticFiles mount —
+    that would need a base URL the worker doesn't reliably know, and would fail
+    whenever the app is behind a proxy or a different internal port.
+
+    Returns None for anything that isn't one of our own relative /uploads paths
+    (an absolute S3/CDN URL, say) so callers can fall back to fetch_image_bytes.
+    """
+    if not url or not url.startswith("/uploads/"):
+        return None
+    rel = url[len("/uploads/"):]
+    # Refuse traversal: the resolved path must stay inside UPLOAD_DIR.
+    path = os.path.normpath(os.path.join(UPLOAD_DIR, rel))
+    if not path.startswith(os.path.normpath(UPLOAD_DIR) + os.sep):
+        return None
+    try:
+        with open(path, "rb") as fh:
+            return fh.read()
+    except OSError:
+        return None
+
+
+async def load_gallery_bytes(assets: Optional[dict]) -> dict:
+    """{slot id -> image bytes} for a project's uploaded gallery photos.
+
+    Slots with unreadable or non-raster files are omitted, so the renderer falls
+    back to the captioned placeholder for those tiles rather than failing.
+    """
+    out: dict = {}
+    for img in (assets or {}).get("gallery_images", []) or []:
+        slot, url = img.get("slot"), img.get("url")
+        if not slot or not url:
+            continue
+        data = read_asset_bytes(url)
+        if data is None and url.startswith(("http://", "https://")):
+            from app.services.images.image_service import fetch_image_bytes
+            data = await fetch_image_bytes(url)
+        if data:
+            out[slot] = data
+    return out

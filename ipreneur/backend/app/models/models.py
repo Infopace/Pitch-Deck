@@ -89,6 +89,44 @@ class User(Base):
 
 # ΓöÇΓöÇΓöÇ Project ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
+class CompanyProfile(Base):
+    """The master parameter set for one company, reused by every deck.
+
+    The spec's central instruction is that parameters are collected once and
+    selected from, not re-entered per deck:
+
+        "Master Deck collects everything once → other deck types reuse the same
+         parameters selectively."
+
+    `values` is `{parameter name: {value, source, method, confidence, as_of}}`
+    keyed by `app.profile.parameters`. It is a JSON blob deliberately: the
+    catalogue is ~924 sparse parameters, which is the wrong shape for columns,
+    and JSONType already works on both SQLite and Postgres.
+    """
+    __tablename__ = "company_profiles"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    values: Mapped[Optional[dict]] = mapped_column(JSONType, default=dict)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    user: Mapped["User"] = relationship("User")
+    projects: Mapped[list["Project"]] = relationship(
+        "Project", back_populates="profile"
+    )
+
+
 class Project(Base):
     __tablename__ = "projects"
 
@@ -118,6 +156,12 @@ class Project(Base):
     # support is, so existing rows need no backfill beyond the column default.
     deck_type: Mapped[str] = mapped_column(String(32), default="investor", nullable=False, server_default="investor")
 
+    # The company profile this deck draws its facts from. Nullable: projects
+    # created before profiles existed keep reading branding_data unchanged.
+    profile_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("company_profiles.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+
     # User-selected deck template (one of the 10 theme keys). Null = use default.
     template_key: Mapped[Optional[str]] = mapped_column(String(32))
 
@@ -146,6 +190,9 @@ class Project(Base):
         "Presentation", back_populates="project"
     )
     jobs: Mapped[list["Job"]] = relationship("Job", back_populates="project")
+    profile: Mapped[Optional["CompanyProfile"]] = relationship(
+        "CompanyProfile", back_populates="projects"
+    )
 
     def __repr__(self) -> str:
         return f"<Project id={self.id} name={self.name} status={self.status}>"

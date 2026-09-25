@@ -185,6 +185,7 @@ class MasterDeckAgent:
         deck_type: str = DEFAULT_DECK_TYPE,
         stage: Optional[str] = None,
         deck_format: str = DEFAULT_DECK_FORMAT,
+        profile_block: str = "",
     ) -> MasterDeckResult:
         company_name = user_inputs.get("company_name", "")
         dt = get_deck_type(deck_type)
@@ -706,6 +707,7 @@ Return ONLY valid JSON:
         sections: Optional[Sequence[str]] = None,
         stage: Optional[str] = None,
         deck_format: str = DEFAULT_DECK_FORMAT,
+        profile_block: str = "",
     ) -> str:
         # The slide plan, per-section rules and both JSON skeletons are built
         # from the deck-type registry rather than written out here, so a deck's
@@ -730,11 +732,51 @@ Return ONLY valid JSON:
         if u.get("growth_rate_mom_pct"):
             financials.append(f"MoM Growth: {u['growth_rate_mom_pct']}%")
 
+        # Company shape and unit economics. These ride in branding_data from the
+        # intake form; CompanyIntake.to_prompt_section() has always formatted
+        # them, but the live pipeline builds its own block here and used to drop
+        # them on the floor.
+        def _num(key):
+            """branding_data is JSON, so a figure may arrive as "1200" or 1200."""
+            v = u.get(key)
+            if v is None or v == "":
+                return None
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return None
+
+        if u.get("founded_year"):
+            financials.append(f"Founded: {u['founded_year']}")
+        if u.get("team_size"):
+            financials.append(f"Team Size: {u['team_size']}")
+
+        cac, ltv = _num("cac_usd"), _num("ltv_usd")
+        if cac is not None:
+            financials.append(f"CAC: ${cac:,.0f}")
+        if ltv is not None:
+            financials.append(f"LTV: ${ltv:,.0f}")
+        if cac and ltv:
+            financials.append(f"LTV:CAC: {ltv / cac:.1f}x")
+
+        churn, nrr = _num("churn_rate_pct"), _num("nrr_pct")
+        if churn is not None:
+            financials.append(f"Monthly Churn: {churn:.1f}%")
+        if nrr is not None:
+            financials.append(f"Net Revenue Retention: {nrr:.0f}%")
+        if u.get("round_type"):
+            financials.append(f"Round: {u['round_type']}")
+
         financials_block = "\n".join(f"  - {f}" for f in financials) if financials else "  - Not provided"
         company_name = u.get("company_name", "")
         industry = u.get("industry", "")
         pricing_block = "\n".join(f"  • {p}" for p in pricing_info[:5]) if pricing_info else "  • No pricing info found on website"
         brief_block = self._brief_block(deck_type, u)
+        # The company profile, when the project has one. It supersedes nothing —
+        # the founder's per-deck brief and the flat financials above still apply
+        # — but it is the richer, provenance-tagged source and is stated last so
+        # it reads as the most specific instruction.
+        profile_section = "\n" + profile_block.strip() + "\n" if profile_block.strip() else ""
 
         # Serialize verified research for injection (cap size to stay within TPM).
         # "sources" is a list of long grounding-redirect URLs kept for audit purposes —
@@ -781,7 +823,7 @@ Industry: {industry or "→ extract from website content"}
 
 Founder-provided financials (ground truth — use exactly):
 {financials_block}
-{brief_block}
+{brief_block}{profile_section}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {content_header}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Globe, ArrowRight, ArrowLeft, Upload, X, Image as ImageIcon, Plus,
   TrendingUp, Target, Layers, Handshake, ClipboardCheck, Activity, Compass, Check,
+  FileText, Zap, Mic, Route, Briefcase, Library,
   type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { THEMES } from "@/components/workspace/deckTemplates/themes";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
@@ -77,6 +79,38 @@ const baseSchema = z.object({
     (v) => (v === "" || v == null ? undefined : Number(v)),
     z.number().positive().optional()
   ),
+  roundType: z.preprocess(trimOrUndefined, z.string().max(40).optional()),
+  // These were already accepted by CompanyIntake and already formatted into the
+  // generation prompt by `to_prompt_section()` — they were simply never asked
+  // for, so every deck was written without them.
+  foundedYear: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().int().min(1900).max(2100).optional()
+  ),
+  teamSize: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().int().positive().optional()
+  ),
+  growthRateMomPct: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().min(-100).max(1000).optional()
+  ),
+  cacUsd: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().positive().optional()
+  ),
+  ltvUsd: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().positive().optional()
+  ),
+  churnRatePct: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().min(0).max(100).optional()
+  ),
+  nrrPct: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().min(0).max(500).optional()
+  ),
   startImmediately: z.boolean().default(true),
 });
 
@@ -118,6 +152,12 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
   internal: ClipboardCheck,
   update: Activity,
   vision: Compass,
+  general: FileText,
+  elevator: Zap,
+  demoday: Mic,
+  gtm: Route,
+  business: Briefcase,
+  master: Library,
 };
 
 /**
@@ -229,6 +269,15 @@ const stepVariants = {
 
 export default function NewProjectPage() {
   const navigate = useNavigate();
+  // A template chosen on /templates arrives as ?template=<key>. Validate it
+  // against the registry so a stale or hand-typed key is ignored rather than
+  // written to the project.
+  const [searchParams] = useSearchParams();
+  const presetTemplate = useMemo(() => {
+    const k = searchParams.get("template");
+    return k && THEMES.some((t) => t.key === k) ? k : null;
+  }, [searchParams]);
+
   // Two steps rather than one long scroll: pick the deck type, then fill in
   // only the fields that type actually needs.
   const [step, setStep] = useState<1 | 2>(1);
@@ -326,6 +375,14 @@ export default function NewProjectPage() {
           total_customers: data.totalCustomers,
           monthly_active_users: data.monthlyActiveUsers,
           ask_amount_usd: data.askAmountUsd,
+          round_type: data.roundType,
+          founded_year: data.foundedYear,
+          team_size: data.teamSize,
+          growth_rate_mom_pct: data.growthRateMomPct,
+          cac_usd: data.cacUsd,
+          ltv_usd: data.ltvUsd,
+          churn_rate_pct: data.churnRatePct,
+          nrr_pct: data.nrrPct,
           ...(!data.hasWebsite && {
             problem_statement: data.problemStatement,
             solution_description: data.solutionDescription,
@@ -346,6 +403,15 @@ export default function NewProjectPage() {
           await projectsApi.uploadAssets(project.id, { logo: logoFile, gallery: galleryFiles });
         } catch (e: any) {
           toast.error(e?.response?.data?.detail || "Images couldn't be uploaded");
+        }
+      }
+      // Carry through the template picked in the gallery. Creation doesn't take
+      // one, so apply it with the same update call the editor's picker uses.
+      if (presetTemplate) {
+        try {
+          await projectsApi.update(project.id, { templateKey: presetTemplate });
+        } catch {
+          /* non-fatal: the deck just opens on the default template */
         }
       }
       toast.success("Project created!");
@@ -785,7 +851,23 @@ export default function NewProjectPage() {
                       <Input label="Total customers" {...register("totalCustomers")} type="number" placeholder="e.g. 2500" />
                       <Input label="Monthly active users" {...register("monthlyActiveUsers")} type="number" placeholder="e.g. 120000" />
                     </div>
-                    <Input label="Ask amount (USD)" {...register("askAmountUsd")} type="number" placeholder="e.g. 1500000" />
+                    <div style={ndS.twoCol}>
+                      <Input label="Ask amount (USD)" {...register("askAmountUsd")} type="number" placeholder="e.g. 1500000" />
+                      <Input label="Round" hint="optional" {...register("roundType")} placeholder="e.g. Seed, Series A" />
+                    </div>
+                    <div style={ndS.twoCol}>
+                      <Input label="Founded year" {...register("foundedYear")} type="number" placeholder="e.g. 2023" />
+                      <Input label="Team size" {...register("teamSize")} type="number" placeholder="e.g. 12" />
+                    </div>
+                    <div style={ndS.twoCol}>
+                      <Input label="MoM growth (%)" {...register("growthRateMomPct")} type="number" placeholder="e.g. 15" />
+                      <Input label="Monthly churn (%)" {...register("churnRatePct")} type="number" placeholder="e.g. 2.5" />
+                    </div>
+                    <div style={ndS.twoCol}>
+                      <Input label="CAC (USD)" hint="we derive LTV:CAC" {...register("cacUsd")} type="number" placeholder="e.g. 900" />
+                      <Input label="LTV (USD)" {...register("ltvUsd")} type="number" placeholder="e.g. 5400" />
+                    </div>
+                    <Input label="Net revenue retention (%)" {...register("nrrPct")} type="number" placeholder="e.g. 118" />
 
                     <div>
                       <div style={ndS.uploadLabel}>Company logo <span style={ndS.uploadHint}>· shown on every slide</span></div>

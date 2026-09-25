@@ -6,33 +6,33 @@
   },
   "crawl_summary": {
     "pages_crawled": 15,
-    "images": 100,
+    "images": 94,
     "colors": [
       "#08090a",
       "#3f3f3f",
       "#e8e8e8",
       "#fff",
       "#000",
+      "#e2e2e4",
       "#E2E4E6",
       "#9c9da1",
+      "#6b6b6b",
+      "#08090A",
+      "#D0D6E0",
+      "#3E3E44",
       "#e4e5e9",
       "#2E2E32",
-      "#02B8CC",
-      "#383b3f",
-      "#3E3E44",
-      "#D0D6E0",
-      "#08090A",
       "#62666D",
-      "#EB5757",
-      "#8B5CF6",
-      "#6366F1",
-      "#10B981",
+      "#DCFFFF",
       "#F2C94C",
-      "#06B6D4",
       "#E01E5A",
       "#ECB22E",
       "#2EB67D",
       "#36C5F0",
+      "#D4A600",
+      "#008D2C",
+      "#8B93A1",
+      "#ffdf9f",
       "#c2d2f2",
       "#fbf7f0",
       "#191D20",
@@ -40,89 +40,60 @@
       "#080808",
       "#585A5C",
       "#585a5c",
+      "#F2BE00",
       "#ffffff",
-      "#474747",
-      "#004eff",
       "#4e50f5",
-      "#e4f222",
-      "#000000",
       "#3299cd",
-      "#ff5900"
+      "#ff5900",
+      "#147bce",
+      "#4736fe",
+      "#8cc3f2"
     ],
     "pricing_signals": [
-      "$1",
-      "$7",
+      "$12",
+      "$52",
+      "$3",
+      "$64",
       "$5",
-      "$4",
-      "$2.9",
-      "$200",
-      "$1.25",
-      "$82",
-      "$35",
-      "$13",
-      "$4.2",
-      "$6",
-      "FEB MAR APR MAY JUN JUL AUG SEP 2 9 16 23 2 9 16 23 30 6 13 20 27 4 11 18 25 1 8 15 22 29 6 13 20 27 3 10 17 24 31 7 14 21 28",
-      "FEB MAR APR MAY JUN JUL AUG SEP",
-      "2 9 16 23 2 9 16 23 30 6 13 20 27 4 11 18 25 1 8 15 22 29 6 13 20 27 3 10 17 24 31 7 14 21 28",
-      "$2",
-      "$19",
-      "$32",
-      "$43",
-      "$63",
       "Planning Set the product direction with projects and initiatives",
       "$0",
       "$10",
       "$16",
-      "Free $0 Free for everyone Unlimited members 2 teams 250 issues Agent platform Linear Agent (beta) Get started Get started",
-      "$94741847",
+      "$42",
+      "Business",
+      "Enterprise",
+      "$41",
       "$423",
+      "$94741847",
+      "$60",
       "$94",
+      "$2",
+      "$2.9",
+      "$200",
+      "$1",
       "$52105746",
-      "$61418"
+      "$43",
+      "$69",
+      "$61418",
+      "$97",
+      "$63",
+      "$82",
+      "$40",
+      "$39"
     ],
-    "team_signals": [
-      "Karri Saarinen | Co-founder, CEO | Jori Lallo | Co-founder, CPO | Tuomas Artman | Co-founder, CTO | Cristina Cordova | COO | Nan Yu | Head of Product | Tom Moor | Head of Engineering | Casey Bertenthal | Head of Sales | Jamie Finnigan | Head of Security",
-      "Karri Saarinen | Co-founder, CEO",
-      "Jori Lallo | Co-founder, CPO",
-      "Tuomas Artman | Co-founder, CTO",
-      "Cristina Cordova | COO",
-      "Nan Yu | Head of Product",
-      "Tom Moor | Head of Engineering",
-      "Casey Bertenthal | Head of Sales",
-      "Jamie Finnigan | Head of Security",
-      "Tim Qi",
-      "Matthew Roberts",
-      "Matthijs Wolting",
-      "Josh Pyles",
-      "Nathalie Alex",
-      "Dominic Wong",
-      "Meg Wayne",
-      "Mingjie Jiang",
-      "Alan Doyle",
-      "Alex Suevalov",
-      "Anthony Vidalez"
-    ]
+    "team_signals": []
   },
   "branding": {
-    "company_name": "Linear",
-    "industry": "SaaS",
-    "tagline": "The product development system for teams and agents",
-    "description": "Linear is a new species of product tool purpose-built for modern teams, with AI workflows at its core. It sets a new standard for planning and building products, helping teams define product direction, move work forward, and understand progress at scale.",
-    "primary_color": "#08090a",
-    "secondary_color": "#3f3f3f",
+    "company_name": "Linear – The system for product development",
+    "industry": "Technology",
+    "tagline": "",
+    "description": "Purpose-built for planning and building products with AI agents.",
+    "primary_color": "#2540B5",
+    "secondary_color": "#7B2CBF",
     "logo_url": null,
-    "tone": "professional/technical/modern",
-    "target_audience": "Product Teams, Modern Teams, Teams building products",
-    "key_products": [
-      "Planning and building products",
-      "AI workflows",
-      "Product operations self-driving",
-      "Defining product direction",
-      "Cross-team work management",
-      "PR and agent output review",
-      "Progress understanding at scale"
-    ],
+    "tone": "professional",
+    "target_audience": "",
+    "key_products": [],
     "tech_stack": [],
     "competitors_mentioned": [],
     "testimonials": [],
@@ -130,212 +101,180 @@
     "business_model": "saas"
   },
   "research": {
-    "market_size": "$400 Billion global Software-as-a-Service (SaaS) market (2024, Industry Reports)",
-    "market_growth": "18% CAGR 2024–2032, projected to reach $1.7 Trillion by 2032",
-    "target_market": "Product & Project Management SaaS for Modern Teams — $40 Billion SAM (est. 2024)",
+    "market_size": "Large and growing Technology market",
+    "market_growth": "Strong double-digit CAGR",
+    "target_market": "",
     "competitors": [
       {
-        "name": "Jira (Atlassian)",
-        "description": "Established project management and issue tracking tool, widely adopted by large engineering teams, especially for agile development.",
-        "strength": "Comprehensive features for complex workflows, deep integration with developer tools, mature ecosystem, strong enterprise foothold.",
-        "weakness": "Perceived as clunky, steep learning curve, less intuitive for non-technical users, often slow and resource-intensive, limited native AI."
+        "name": "Existing solutions",
+        "description": "Legacy tools and manual processes",
+        "strength": "Established workflows",
+        "weakness": "Slow and expensive"
       },
       {
-        "name": "Asana",
-        "description": "Collaborative work management platform focused on task management and team coordination across various departments.",
-        "strength": "User-friendly interface, strong for cross-functional teams, visual project planning, broad adoption beyond engineering.",
-        "weakness": "Less specialized for deep engineering workflows, can lack granular detail for complex software development, evolving AI capabilities."
-      },
-      {
-        "name": "ClickUp",
-        "description": "All-in-one productivity platform offering extensive customization for various use cases, aiming to replace multiple tools.",
-        "strength": "Highly customizable, broad feature set (tasks, docs, goals, chat), caters to many team types and workflows.",
-        "weakness": "Can be overwhelming due to feature bloat, performance issues, lacks the focused, high-speed experience for specific product engineering teams."
+        "name": "Generic platforms",
+        "description": "Horizontal tools adapted for vertical use",
+        "strength": "Wide feature set",
+        "weakness": "Not purpose-built"
       }
     ],
     "competitive_advantages": [
-      "AI-Native Workflows: AI at its core for automated issue triage, feedback summarization, and sprint planning.",
-      "Purpose-built for Modern Product & Engineering Teams: Designed for speed, efficiency, and high-performance workflows.",
-      "Seamless Product Development Experience: Unifies planning, building, and progress tracking in a single, fast interface.",
-      "Superior User Experience & Performance: Sets a new standard for fluidity and responsiveness in complex project management."
+      "Linear – The system for product development's purpose-built approach vs. horizontal tools",
+      "Faster time-to-value with modern architecture",
+      "AI-native design vs. retrofitted legacy systems"
     ],
     "industry_trends": [
-      "Rapid Fusion of AI and SaaS: AI is disrupting traditional software, with companies racing to embed AI in every workflow.",
-      "Emergence of Agentic AI: Increasing focus on developing and deploying agentic use cases within SaaS platforms for intelligent automation.",
-      "SaaS Management Challenges: IT professionals face challenges in managing SaaS environments, driving demand for more integrated solutions.",
-      "Changing User Expectations: User expectations are evolving for more intelligent, personalized, and efficient tools, driven by AI advancements and modern UX."
+      "Rapid digital transformation in Technology",
+      "AI and automation adoption accelerating across sectors",
+      "Demand for integrated, API-first platforms",
+      "Consolidation from point solutions to platforms"
     ],
-    "customer_segments": [
-      "Primary: High-growth Software & Tech Companies (200-5,000 employees) — seeking to optimize product development and engineering workflows for speed and efficiency.",
-      "Secondary: Innovative Product & Engineering Teams within Enterprises (>5,000 employees) — frustrated with legacy tools, looking for modern, AI-powered solutions.",
-      "Tertiary: Forward-thinking Agile & DevOps Teams (any size) — prioritizing fast iteration, seamless collaboration, and automated processes."
-    ],
-    "business_model": "SaaS subscription with tiered pricing, typically per-user/seat model, offering escalating features and support for larger teams and enterprises.",
-    "revenue_streams": [
-      "Primary: Subscription / recurring revenue (monthly/annual licenses)",
-      "Secondary: Enterprise-grade features and support (premium tiers, dedicated account management, enhanced security)",
-      "Tertiary: Potential for professional services / implementation support for large-scale deployments (est.)"
-    ],
-    "key_metrics": [
-      {
-        "metric": "TAM",
-        "value": "$400B (2024)"
-      },
-      {
-        "metric": "SAM",
-        "value": "$40B (est. 2024)"
-      },
-      {
-        "metric": "SOM (Y3)",
-        "value": "$250M ARR (est.)"
-      },
-      {
-        "metric": "Market Growth",
-        "value": "18% CAGR (2024-2032)"
-      }
-    ],
-    "funding_info": "Series C, $82M round in June 2025 at $1.25B valuation, led by Accel. Total funding: $134.2M across 4 rounds.",
-    "recent_news": [
-      "Secured $82M Series C funding in June 2025 at a $1.25B valuation, signaling strong investor confidence.",
-      "Accelerating AI-driven roadmap to further automate issue triage, feedback summarization, and sprint planning.",
-      "Projected to achieve $100M ARR in 2025, demonstrating rapid growth and market adoption."
-    ],
+    "customer_segments": [],
+    "business_model": "Technology services / SaaS",
+    "revenue_streams": [],
+    "key_metrics": [],
+    "funding_info": "",
+    "recent_news": [],
     "pain_points": [
-      "Inefficient Product Workflow & Manual Overhead: Teams spend significant time on manual task management and planning, reducing developer productivity by an estimated 20-30%.",
-      "Lack of Real-time Visibility & Clarity: Difficulty for stakeholders and teams to track progress and product direction, leading to potential project delays of 15-20% (est.).",
-      "Outdated & Fragmented Tooling: Reliance on legacy project management software lacking modern AI, resulting in siloed data and an estimated 30% lower team productivity.",
-      "Challenges in Scaling High-Performance Teams: Existing solutions struggle to keep pace with fast-growing teams, impacting ability to scale product delivery by up to 2x (est.) due to bottlenecks."
+      "High costs of existing fragmented tooling",
+      "Time-consuming manual processes reducing productivity",
+      "Lack of real-time data for decision-making",
+      "Integration complexity slowing teams down"
     ],
     "tam_sam_som": {
       "tam": {
-        "value": "$400B (2024)",
-        "description": "Total global Software-as-a-Service market."
+        "value": "Large market",
+        "description": "Total Technology market"
       },
       "sam": {
-        "value": "$40B (est. 2024)",
-        "description": "Serviceable Addressable Market for Product & Project Management SaaS targeting modern, high-performance teams."
+        "value": "Significant SAM",
+        "description": "Serviceable addressable market"
       },
       "som": {
-        "value": "$250M ARR (est.)",
-        "description": "Realistic 3-year market capture based on Linear's current trajectory and growth within its target segments."
+        "value": "Achievable SOM",
+        "description": "3-year capture target"
       }
-    }
+    },
+    "market_narrative": "The Technology market is undergoing rapid transformation driven by digital adoption and AI integration. Companies in this space face mounting pressure to modernize legacy workflows, creating significant demand for purpose-built solutions. Linear – The system for product development is positioned at the center of this shift.",
+    "market_drivers": [
+      "Digital transformation accelerating across Technology — 70%+ of enterprises increasing tech spend",
+      "AI and automation unlocking new efficiency gains previously unavailable to this sector",
+      "Shift from fragmented point solutions to integrated platforms reducing total cost of ownership",
+      "Regulatory and compliance pressures creating urgency for modern tooling"
+    ],
+    "why_now": "The convergence of affordable AI infrastructure and widespread cloud adoption has created a window for Linear – The system for product development to displace entrenched legacy vendors in the Technology market — a transition that was cost-prohibitive just 3 years ago.",
+    "founders": [],
+    "founded_year": "",
+    "company_valuation": "",
+    "total_funding": "",
+    "funding_rounds": [],
+    "company_headcount": "",
+    "operational_presence": "",
+    "company_description": ""
   },
   "analysis": {
-    "positioning": "Linear is the AI-native product development system purpose-built for modern, high-velocity product teams and agents that deeply integrates intelligent automation into workflows, unlike legacy incumbents like Jira which are clunky, fragmented, and lack native AI capabilities.",
+    "positioning": "Linear – The system for product development is building the leading platform for Technology",
     "icp": {
-      "description": "Linear targets rapidly scaling technology companies and mature enterprises undergoing digital transformation, seeking to optimize their product development lifecycle with intelligent automation. Their ideal customer values speed, precision, and AI-driven efficiency to enhance team productivity and ship products faster.",
-      "company_size": "50-5000+ employee tech-forward companies or product divisions within large enterprises",
-      "industry_vertical": "Software & SaaS, Fintech, AI Development, Digital Product Agencies",
+      "description": "Companies in Technology looking to modernize their operations",
+      "company_size": "50-500 employees",
+      "industry_vertical": "Technology",
       "job_titles": [
-        "Head of Product",
-        "VP Engineering",
+        "VP Operations",
         "CTO",
-        "Product Manager",
-        "Engineering Manager",
-        "COO"
+        "Head of Product"
       ],
-      "primary_pain": "Inefficient, fragmented product workflows and lack of real-time visibility exacerbated by outdated tooling that fails to leverage AI for intelligent automation.",
-      "budget_range": "$5K-$250K+/yr (est.)",
-      "buying_trigger": "Rapid team growth (e.g., scaling past 50 engineers), adoption of AI into development practices, acute dissatisfaction with incumbent tools' performance or lack of AI capabilities, or initiation of a new product line requiring modern tooling."
+      "primary_pain": "Inefficient manual processes and lack of data-driven decision making",
+      "budget_range": "$12K-$60K/yr",
+      "buying_trigger": "Digital transformation initiative or team scaling"
     },
-    "competitive_moat": "Linear's primary moat is its deep, native integration of AI agents directly into product development workflows, driving a fundamentally faster and more autonomous experience than legacy tools. This first-mover advantage in AI-native product operations creates significant switching costs as teams embed these intelligent workflows. Their relentless focus on speed and a refined user experience for high-performance product teams further solidifies user loyalty, making it difficult for broader platforms to replicate without sacrificing core performance.",
-    "market_opportunity": "The global SaaS market is a massive $400 billion opportunity projected to reach $1.7 trillion by 2032, with the Product & Project Management SaaS segment for modern teams alone valued at $40 billion. Linear is uniquely positioned to capture significant market share by addressing the critical demand for AI-driven efficiency and automation, riding the powerful tailwinds of AI fusion, agentic AI, and evolving user expectations for intelligent tools in product development.",
+    "competitive_moat": "Linear – The system for product development's unique approach and deep domain expertise create a defensible position",
+    "market_opportunity": "The Technology market is large and growing. The timing is right as incumbents have failed to modernize.",
     "revenue_scenarios": [
       {
-        "scenario": "Conservative Y1 (post-Series A)",
-        "arr": "$10M-$25M",
-        "assumption": "Rapid expansion from an already strong traction base, leveraging high product-market fit in core segments.",
-        "confidence": 60
-      },
-      {
-        "scenario": "Base Y2",
-        "arr": "$40M-$80M",
-        "assumption": "Continued strong adoption in mid-market and increasing penetration into larger enterprises, with consistent product velocity.",
+        "scenario": "Conservative Y1",
+        "arr": "$500K",
+        "assumption": "50 customers at $10K ACV",
         "confidence": 55
       },
       {
+        "scenario": "Base Y2",
+        "arr": "$2M",
+        "assumption": "150 customers, expanding ACV",
+        "confidence": 50
+      },
+      {
         "scenario": "Optimistic Y3",
-        "arr": "$120M+",
-        "assumption": "Achieves significant market leadership in AI-native product management, exceeding $100M ARR on path to $250M SOM.",
+        "arr": "$8M",
+        "assumption": "Enterprise expansion + new verticals",
         "confidence": 40
       }
     ],
-    "scalability": "Linear's per-seat SaaS model, coupled with AI-driven workflow automation, is designed for strong unit economics, enabling efficient customer acquisition and high gross margins. The platform's ability to scale product operations for teams of varying sizes, along with its potential for embedded virality within engineering and product organizations, supports rapid, cost-effective expansion without proportional increases in human capital.",
+    "scalability": "SaaS model enables efficient scaling with low marginal cost. Geographic and vertical expansion provide clear growth vectors.",
     "gtm_strategy": [
-      "Product-Led Growth (PLG): Freemium or low-cost trial tiers to attract individual contributors and small teams, leveraging virality within product organizations for organic adoption.",
-      "Targeted Account-Based Marketing (ABM): Focus on decision-makers (Head of Product, VP Eng) in high-growth tech companies and large enterprises, showcasing AI-driven ROI through tailored campaigns.",
-      "Community Building & Content Marketing: Establish thought leadership around AI-native product development and agentic workflows through blogs, webinars, and engagement with developer communities.",
-      "Land-and-Expand: Initial adoption within a single product team, then expand across departments and to other product lines within the same enterprise, demonstrating value and integrating with existing systems."
+      "Direct outbound targeting VP-level buyers in key verticals",
+      "Content marketing and SEO to capture inbound demand",
+      "Strategic partnerships with complementary tools",
+      "Land-and-expand to grow within accounts"
     ],
     "swot": {
       "strengths": [
-        "AI-Native Core: Purpose-built with AI workflows and agents at its core, offering a distinct competitive advantage over legacy tools (Website, Description).",
-        "High-Performance Team: Experienced founding team (CEO, CPO, CTO) with deep product and engineering expertise, complemented by strong operational and sales leadership (Team Signals).",
-        "Clear Value Proposition: Directly answers critical customer pain points like inefficient workflows, lack of visibility, and outdated tooling (Customer Pain Points, Website).",
-        "Modern User Experience & Speed: Designed for velocity and focus, addressing common frustrations with clunky incumbents like Jira (Website, Competitor Analysis)."
+        "Strong domain expertise in Technology",
+        "Modern technical architecture",
+        "Clear value proposition"
       ],
       "weaknesses": [
-        "Funding Stage Discrepancy: Founder's stated 'Series A' conflicts with market research indicating Series C with $1.25B valuation and $134.2M total funding, requiring immediate clarification (Founder Metrics vs. Market Research).",
-        "Limited Public Testimonials: Absence of customer testimonials on the public website, raising questions about readily available social proof at this apparent stage (Company Intelligence).",
-        "Early Stage for Agentic AI Adoption: While a strength, reliance on 'agent output review' suggests agentic AI is still developing and may require significant human oversight, potentially slowing adoption for fully autonomous workflows (Website, Features)."
+        "Early-stage brand awareness",
+        "Limited case studies",
+        "Small sales team"
       ],
       "opportunities": [
-        "Dominating AI-Native Product Management: Capture significant share in the $40B Product & Project Management SaaS SAM by becoming the de facto standard for AI-driven workflows (Market Opportunity, Industry Trends).",
-        "Enterprise Expansion: Leverage proven model for large enterprise sales, capitalizing on demand for integrated, scalable solutions for high-performance teams. (80)",
-        "Ecosystem Integrations: Deepen integrations with other developer tools (GitHub, Slack) and AI models to create a sticky, comprehensive, and indispensable ecosystem (75).",
-        "Vertical-Specific Modules: Expand into specialized product development needs within specific industries (e.g., hardware, biotech) that demand tailored workflows (est.)."
+        "Large underserved segment in Technology",
+        "AI/automation tailwind",
+        "International expansion"
       ],
       "threats": [
-        "Incumbent AI Feature Parity: Rapid integration of AI features by well-capitalized competitors like Jira or Asana could erode Linear's differentiation if their AI strategy isn't sufficiently advanced or defensible (Competitor Analysis, Industry Trends).",
-        "Emerging AI-Native Competitors: New startups focused solely on agentic AI for specific development tasks could fragment the market or offer more specialized solutions, potentially out-innovating Linear in niches (Industry Trends).",
-        "Data Security & Privacy Concerns: Handling sensitive product development data with AI agents introduces new security, compliance, and privacy challenges, especially for large enterprise deployments (General SaaS risk)."
+        "Well-funded incumbents",
+        "Market education required",
+        "Economic headwinds on IT budgets"
       ]
     },
     "investor_score": {
-      "score": 7,
-      "summary": "Linear is poised to redefine product development with its AI-native platform, addressing critical inefficiencies for modern teams within a massive and rapidly evolving market. The experienced leadership, ambitious vision to integrate agentic AI, and clear market traction (per external data) position it for explosive growth and market leadership, despite a critical discrepancy regarding the stated funding stage.",
+      "score": 6,
+      "summary": "Linear – The system for product development addresses a real pain point in a large market. Execution on GTM and differentiation will be key.",
       "highlights": [
-        "First-mover advantage in AI-native product development, uniquely positioned for the agentic AI era.",
-        "Exceptional founding and executive team with a strong track record and clear product vision.",
-        "Large, rapidly growing target market with acute customer pain points that Linear directly solves.",
-        "Demonstrated ability to attract significant capital and achieve high valuation (per market research), indicating strong prior traction and market confidence."
+        "Large addressable market",
+        "Strong founding team domain expertise",
+        "Clear customer pain point"
       ],
       "concerns": [
-        "Critical discrepancy between the founder's provided 'Series A' funding stage and external market intelligence indicating 'Series C' with substantial prior funding and valuation, which needs immediate and thorough clarification.",
-        "Scalability of AI agent performance and accuracy at enterprise scale without increasing manual oversight or introducing new vectors for errors.",
-        "Potential for well-capitalized incumbents to rapidly integrate similar AI capabilities, diluting Linear's core differentiation over time."
+        "Early traction metrics needed",
+        "Competitive landscape is established"
       ]
     },
     "risk_factors": [
       {
-        "risk": "Funding Stage Misalignment",
+        "risk": "Customer acquisition cost uncertainty",
+        "severity": "medium",
+        "mitigation": "Validate CAC with pilot cohort before scaling"
+      },
+      {
+        "risk": "Competitive response from incumbents",
         "severity": "high",
-        "mitigation": "Conduct immediate and thorough due diligence on Linear's capital structure, prior financing rounds, cap table, and obtain direct clarification from founders on the stated 'Series A' stage in light of market data. This is foundational to valuation and investment terms."
+        "mitigation": "Move fast, lock in anchor customers, build switching costs"
       },
       {
-        "risk": "AI Performance & Security",
+        "risk": "Team scaling challenges",
         "severity": "medium",
-        "mitigation": "Perform technical due diligence on AI models, agent architecture, and roadmap for accuracy, explainability, and error handling. Obtain security audit reports and conduct reference customer interviews focusing on AI feature adoption, impact, and trust."
-      },
-      {
-        "risk": "Competitive Catch-up",
-        "severity": "medium",
-        "mitigation": "Assess Linear's long-term AI strategy, proprietary IP (if any), and ability to rapidly iterate and execute on 'new species of product tool' promises faster than incumbents can adapt. Investigate their competitive differentiation roadmap beyond current features."
-      },
-      {
-        "risk": "Pricing Model Optimization",
-        "severity": "low",
-        "mitigation": "Review current pricing strategy, customer segmentation, and A/B testing results to ensure the model is optimized for market segments, maximizing ARR while maintaining competitive positioning. Evaluate potential for enterprise-specific value-based pricing."
+        "mitigation": "Build hiring pipeline ahead of funding close"
       }
     ],
     "confidence": {
-      "market_size": 75,
-      "competitor_analysis": 80,
-      "revenue_projections": 45,
-      "icp_definition": 70,
-      "gtm_strategy": 65,
-      "investor_score": 72
+      "market_size": 50,
+      "competitor_analysis": 60,
+      "revenue_projections": 35,
+      "icp_definition": 55,
+      "gtm_strategy": 55,
+      "investor_score": 50
     }
   }
 }

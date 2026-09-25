@@ -12,6 +12,7 @@ from app.services.storage.s3_client import StorageClient
 from app.agents.content.content_agent import DeckContent, SlideContent
 from app.services.branding.extractor import BrandingData
 from app.ppt.engine.renderer import PPTRenderer
+from app.decks.registry import resolve_sections, sections_for_stored_deck
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -86,11 +87,32 @@ async def download_presentation(
             })
 
             # Overlay the uploaded logo if present
+            from app.services.storage.assets import load_gallery_bytes, read_asset_bytes
+
             logo_bytes = None
             logo_url = (project.assets or {}).get("logo_url")
             if logo_url:
-                from app.services.images.image_service import fetch_image_bytes
-                logo_bytes = await fetch_image_bytes(logo_url)
+                # An uploaded logo is a relative "/uploads/..." path, which httpx
+                # cannot fetch — it needs reading off disk. Going through
+                # fetch_image_bytes here meant the uploaded logo silently never
+                # appeared on a downloaded deck.
+                logo_bytes = read_asset_bytes(logo_url)
+                if logo_bytes is None:
+                    from app.services.images.image_service import fetch_image_bytes
+                    logo_bytes = await fetch_image_bytes(logo_url)
+
+            gallery_bytes = await load_gallery_bytes(project.assets or {})
+
+            # The slide order this deck was actually generated against. Without
+            # it the renderer fell back to the investor sequence, so every
+            # non-investor deck re-rendered here mapped template_data to the
+            # wrong slides.
+            stored = project.deck_content or {}
+            sections = sections_for_stored_deck(
+                stored.get("deck_type") or getattr(project, "deck_type", None),
+                stored.get("slide_order"),
+                stored.get("template_data"),
+            )
 
             renderer = PPTRenderer()
             file_data = await renderer.render(
@@ -98,7 +120,9 @@ async def download_presentation(
                 branding=branding,
                 logo_bytes=logo_bytes,
                 template_key=project.template_key,
-                template_data=(project.deck_content or {}).get("template_data"),
+                template_data=stored.get("template_data"),
+                sections=sections,
+                gallery_bytes=gallery_bytes,
             )
             return StreamingResponse(
                 io.BytesIO(file_data),

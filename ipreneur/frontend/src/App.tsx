@@ -17,6 +17,7 @@ const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
 const NewProjectPage = lazy(() => import("@/pages/workspace/NewProjectPage"));
 const WorkspacePage = lazy(() => import("@/pages/workspace/WorkspacePage"));
 const EditorPage = lazy(() => import("@/pages/editor/EditorPage"));
+const TemplatesPage = lazy(() => import("@/pages/templates/TemplatesPage"));
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 const BillingPage = lazy(() => import("@/pages/billing/BillingPage"));
 
@@ -53,6 +54,7 @@ export default function App() {
                 <Route path="/projects/new" element={<NewProjectPage />} />
                 <Route path="/projects/:projectId" element={<WorkspacePage />} />
                 <Route path="/projects/:projectId/editor" element={<EditorPage />} />
+                <Route path="/templates" element={<TemplatesPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/billing" element={<BillingPage />} />
               </Route>

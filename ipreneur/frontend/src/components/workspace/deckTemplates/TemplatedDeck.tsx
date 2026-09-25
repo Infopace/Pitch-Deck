@@ -17,7 +17,10 @@
  */
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Maximize2, X as XIcon } from "lucide-react";
-import { Theme, mix, border, fD } from "./themes";
+import {
+  Theme, mix, border, fD,
+  tRadius, tCards, tCover, tChrome, tFigure, tOrnament, tPad, tInset, tH1, tCoverSize,
+} from "./themes";
 import {
   TemplateDeckData,
   sec,
@@ -56,7 +59,9 @@ function eyebrow(T: Theme, txt: N): N {
 }
 
 function h1(T: Theme, txt: N, size?: number): N {
-  return e("h1", { style: { margin: 0, fontFamily: fD(T), fontWeight: T.serif ? 600 : 700, fontSize: size || 48, lineHeight: 1.04, letterSpacing: T.serif ? "-0.01em" : "-0.025em", color: T.text, textWrap: "balance" } as React.CSSProperties }, txt);
+  // `tH1` lets a template set one headline size for the whole deck. Templates
+  // that declare none fall through to the slide's own literal, unchanged.
+  return e("h1", { style: { margin: 0, fontFamily: fD(T), fontWeight: T.serif ? 600 : 700, fontSize: tH1(T, size || 48), lineHeight: 1.04, letterSpacing: T.serif ? "-0.01em" : "-0.025em", color: T.text, textWrap: "balance" } as React.CSSProperties }, txt);
 }
 
 function logo(T: Theme, C: TemplateDeckData): N {
@@ -75,11 +80,38 @@ function shell(T: Theme, C: TemplateDeckData, no: number, inner: N, opts: ShellO
   // Deck length varies by type, so the page counter reads it from the slide's
   // args rather than assuming the investor deck's 12.
   const total = opts.total ?? 12;
-  const foot = opts.noFoot ? null : e("div", { key: "foot", style: { position: "absolute", left: opts.pad || 80, right: opts.pad || 80, bottom: 32, display: "flex", justifyContent: "space-between", alignItems: "center" } },
-    logo(T, C),
-    e("span", { key: "p", style: { fontFamily: fD(T), fontSize: 12, fontWeight: 500, letterSpacing: ".04em", color: T.muted } }, (no < 9 ? "0" : "") + (no + 1) + " / " + total)
-  );
-  return e("div", { style: { position: "relative", width: 1280, height: 720, background: T.bg, color: T.text, fontFamily: T.fontB + ", sans-serif", padding: opts.pad ? `64px ${opts.pad}px 88px` : "62px 80px 88px", display: "flex", flexDirection: "column", overflow: "hidden" } },
+  const inset = tInset(T, opts.pad);
+  const chrome = tChrome(T);
+  const num = (no < 9 ? "0" : "") + (no + 1) + " / " + total;
+
+  let foot: N = null;
+  if (!opts.noFoot) {
+    if (chrome === "none") {
+      foot = null;
+    } else if (chrome === "dot") {
+      // A run of dots marking position, instead of a logo + counter line.
+      foot = e("div", { key: "foot", style: { position: "absolute", left: 0, right: 0, bottom: 34, display: "flex", justifyContent: "center", gap: 9 } },
+        Array.from({ length: Math.min(total, 14) }, (_, d) =>
+          e("span", { key: d, style: { width: 6, height: 6, borderRadius: "50%", background: d === no ? T.accent : mix(T.text, 20, "transparent") } })));
+    } else if (chrome === "corner") {
+      // Registration marks — a drawing, not a document.
+      foot = e("div", { key: "foot" },
+        e("div", { key: "tl", style: { position: "absolute", left: 26, top: 26, width: 18, height: 18, borderLeft: `1px solid ${mix(T.accent, 45)}`, borderTop: `1px solid ${mix(T.accent, 45)}` } }),
+        e("div", { key: "br", style: { position: "absolute", right: 26, bottom: 26, width: 18, height: 18, borderRight: `1px solid ${mix(T.accent, 45)}`, borderBottom: `1px solid ${mix(T.accent, 45)}` } }),
+        e("span", { key: "n", style: { position: "absolute", right: 34, top: 30, fontFamily: fD(T), fontSize: 11, letterSpacing: ".1em", color: T.muted } }, `${C.mark || ""}-${num.split(" / ")[0]}`));
+    } else if (chrome === "rule") {
+      // A ruled foot — the printed-report treatment.
+      foot = e("div", { key: "foot", style: { position: "absolute", left: inset, right: inset, bottom: 30, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `1px solid ${border(T, true)}`, paddingTop: 11 } },
+        e("span", { key: "c", style: { fontFamily: T.fontB, fontSize: 12, letterSpacing: ".05em", color: T.muted } }, C.company),
+        e("span", { key: "p", style: { fontFamily: fD(T), fontSize: 11.5, fontWeight: 500, letterSpacing: ".06em", color: T.muted } }, num));
+    } else {
+      foot = e("div", { key: "foot", style: { position: "absolute", left: inset, right: inset, bottom: 32, display: "flex", justifyContent: "space-between", alignItems: "center" } },
+        logo(T, C),
+        e("span", { key: "p", style: { fontFamily: fD(T), fontSize: 12, fontWeight: 500, letterSpacing: ".04em", color: T.muted } }, num));
+    }
+  }
+
+  return e("div", { style: { position: "relative", width: 1280, height: 720, background: T.bg, color: T.text, fontFamily: T.fontB + ", sans-serif", padding: tPad(T, opts.pad), display: "flex", flexDirection: "column", overflow: "hidden" } },
     opts.deco || null, inner, foot);
 }
 
@@ -118,7 +150,11 @@ function check(T: Theme, on: boolean): N {
 
 function kpiTiles(T: Theme, kpis: { k: string; l: string }[], basePath: EditPath, X: EditCtx, cols?: number): N {
   return e("div", { style: { display: "grid", gridTemplateColumns: `repeat(${cols || (kpis || []).length || 1},1fr)`, gap: 14 } },
-    (kpis || []).map((k, i) => e("div", { key: i, style: { background: T.mode === "dark" ? mix(T.surface, 75, T.bg) : T.surface, border: `1px solid ${border(T)}`, borderRadius: 14, padding: "18px 18px 16px" } },
+    // NB: the 75% surface mix here is deliberately *not* cardStyle's 72% — they
+    // were always different and matching them would move the original themes.
+    (kpis || []).map((k, i) => e("div", { key: i, style: tCards(T) === "none"
+      ? { borderLeft: `3px solid ${border(T, true)}`, padding: "4px 0 4px 16px" }
+      : { background: T.mode === "dark" ? mix(T.surface, 75, T.bg) : T.surface, border: `1px solid ${border(T)}`, borderRadius: Math.max(tRadius(T) - 4, 0), padding: "18px 18px 16px" } },
       e("div", { key: "k", style: { fontFamily: fD(T), fontWeight: 700, fontSize: 30, letterSpacing: "-0.02em", color: T.accent, lineHeight: 1 } }, editableText(k.k, [...basePath, i, "k"], X)),
       e("div", { key: "l", style: { marginTop: 8, fontSize: 13, lineHeight: 1.35, color: T.muted } }, editableText(k.l, [...basePath, i, "l"], X))
     ))
@@ -147,20 +183,597 @@ function avatar(T: Theme, initials: N): N {
   );
 }
 
-// A bordered surface card — the repeated container across most slides.
+// The repeated container across most slides.
+//
+// `cards` is the single token that changes a template's *medium* rather than
+// its palette: "none" drops the box entirely for a left rule, which is what
+// makes Broadsheet and Atrium read as print rather than as a reskin of the
+// card-based original.
 function cardStyle(T: Theme, accented = false): React.CSSProperties {
+  const variant = tCards(T);
+  if (variant === "none") {
+    return {
+      background: "transparent",
+      border: "none",
+      borderLeft: `3px solid ${accented ? T.accent : border(T, true)}`,
+      borderRadius: 0,
+    };
+  }
+  if (variant === "outline") {
+    return {
+      background: "transparent",
+      border: `1px solid ${accented ? mix(T.accent, 55) : border(T, true)}`,
+      borderRadius: tRadius(T),
+    };
+  }
   return {
     background: accented
       ? mix(T.accent, T.mode === "dark" ? 13 : 7, T.mode === "dark" ? "transparent" : "#fff")
       : (T.mode === "dark" ? mix(T.surface, 72, T.bg) : T.surface),
     border: `1px solid ${accented ? mix(T.accent, 42) : border(T)}`,
-    borderRadius: 18,
+    borderRadius: tRadius(T),
   };
+}
+
+/** Non-blob ornament variants, shared by `closing` and `vision`.
+ *
+ *  Returns null for "blobs" so each slide keeps its OWN original blob
+ *  expression verbatim — closing and vision use different opacities (16/10 vs
+ *  15/9) and collapsing them into one helper would have moved the original ten. */
+function ornamentLayer(T: Theme): N {
+  const v = tOrnament(T);
+  if (v === "none") return null;
+  if (v === "grid") {
+    return e("div", { key: "dc", style: { position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: `linear-gradient(${mix(T.accent, 6, "transparent")} 1px, transparent 1px), linear-gradient(90deg, ${mix(T.accent, 6, "transparent")} 1px, transparent 1px)`, backgroundSize: "40px 40px" } });
+  }
+  if (v === "rule") {
+    return e("div", { key: "dc", style: { position: "absolute", left: 0, right: 0, top: 0, height: 4, background: T.accent, pointerEvents: "none" } });
+  }
+  return null;   // "blobs" — the caller supplies its own
 }
 
 // ── Slides ───────────────────────────────────────────────────────────────────
 
+/* ── Cover compositions ───────────────────────────────────────────────────────
+   The cover is the slide that sells a template, so it is the one place where a
+   template gets a genuinely different composition rather than different tokens
+   applied to a shared one. `tCover(T)` picks; "centered" is the original and is
+   what every family-1 template resolves to.                                   */
+
+/** Cover headline size, clamped for length.
+ *
+ *  Cover type is set at campaign scale (up to 200px), which only works for a
+ *  short name. Real companies range from "CyDI" to "Strategic Change
+ *  Management", and CSS cannot shrink type to fit — so the size steps down by
+ *  character count. Deterministic, and it keeps the name inside the frame
+ *  instead of running under the next element, which is exactly how the
+ *  reference comps fail.                                                     */
+function coverFit(T: Theme, name: string | undefined, base?: number): number {
+  const size = base ?? tCoverSize(T);
+  const n = (name || "").trim().length;
+  if (n <= 10) return size;
+  if (n <= 16) return Math.round(size * 0.72);
+  if (n <= 24) return Math.round(size * 0.54);
+  return Math.round(size * 0.40);
+}
+
+/** Company name + tagline, shared by the variants that want the plain pair. */
+const coverTitle = (T: Theme, C: TemplateDeckData, X: EditCtx, size: number, opts: { weight?: number; color?: string; lh?: number } = {}): N =>
+  e("h1", { key: "co", style: { margin: 0, fontFamily: fD(T), fontWeight: opts.weight ?? (T.serif ? 600 : 700), fontSize: coverFit(T, C.company, size), lineHeight: opts.lh ?? 0.96, letterSpacing: "-0.035em", color: opts.color ?? T.text } },
+    editableText(C.company, ["company"], X));
+
+const coverTag = (T: Theme, C: TemplateDeckData, X: EditCtx, size = 23, color?: string, max = 560): N =>
+  e("p", { key: "tg", style: { margin: "22px 0 0", fontSize: size, lineHeight: 1.4, color: color ?? T.muted, maxWidth: max, fontWeight: 400 } },
+    editableText(C.tagline, ["tagline"], X));
+
+const coverVariants: Record<string, SlideFn> = {
+  /** Newspaper masthead — rule above the name, rule below, no cards anywhere. */
+  masthead: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { display: "flex", flexDirection: "column", height: "100%" } },
+      e("div", { key: "top", style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: `3px solid ${T.text}`, paddingBottom: 12 } },
+        e("span", { key: "e", style: { fontFamily: T.fontB, fontSize: 12.5, fontWeight: 600, letterSpacing: ".18em", textTransform: "uppercase", color: T.text } }, editableText(C.eyebrow, ["eyebrow"], X)),
+        e("span", { key: "r", style: { fontFamily: T.fontB, fontSize: 12.5, letterSpacing: ".14em", textTransform: "uppercase", color: T.muted } }, editableText(C.round, ["round"], X))),
+      e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto" } },
+        coverTitle(T, C, X, tCoverSize(T), { weight: 300, lh: 0.92 }),
+        e("div", { key: "r2", style: { height: 1, background: mix(T.text, 30, "transparent"), margin: "26px 0" } }),
+        coverTag(T, C, X, 24, T.muted, 620)),
+      e("div", { key: "bot", style: { display: "flex", gap: 34, borderTop: `1px solid ${mix(T.text, 30, "transparent")}`, paddingTop: 13 } },
+        e("span", { key: "a", style: { fontSize: 13, color: T.muted } }, C.company),
+        e("span", { key: "b", style: { fontSize: 13, color: T.muted } }, editableText(C.year, ["year"], X)))),
+    { noFoot: true, total: A.total }),
+
+  /** Poster slab — a full-bleed accent field with the name at campaign scale,
+   *  over a fixed contrast band carrying the tagline and the ask.
+   *
+   *  Proportions follow the reference at 1920x1080, divided by 1.5 for this
+   *  1280x720 frame: 128px margin -> 85, a 280px bottom band -> 187, and a
+   *  300px headline -> 200 (set per template via `coverSize`). The band is a
+   *  fixed strip rather than a flex row so its depth holds whatever the
+   *  tagline's length, and the name wraps instead of clipping.                */
+  slab: (T, C, i, X, A) => {
+    const M = 85;                 // 128px margin at 1920
+    const BAND = 187;             // 280px band at 1920
+    const inked = T.mode === "light";
+    const bandBg = inked ? T.accent2 : T.bg;
+    const bandInk = inked ? T.bg : T.text;
+    const askText = C.ask?.headline || C.round || "";
+    return e("div", { style: { position: "relative", width: 1280, height: 720, background: T.accent, color: "#111", fontFamily: T.fontB + ", sans-serif", overflow: "hidden" } },
+      e("div", { key: "body", style: { position: "absolute", left: M, right: M, top: M, bottom: BAND + 26, display: "flex", flexDirection: "column", minWidth: 0 } },
+        e("div", { key: "eb", style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 24 } },
+          e("span", { key: "a", style: { fontFamily: fD(T), fontSize: 21, fontWeight: 500, letterSpacing: 4, textTransform: "uppercase", color: "#111" } },
+            editableText(C.eyebrow, ["eyebrow"], X), " — ", editableText(C.year, ["year"], X)),
+          e("span", { key: "b", style: { fontFamily: fD(T), fontSize: 21, fontWeight: 500, letterSpacing: 4, textTransform: "uppercase", color: "#111", whiteSpace: "nowrap" } },
+            editableText(C.round, ["round"], X))),
+        e("h1", { key: "h", style: { margin: "auto 0 0", fontFamily: fD(T), fontWeight: 700, fontSize: coverFit(T, C.company), lineHeight: 0.9, letterSpacing: "-0.018em", textTransform: "uppercase", color: "#111", overflowWrap: "anywhere" } },
+          editableText(C.company, ["company"], X))),
+      e("div", { key: "band", style: { position: "absolute", left: 0, right: 0, bottom: 0, height: BAND, background: bandBg, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 32, padding: `0 ${M}px` } },
+        e("p", { key: "t", style: { margin: 0, fontFamily: T.fontB, fontSize: 27, lineHeight: 1.3, maxWidth: 735, color: bandInk } },
+          editableText(C.tagline, ["tagline"], X)),
+        askText ? e("span", { key: "r", style: { fontFamily: fD(T), fontSize: 37, fontWeight: 700, textTransform: "uppercase", textAlign: "right", color: inked ? T.accent : T.accent2, whiteSpace: "nowrap" } }, askText) : null));
+  },
+
+  /** Technical drawing — faint grid ground and coordinate annotations. */
+  grid: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { display: "flex", flexDirection: "column", height: "100%" } },
+      eyebrow(T, editableText(C.eyebrow || "Investor Presentation", ["eyebrow"], X)),
+      e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto" } },
+        coverTitle(T, C, X, tCoverSize(T), { weight: 400 }),
+        coverTag(T, C, X, 21, T.muted, 620)),
+      e("div", { key: "bot", style: { display: "flex", gap: 30, fontFamily: fD(T), fontSize: 12.5, letterSpacing: ".08em", color: T.accent } },
+        e("span", { key: 1 }, editableText(C.round, ["round"], X)),
+        e("span", { key: 2 }, editableText(C.year, ["year"], X)))),
+    {
+      noFoot: false, total: A.total,
+      deco: e("div", { key: "g", style: { position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: `linear-gradient(${mix(T.accent, 7, "transparent")} 1px, transparent 1px), linear-gradient(90deg, ${mix(T.accent, 7, "transparent")} 1px, transparent 1px)`, backgroundSize: "40px 40px" } }),
+    }),
+
+  /** Photographic — type over a scrim. The gradient stands in for imagery. */
+  scrim: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { position: "relative", display: "flex", flexDirection: "column", height: "100%" } },
+      eyebrow(T, editableText(C.eyebrow || "Investor Presentation", ["eyebrow"], X)),
+      e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto" } },
+        coverTitle(T, C, X, tCoverSize(T), { weight: 300, color: "#fff" }),
+        coverTag(T, C, X, 22, "rgba(255,255,255,.72)", 520)),
+      e("span", { key: "r", style: { fontFamily: fD(T), fontSize: 13, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(255,255,255,.55)" } }, editableText(C.round, ["round"], X))),
+    {
+      noFoot: true, total: A.total,
+      deco: e("div", { key: "sc", style: { position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(120% 80% at 78% 18%, ${mix(T.accent, 50, "transparent")} 0%, transparent 58%), radial-gradient(90% 70% at 15% 92%, ${mix(T.accent2, 42, "transparent")} 0%, transparent 60%), linear-gradient(104deg, rgba(5,5,7,0) 0%, rgba(5,5,7,.8) 46%, rgba(5,5,7,.95) 78%)` } }),
+    }),
+
+  /** Report title page — ruled header, a fact table where a blob would be. */
+  document: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { display: "flex", flexDirection: "column", height: "100%" } },
+      e("div", { key: "hd", style: { display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${border(T, true)}`, paddingBottom: 11 } },
+        e("span", { key: "a", style: { fontFamily: fD(T), fontSize: 12, letterSpacing: ".1em", textTransform: "uppercase", color: T.muted } }, C.company, " / Confidential"),
+        e("span", { key: "b", style: { fontFamily: fD(T), fontSize: 12, letterSpacing: ".1em", color: T.muted } }, editableText(C.year, ["year"], X))),
+      e("div", { key: "mid", style: { marginTop: "auto" } },
+        e("span", { key: "e", style: { fontFamily: T.fontB, fontSize: 12.5, fontWeight: 600, letterSpacing: ".16em", textTransform: "uppercase", color: T.accent } }, editableText(C.eyebrow, ["eyebrow"], X)),
+        e("div", { key: "t", style: { marginTop: 14 } }, coverTitle(T, C, X, tCoverSize(T))),
+        coverTag(T, C, X, 20, T.muted, 620)),
+      e("div", { key: "bot", style: { marginTop: "auto", display: "flex", gap: 0, flexDirection: "column" } },
+        (C.summary?.highlights || []).slice(0, 4).map((k, n) =>
+          e("div", { key: n, style: { display: "flex", justifyContent: "space-between", borderTop: `1px solid ${border(T)}`, padding: "9px 0" } },
+            e("span", { key: "l", style: { fontSize: 13, color: T.muted } }, k.l),
+            e("span", { key: "v", style: { fontFamily: fD(T), fontSize: 13, fontWeight: 600, color: T.text } }, k.k))))),
+    { noFoot: false, total: A.total }),
+
+  /** Radical minimal — centred, small, the whitespace doing the talking. */
+  minimal: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { display: "flex", flexDirection: "column", height: "100%", alignItems: "center", justifyContent: "center", textAlign: "center" } },
+      coverTitle(T, C, X, tCoverSize(T), { weight: 300, lh: 1.05 }),
+      e("div", { key: "r", style: { width: 34, height: 1, background: T.text, margin: "32px 0" } }),
+      e("p", { key: "t", style: { margin: 0, fontSize: 18, fontWeight: 300, lineHeight: 1.5, color: T.muted, maxWidth: 440 } }, editableText(C.tagline, ["tagline"], X))),
+    { noFoot: false, total: A.total }),
+
+  /** Horizontal bands — the composition IS the colour strata. */
+  bands: (T, C, i, X, A) => e("div", { style: { position: "relative", width: 1280, height: 720, background: T.bg, color: T.text, fontFamily: T.fontB + ", sans-serif", display: "flex", flexDirection: "column", overflow: "hidden" } },
+    e("div", { key: "b1", style: { height: 152, background: T.accent, display: "flex", alignItems: "center", padding: "0 72px" } },
+      e("span", { style: { fontFamily: fD(T), fontSize: 14, fontWeight: 600, letterSpacing: ".18em", textTransform: "uppercase", color: "#fff" } }, editableText(C.eyebrow, ["eyebrow"], X))),
+    e("div", { key: "b2", style: { flex: 1, background: T.surface, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 72px" } },
+      coverTitle(T, C, X, tCoverSize(T), { weight: 800 }),
+      coverTag(T, C, X, 22, T.muted, 700)),
+    e("div", { key: "b3", style: { height: 112, background: T.accent2, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 72px" } },
+      e("span", { key: "a", style: { fontSize: 14.5, fontWeight: 500, color: "#fff" } }, C.company),
+      e("span", { key: "b", style: { fontSize: 14.5, color: "rgba(255,255,255,.82)" } }, editableText(C.round, ["round"], X)))),
+
+  /** Poster — angled badge, soft chroma discs, oversized name. */
+  poster: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { position: "relative", display: "flex", flexDirection: "column", height: "100%" } },
+      e("span", { key: "bd", style: { alignSelf: "flex-start", background: T.accent, color: "#fff", fontFamily: T.fontB, fontSize: 13, fontWeight: 700, padding: "8px 17px", borderRadius: 999, transform: "rotate(-2deg)" } }, editableText(C.round, ["round"], X)),
+      e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto" } },
+        coverTitle(T, C, X, tCoverSize(T), { weight: 800, lh: 0.9 }),
+        coverTag(T, C, X, 24, T.muted, 660))),
+    {
+      noFoot: false, total: A.total,
+      deco: e("div", { key: "d", style: { position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" } },
+        e("div", { key: 1, style: { position: "absolute", right: -100, top: -100, width: 430, height: 430, borderRadius: "50%", background: mix(T.accent, 16, "transparent") } }),
+        e("div", { key: 2, style: { position: "absolute", right: 80, bottom: -80, width: 280, height: 280, borderRadius: "50%", background: mix(T.accent2, 16, "transparent") } })),
+    }),
+
+  /** Letterpress plate — a ruled frame inside the margin. */
+  plate: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { display: "flex", flex: 1, border: `1px solid ${mix(T.text, 26, "transparent")}`, flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 40 } },
+      e("span", { key: "e", style: { fontFamily: T.fontB, fontSize: 12, fontWeight: 600, letterSpacing: ".26em", textTransform: "uppercase", color: T.accent } }, editableText(C.eyebrow, ["eyebrow"], X)),
+      e("div", { key: "t", style: { marginTop: 26 } }, coverTitle(T, C, X, tCoverSize(T), { weight: 400, lh: 1 })),
+      e("div", { key: "r", style: { width: 52, height: 1, background: mix(T.text, 34, "transparent"), margin: "26px 0" } }),
+      e("p", { key: "g", style: { margin: 0, fontSize: 19, lineHeight: 1.5, color: T.muted, maxWidth: 560 } }, editableText(C.tagline, ["tagline"], X)),
+      e("span", { key: "rd", style: { marginTop: 32, fontSize: 13, color: T.muted } }, editableText(C.round, ["round"], X))),
+    { noFoot: true, total: A.total }),
+
+  /** Colour panel beside the content — Swiss Grid and Split Panel. */
+  panel: (T, C, i, X, A) => e("div", { style: { position: "relative", width: 1280, height: 720, background: T.bg, color: T.text, fontFamily: T.fontB + ", sans-serif", display: "flex", overflow: "hidden" } },
+    e("div", { key: "main", style: { flex: 1, padding: "62px 56px 62px 80px", display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 } },
+      e("div", { key: "top", style: { display: "flex", gap: 32, alignItems: "baseline" } },
+        e("span", { key: "a", style: { fontFamily: fD(T), fontSize: 15, fontWeight: 700, color: T.text } }, C.company),
+        e("span", { key: "b", style: { fontSize: 15, color: T.muted } }, editableText(C.eyebrow, ["eyebrow"], X)),
+        e("span", { key: "c", style: { fontSize: 15, color: T.muted } }, editableText(C.year, ["year"], X))),
+      e("div", { key: "mid" },
+        coverTitle(T, C, X, tCoverSize(T), { weight: 700, lh: 0.94 }),
+        e("div", { key: "r", style: { height: 3, background: T.text, margin: "26px 0 22px" } }),
+        e("p", { key: "t", style: { margin: 0, fontSize: 21, lineHeight: 1.35, color: T.text, maxWidth: 520 } }, editableText(C.tagline, ["tagline"], X))),
+      e("div", { key: "bot", style: { display: "flex", gap: 26 } },
+        (C.summary?.highlights || []).slice(0, 3).map((k, n) =>
+          e("span", { key: n, style: { fontSize: 14, color: T.muted } }, k.k, " ", k.l)))),
+    e("div", { key: "pan", style: { width: 340, flexShrink: 0, background: T.accent, padding: "62px 34px", display: "flex", flexDirection: "column", justifyContent: "space-between" } },
+      e("span", { key: "r", style: { fontFamily: fD(T), fontSize: 16, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: "#fff", lineHeight: 1.35 } }, editableText(C.round, ["round"], X)),
+      e("span", { key: "m", style: { fontFamily: fD(T), fontSize: 62, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", lineHeight: 1 } }, C.mark))),
+
+  /** Tile grid — Bento. The name tile is generously sized and wraps, because
+   *  the pack's own version clips an eight-character company name. */
+  bento: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 14, flex: 1 } },
+      e("div", { key: "name", style: { gridColumn: "1", gridRow: "1 / span 2", ...cardStyle(T), background: mix(T.accent, 14, "#fff"), padding: "26px 28px", display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 } },
+        e("span", { key: "e", style: { fontFamily: T.fontB, fontSize: 11.5, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: T.muted } }, editableText(C.eyebrow, ["eyebrow"], X)),
+        e("div", { key: "n" },
+          e("h1", { key: "h", style: { margin: 0, fontFamily: fD(T), fontWeight: 700, fontSize: coverFit(T, C.company), lineHeight: 0.98, letterSpacing: "-0.035em", color: T.text, overflowWrap: "anywhere" } }, editableText(C.company, ["company"], X)),
+          e("p", { key: "t", style: { margin: "14px 0 0", fontSize: 15, lineHeight: 1.45, color: T.muted } }, editableText(C.tagline, ["tagline"], X)))),
+      (C.summary?.highlights || []).slice(0, 4).map((k, n) =>
+        e("div", { key: n, style: { ...cardStyle(T), background: mix([T.accent2, T.accent, T.accent2, T.accent][n] || T.accent, n % 2 ? 12 : 18, "#fff"), padding: "20px 22px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 7, minWidth: 0 } },
+          e("span", { key: "k", style: { fontFamily: fD(T), fontWeight: 700, fontSize: 34, letterSpacing: "-0.03em", color: T.text, lineHeight: 1 } }, editableText(k.k, ["summary", "highlights", n, "k"], X)),
+          e("span", { key: "l", style: { fontSize: 13, lineHeight: 1.35, color: T.muted } }, editableText(k.l, ["summary", "highlights", n, "l"], X))))),
+    { noFoot: false, total: A.total }),
+
+  /** Serif statement with a figure row beneath — Gazette. */
+  statement: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { display: "flex", flexDirection: "column", height: "100%" } },
+      e("div", { key: "top", style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: `1px solid ${border(T, true)}`, paddingBottom: 12 } },
+        e("span", { key: "a", style: { fontFamily: T.fontB, fontSize: 12.5, fontWeight: 700, letterSpacing: ".18em", textTransform: "uppercase", color: T.text } }, C.company),
+        e("span", { key: "b", style: { fontSize: 13.5, color: T.muted } }, editableText(C.eyebrow, ["eyebrow"], X), " · ", editableText(C.round, ["round"], X))),
+      e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto", maxWidth: 880 } },
+        e("p", { key: "k", style: { margin: "0 0 18px", fontFamily: fD(T), fontSize: 22, fontStyle: "italic", color: T.accent } }, editableText(C.tagline, ["tagline"], X)),
+        coverTitle(T, C, X, tCoverSize(T), { weight: 400, lh: 1.02 })),
+      e("div", { key: "bot", style: { display: "flex", gap: 56, borderTop: `1px solid ${border(T, true)}`, paddingTop: 16 } },
+        (C.summary?.highlights || []).slice(0, 3).map((k, n) =>
+          e("div", { key: n, style: { display: "flex", flexDirection: "column", gap: 5, minWidth: 0 } },
+            e("span", { key: "k", style: { fontFamily: fD(T), fontWeight: 400, fontSize: 32, letterSpacing: "-0.02em", color: T.text } }, editableText(k.k, ["summary", "highlights", n, "k"], X)),
+            e("span", { key: "l", style: { fontSize: 13, color: T.muted } }, editableText(k.l, ["summary", "highlights", n, "l"], X)))))),
+    { noFoot: true, total: A.total }),
+
+  /** Terminal — a lit status dot, a gradient hairline, near-black ground. */
+  terminal: (T, C, i, X, A) => shell(T, C, i,
+    e("div", { key: "in", style: { position: "relative", display: "flex", flexDirection: "column", height: "100%" } },
+      e("div", { key: "st", style: { display: "flex", alignItems: "center", gap: 11, fontFamily: fD(T), fontSize: 12.5, letterSpacing: ".14em", textTransform: "uppercase", color: T.accent } },
+        e("span", { key: "d", style: { width: 7, height: 7, borderRadius: "50%", background: T.accent, boxShadow: `0 0 12px ${T.accent}` } }),
+        e("span", { key: "t" }, editableText(C.eyebrow, ["eyebrow"], X))),
+      e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto" } },
+        coverTitle(T, C, X, tCoverSize(T), { weight: 600 }),
+        e("div", { key: "r", style: { height: 1, background: `linear-gradient(90deg, ${T.accent}, transparent)`, margin: "26px 0" } }),
+        coverTag(T, C, X, 21, T.muted, 620)),
+      e("span", { key: "rd", style: { fontFamily: fD(T), fontSize: 13, letterSpacing: ".08em", color: T.muted } }, editableText(C.round, ["round"], X))),
+    {
+      noFoot: false, total: A.total,
+      deco: e("div", { key: "d", style: { position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(70% 50% at 20% 100%, ${mix(T.accent, 13, "transparent")} 0%, transparent 70%)` } }),
+    }),
+
+  /**
+   * Radial Dashboard — neon progress ring behind the company name, three
+   * floating KPI cards at the bottom. Works for every deck type because it
+   * reads `summary.highlights` (the four AI-produced key metrics) rather than
+   * investor-specific fields.
+   */
+  radial: (T, C, i, X, A) => {
+    const highlights = (C.summary?.highlights || []).slice(0, 3);
+    // SVG arc helper: returns a stroked arc path on a cx/cy circle of radius r
+    // from startAngle to endAngle (degrees, 0 = top).
+    const arc = (cx: number, cy: number, r: number, start: number, end: number) => {
+      const toRad = (d: number) => ((d - 90) * Math.PI) / 180;
+      const x1 = cx + r * Math.cos(toRad(start));
+      const y1 = cy + r * Math.sin(toRad(start));
+      const x2 = cx + r * Math.cos(toRad(end));
+      const y2 = cy + r * Math.sin(toRad(end));
+      const large = end - start > 180 ? 1 : 0;
+      return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+    };
+    const W = 520; const H = 400;
+    const cx = W / 2; const cy = H / 2 + 20;
+    const rings = [
+      { r: 180, pct: 0.82, opacity: 0.28 },
+      { r: 148, pct: 0.64, opacity: 0.45 },
+      { r: 116, pct: 0.91, opacity: 1 },
+    ];
+    const ringsSvg = e("svg", { viewBox: `0 0 ${W} ${H}`, style: { position: "absolute", right: -20, top: -30, width: W, height: H, pointerEvents: "none" } },
+      // track rings (faint full circles)
+      rings.map((r, k) => e("circle", { key: "tr" + k, cx, cy, r: r.r, fill: "none", stroke: mix(T.accent, 12, "transparent"), strokeWidth: 2 })),
+      // progress arcs
+      rings.map((r, k) => e("path", { key: "ar" + k, d: arc(cx, cy, r.r, 0, r.pct * 360), fill: "none", stroke: T.accent, strokeWidth: k === 2 ? 4 : 2.5, strokeLinecap: "round", opacity: r.opacity })),
+      // glow dot at arc end for innermost ring
+      e("circle", { key: "gd", cx: cx + rings[2].r * Math.cos(((rings[2].pct * 360 - 90) * Math.PI) / 180), cy: cy + rings[2].r * Math.sin(((rings[2].pct * 360 - 90) * Math.PI) / 180), r: 7, fill: T.accent, filter: `blur(2px)`, opacity: 0.9 })
+    );
+    const kpiCards = highlights.length > 0
+      ? e("div", { key: "kpi", style: { display: "flex", gap: 14, marginTop: "auto" } },
+          highlights.map((h, k) =>
+            e("div", { key: k, style: { flex: 1, padding: "14px 18px", borderRadius: tRadius(T) || 12, background: "rgba(255,255,255,0.06)", border: `1px solid ${mix(T.accent, 22, "transparent")}`, backdropFilter: "blur(8px)", display: "flex", flexDirection: "column", gap: 5 } },
+              e("div", { key: "v", style: { fontFamily: fD(T), fontWeight: 700, fontSize: 24, letterSpacing: "-0.02em", color: T.accent, lineHeight: 1 } }, editableText(h.k, ["summary", "highlights", k, "k"], X)),
+              e("div", { key: "l", style: { fontSize: 12.5, color: T.muted, lineHeight: 1.3 } }, editableText(h.l, ["summary", "highlights", k, "l"], X))
+            )
+          ))
+      : null;
+    return shell(T, C, i,
+      e("div", { key: "in", style: { position: "relative", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" } },
+        e("div", { key: "top", style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+          logo(T, C),
+          e("span", { key: "rd", style: { fontFamily: fD(T), fontSize: 12, fontWeight: 500, letterSpacing: ".12em", textTransform: "uppercase", color: T.accent, padding: "6px 14px", borderRadius: 999, border: `1px solid ${mix(T.accent, 35)}` } }, editableText(C.round || C.eyebrow, ["round"], X))
+        ),
+        e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto", maxWidth: 660, position: "relative", zIndex: 1 } },
+          coverTitle(T, C, X, tCoverSize(T)),
+          coverTag(T, C, X, 22, T.muted, 540)
+        ),
+        ringsSvg,
+        kpiCards
+      ),
+      { noFoot: true, total: A.total,
+        deco: e("div", { key: "rd", style: { position: "absolute", inset: 0, pointerEvents: "none", background: `radial-gradient(55% 65% at 72% 38%, ${mix(T.accent, 9, "transparent")} 0%, transparent 70%)` } }) }
+    );
+  },
+
+  /**
+   * Gradient Flow — smooth flowing wave curves as the background, the company
+   * name centred over them, round metric badge pills below. The three pills
+   * show the eyebrow, round, and year — always available regardless of deck
+   * type, so this cover works for every deck (sales, GTM, product, etc.).
+   */
+  gradient: (T, C, i, X, A) => {
+    const pills = [
+      { v: editableText(C.eyebrow || "Pitch Deck", ["eyebrow"], X) },
+      { v: editableText(C.round, ["round"], X) },
+      { v: editableText(C.year, ["year"], X) },
+    ].filter(p => p.v);
+    // Flowing wave SVG drawn as bezier curves across the full 1280×720 canvas.
+    const waveSvg = e("svg", { viewBox: "0 0 1280 720", preserveAspectRatio: "none",
+      style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" } },
+      e("defs", { key: "df" },
+        e("linearGradient", { id: "wg1", x1: 0, y1: 0, x2: 1, y2: 1 },
+          e("stop", { key: 0, offset: "0%", stopColor: T.accent, stopOpacity: 0.55 }),
+          e("stop", { key: 1, offset: "100%", stopColor: T.accent2, stopOpacity: 0.35 })
+        ),
+        e("linearGradient", { id: "wg2", x1: 1, y1: 0, x2: 0, y2: 1 },
+          e("stop", { key: 0, offset: "0%", stopColor: T.accent2, stopOpacity: 0.40 }),
+          e("stop", { key: 1, offset: "100%", stopColor: T.accent, stopOpacity: 0.20 })
+        )
+      ),
+      e("path", { key: "w1", d: "M0 460 C320 300 640 560 960 380 S1280 480 1280 480 L1280 720 L0 720Z", fill: "url(#wg1)" }),
+      e("path", { key: "w2", d: "M0 520 C280 420 560 600 840 460 S1120 560 1280 540 L1280 720 L0 720Z", fill: "url(#wg2)", opacity: 0.7 }),
+      e("path", { key: "w3", d: "M0 580 C200 520 500 640 800 560 S1100 600 1280 590 L1280 720 L0 720Z", fill: T.accent2, opacity: 0.12 })
+    );
+    return e("div", { style: { position: "relative", width: 1280, height: 720, background: T.bg, color: T.text, fontFamily: T.fontB + ", sans-serif", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" } },
+      waveSvg,
+      e("div", { key: "body", style: { position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 0 } },
+        coverTitle(T, C, X, tCoverSize(T)),
+        e("p", { key: "tg", style: { margin: "22px 0 40px", fontSize: 22, lineHeight: 1.45, color: T.muted, maxWidth: 620, fontWeight: 400 } },
+          editableText(C.tagline, ["tagline"], X)),
+        e("div", { key: "pills", style: { display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" } },
+          pills.map((p, k) =>
+            e("span", { key: k, style: { padding: "9px 20px", borderRadius: 999, background: "rgba(255,255,255,0.09)", border: `1px solid rgba(255,255,255,0.18)`, backdropFilter: "blur(6px)", fontFamily: fD(T), fontSize: 13.5, fontWeight: 500, color: T.text, letterSpacing: ".03em" } }, p.v)
+          )
+        )
+      )
+    );
+  },
+
+  /**
+   * Donut Stats — dynamic multi-tier ring donut infographic with glowing center
+   * callout, company identity on left, and key metric badges. Directly mirrors
+   * the top-right design from the infographic showcase comp.
+   */
+  donut: (T, C, i, X, A) => {
+    const rawHighlights = (C.summary?.highlights || []).slice(0, 3);
+    const highlights = rawHighlights.length > 0 ? rawHighlights : [
+      { k: "140+", l: "Countries Deployed" },
+      { k: "2.4M", l: "Active Users" },
+      { k: "4.9★", l: "Customer Rating" },
+    ];
+
+    const toRad = (deg: number) => ((deg - 90) * Math.PI) / 180;
+    const arcPath = (cx: number, cy: number, r: number, startAngle: number, endAngle: number) => {
+      const x1 = cx + r * Math.cos(toRad(startAngle));
+      const y1 = cy + r * Math.sin(toRad(startAngle));
+      const x2 = cx + r * Math.cos(toRad(endAngle));
+      const y2 = cy + r * Math.sin(toRad(endAngle));
+      const large = endAngle - startAngle > 180 ? 1 : 0;
+      return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+    };
+
+    const cx = 240;
+    const cy = 240;
+    const r = 135;
+    const strokeWidth = 32;
+
+    const seg1 = arcPath(cx, cy, r, 0, 190);
+    const seg2 = arcPath(cx, cy, r, 202, 294);
+    const seg3 = arcPath(cx, cy, r, 306, 350);
+
+    const donutSvg = e("svg", {
+      viewBox: "0 0 480 480",
+      style: { width: 440, height: 440, flexShrink: 0, overflow: "visible" },
+    },
+      e("circle", { key: "out", cx, cy, r: 172, fill: "none", stroke: mix(T.accent, 16, "transparent"), strokeWidth: 1.5, strokeDasharray: "4 8" }),
+      e("circle", { key: "base", cx, cy, r, fill: "none", stroke: mix(T.text, 6, "transparent"), strokeWidth }),
+      e("path", { key: "s1", d: seg1, fill: "none", stroke: T.accent, strokeWidth, strokeLinecap: "round" }),
+      e("path", { key: "s2", d: seg2, fill: "none", stroke: T.accent2 || mix(T.accent, 50), strokeWidth, strokeLinecap: "round" }),
+      e("path", { key: "s3", d: seg3, fill: "none", stroke: mix(T.text, 24, "transparent"), strokeWidth, strokeLinecap: "round" }),
+      e("circle", { key: "glowDot", cx: cx + r * Math.cos(toRad(190)), cy: cy + r * Math.sin(toRad(190)), r: 8, fill: T.accent, filter: "blur(2px)", opacity: 0.9 }),
+      e("circle", { key: "innerBg", cx, cy, r: 96, fill: T.mode === "dark" ? "rgba(10,20,35,0.75)" : "rgba(255,255,255,0.85)", stroke: border(T), strokeWidth: 1, filter: "drop-shadow(0 8px 24px rgba(0,0,0,0.12))" }),
+      e("text", { key: "val", x: cx, y: cy - 4, textAnchor: "middle", dominantBaseline: "middle", fill: T.accent, fontFamily: fD(T), fontWeight: 800, fontSize: 36, letterSpacing: "-0.03em" }, "+148%"),
+      e("text", { key: "lbl", x: cx, y: cy + 30, textAnchor: "middle", dominantBaseline: "middle", fill: T.muted, fontFamily: T.fontB + ", sans-serif", fontWeight: 600, fontSize: 11, letterSpacing: "0.14em" }, "YOY SCALE"),
+      e("line", { key: "l1", x1: cx + 115, y1: cy - 115, x2: cx + 160, y2: cy - 150, stroke: mix(T.accent, 40), strokeWidth: 1 }),
+      e("circle", { key: "d1", cx: cx + 115, cy: cy - 115, r: 3, fill: T.accent }),
+      e("line", { key: "l2", x1: cx + 115, y1: cy + 115, x2: cx + 160, y2: cy + 145, stroke: mix(T.accent2, 40), strokeWidth: 1 }),
+      e("circle", { key: "d2", cx: cx + 115, cy: cy + 115, r: 3, fill: T.accent2 || T.accent })
+    );
+
+    return shell(T, C, i,
+      e("div", { key: "in", style: { position: "relative", display: "flex", flexDirection: "column", height: "100%", zIndex: 1 } },
+        e("div", { key: "top", style: { display: "flex", justifyContent: "space-between", alignItems: "center" } },
+          logo(T, C),
+          e("span", { key: "badge", style: { fontFamily: fD(T), fontSize: 12, fontWeight: 600, letterSpacing: ".12em", textTransform: "uppercase", color: T.accent, padding: "7px 18px", borderRadius: 999, background: mix(T.accent, T.mode === "dark" ? 14 : 9, "transparent"), border: `1px solid ${mix(T.accent, 35)}` } },
+            editableText(C.round || C.eyebrow || "GLOBAL OVERVIEW", ["round"], X))
+        ),
+        e("div", { key: "main", style: { display: "flex", alignItems: "center", justifyContent: "space-between", flex: 1, gap: 40, marginTop: 12 } },
+          e("div", { key: "left", style: { maxWidth: 620, display: "flex", flexDirection: "column" } },
+            eyebrow(T, editableText(C.eyebrow || "DATA PLATFORM", ["eyebrow"], X)),
+            coverTitle(T, C, X, tCoverSize(T), { weight: 700 }),
+            coverTag(T, C, X, 21, T.muted, 540),
+            e("div", { key: "stats", style: { display: "flex", gap: 14, marginTop: 36, flexWrap: "wrap" } },
+              highlights.map((h, k) =>
+                e("div", { key: k, style: { padding: "14px 20px", borderRadius: tRadius(T) || 14, background: T.mode === "dark" ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)", border: `1px solid ${border(T, true)}`, backdropFilter: "blur(10px)", minWidth: 140, boxShadow: "0 4px 20px rgba(0,0,0,0.04)" } },
+                  e("div", { key: "v", style: { fontFamily: fD(T), fontWeight: 700, fontSize: 24, letterSpacing: "-0.02em", color: k === 0 ? T.accent : T.text, lineHeight: 1 } },
+                    editableText(h.k, ["summary", "highlights", k, "k"], X)),
+                  e("div", { key: "l", style: { fontSize: 12, color: T.muted, marginTop: 6, fontWeight: 500 } },
+                    editableText(h.l, ["summary", "highlights", k, "l"], X))
+                )
+              )
+            )
+          ),
+          e("div", { key: "right", style: { position: "relative", display: "flex", alignItems: "center", justifyContent: "center" } },
+            e("div", { key: "glow", style: { position: "absolute", width: 340, height: 340, borderRadius: "50%", background: mix(T.accent, T.mode === "dark" ? 18 : 10, "transparent"), filter: "blur(36px)", pointerEvents: "none" } }),
+            donutSvg
+          )
+        )
+      ),
+      { noFoot: true, total: A.total }
+    );
+  },
+
+  /**
+   * Heatmap / Global Network — dark canvas with matrix dot-grid world coordinates,
+   * glowing network nodes, interconnected curved data arcs, and live telemetry cards.
+   * Directly mirrors the bottom-left design from the infographic showcase comp.
+   */
+  heatmap: (T, C, i, X, A) => {
+    const mapDots = [
+      { cx: 210, cy: 190 }, { cx: 230, cy: 180 }, { cx: 260, cy: 180 }, { cx: 290, cy: 190 },
+      { cx: 200, cy: 210 }, { cx: 230, cy: 210 }, { cx: 270, cy: 210 }, { cx: 310, cy: 210 },
+      { cx: 220, cy: 240 }, { cx: 250, cy: 240 }, { cx: 290, cy: 240 }, { cx: 330, cy: 230 },
+      { cx: 250, cy: 270 }, { cx: 280, cy: 280 }, { cx: 300, cy: 300 },
+      { cx: 330, cy: 380 }, { cx: 350, cy: 390 }, { cx: 370, cy: 410 },
+      { cx: 340, cy: 440 }, { cx: 360, cy: 450 }, { cx: 350, cy: 490 }, { cx: 340, cy: 530 },
+      { cx: 580, cy: 180 }, { cx: 610, cy: 170 }, { cx: 640, cy: 170 }, { cx: 670, cy: 180 },
+      { cx: 590, cy: 210 }, { cx: 620, cy: 210 }, { cx: 650, cy: 220 }, { cx: 680, cy: 210 },
+      { cx: 600, cy: 280 }, { cx: 630, cy: 270 }, { cx: 660, cy: 280 },
+      { cx: 610, cy: 330 }, { cx: 640, cy: 340 }, { cx: 680, cy: 350 },
+      { cx: 630, cy: 390 }, { cx: 660, cy: 410 }, { cx: 650, cy: 460 },
+      { cx: 750, cy: 170 }, { cx: 790, cy: 170 }, { cx: 830, cy: 160 }, { cx: 880, cy: 160 }, { cx: 930, cy: 170 },
+      { cx: 730, cy: 210 }, { cx: 770, cy: 210 }, { cx: 820, cy: 210 }, { cx: 870, cy: 200 }, { cx: 920, cy: 210 }, { cx: 970, cy: 200 },
+      { cx: 760, cy: 260 }, { cx: 800, cy: 260 }, { cx: 850, cy: 260 }, { cx: 900, cy: 250 }, { cx: 950, cy: 260 },
+      { cx: 790, cy: 310 }, { cx: 830, cy: 320 }, { cx: 880, cy: 320 },
+      { cx: 890, cy: 380 }, { cx: 920, cy: 400 },
+      { cx: 950, cy: 470 }, { cx: 990, cy: 460 }, { cx: 1030, cy: 470 },
+      { cx: 960, cy: 510 }, { cx: 1010, cy: 510 }, { cx: 1040, cy: 520 },
+    ];
+
+    const hubs = [
+      { id: "sf", cx: 220, cy: 240, label: "SF · US-WEST" },
+      { id: "nyc", cx: 330, cy: 230, label: "NYC · US-EAST" },
+      { id: "lon", cx: 600, cy: 190, label: "LDN · EU-CENTRAL" },
+      { id: "fra", cx: 650, cy: 210, label: "FRA · CORE" },
+      { id: "tko", cx: 970, cy: 200, label: "TYO · AP-NORTH" },
+      { id: "sg", cx: 890, cy: 380, label: "SIN · AP-SOUTH" },
+      { id: "syd", cx: 1010, cy: 510, label: "SYD · OC-EAST" },
+    ];
+
+    const arcs = [
+      "M 220 240 Q 275 190 330 230",
+      "M 330 230 Q 465 140 600 190",
+      "M 600 190 Q 625 180 650 210",
+      "M 650 210 Q 810 120 970 200",
+      "M 970 200 Q 940 290 890 380",
+      "M 890 380 Q 960 440 1010 510",
+      "M 220 240 Q 590 60 970 200",
+    ];
+
+    const mapSvg = e("svg", {
+      viewBox: "0 0 1280 720",
+      preserveAspectRatio: "xMidYMid slice",
+      style: { position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }
+    },
+      e("defs", { key: "d" },
+        e("pattern", { id: "hmGrid", width: 60, height: 60, patternUnits: "userSpaceOnUse" },
+          e("path", { d: "M 60 0 L 0 0 0 60", fill: "none", stroke: mix(T.accent, 6, "transparent"), strokeWidth: 1 }),
+          e("circle", { cx: 0, cy: 0, r: 1.5, fill: mix(T.accent, 20, "transparent") })
+        ),
+        e("linearGradient", { id: "arcGrad", x1: 0, y1: 0, x2: 1, y2: 0 },
+          e("stop", { offset: "0%", stopColor: T.accent, stopOpacity: 0.8 }),
+          e("stop", { offset: "50%", stopColor: T.accent2 || T.accent, stopOpacity: 0.95 }),
+          e("stop", { offset: "100%", stopColor: T.accent, stopOpacity: 0.6 })
+        )
+      ),
+      e("rect", { key: "bgGrid", width: "100%", height: "100%", fill: "url(#hmGrid)" }),
+      mapDots.map((pt, k) =>
+        e("circle", { key: "md" + k, cx: pt.cx, cy: pt.cy, r: 3.5, fill: T.mode === "dark" ? mix(T.text, 22, "transparent") : mix(T.text, 14, "transparent") })
+      ),
+      arcs.map((d, k) =>
+        e("path", { key: "arc" + k, d, fill: "none", stroke: "url(#arcGrad)", strokeWidth: 1.8, strokeDasharray: k === 6 ? "5 6" : "none", opacity: 0.75 })
+      ),
+      hubs.map((h, k) =>
+        e("g", { key: "hub" + k },
+          e("circle", { cx: h.cx, cy: h.cy, r: 14, fill: "none", stroke: T.accent, strokeWidth: 1.5, opacity: 0.35 }),
+          e("circle", { cx: h.cx, cy: h.cy, r: 6, fill: T.accent, filter: "blur(3px)", opacity: 0.8 }),
+          e("circle", { cx: h.cx, cy: h.cy, r: 4, fill: "#FFFFFF" })
+        )
+      )
+    );
+
+    const telemetryItems = [
+      { k: "NETWORK LATENCY", v: "< 14ms Edge" },
+      { k: "ACTIVE COVERAGE", v: "180+ Data Hubs" },
+      { k: "SYSTEM RELIABILITY", v: "99.999% SLA" },
+      { k: "INTELLIGENCE MESH", v: "REAL-TIME SYNC" },
+    ];
+
+    return shell(T, C, i,
+      e("div", { key: "in", style: { position: "relative", display: "flex", flexDirection: "column", height: "100%", zIndex: 1 } },
+        mapSvg,
+        e("div", { key: "top", style: { display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 2 } },
+          logo(T, C),
+          e("div", { key: "status", style: { display: "flex", alignItems: "center", gap: 10, padding: "7px 18px", borderRadius: 999, background: "rgba(0,0,0,0.45)", border: `1px solid ${mix(T.accent, 40)}`, backdropFilter: "blur(12px)" } },
+            e("span", { key: "dot", style: { width: 8, height: 8, borderRadius: "50%", background: T.accent, boxShadow: `0 0 10px ${T.accent}` } }),
+            e("span", { key: "txt", style: { fontFamily: fD(T), fontSize: 11.5, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase", color: T.accent } },
+              editableText(C.round || "GLOBAL MESH TELEMETRY", ["round"], X))
+          )
+        ),
+        e("div", { key: "mid", style: { marginTop: "auto", marginBottom: "auto", maxWidth: 760, position: "relative", zIndex: 2, padding: "20px 0" } },
+          eyebrow(T, editableText(C.eyebrow || "GLOBAL INTELLIGENCE NETWORK", ["eyebrow"], X)),
+          coverTitle(T, C, X, tCoverSize(T), { weight: 800, lh: 0.94 }),
+          coverTag(T, C, X, 22, T.muted, 600)
+        ),
+        e("div", { key: "bot", style: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginTop: "auto", position: "relative", zIndex: 2 } },
+          telemetryItems.map((item, k) =>
+            e("div", { key: k, style: { padding: "14px 18px", borderRadius: tRadius(T) || 10, background: T.mode === "dark" ? "rgba(10,18,30,0.72)" : "rgba(255,255,255,0.72)", border: `1px solid ${border(T, true)}`, backdropFilter: "blur(12px)", boxShadow: "0 6px 20px rgba(0,0,0,0.15)" } },
+              e("div", { key: "k", style: { fontSize: 10.5, fontFamily: fD(T), fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: T.accent } }, item.k),
+              e("div", { key: "v", style: { fontSize: 16, fontWeight: 700, color: T.text, marginTop: 4, letterSpacing: "-0.01em" } }, item.v)
+            )
+          )
+        )
+      ),
+      { noFoot: true, total: A.total }
+    );
+  },
+};
+
 const cover: SlideFn = (T, C, i, X, A) => {
+  const variant = coverVariants[tCover(T)];
+  if (variant) return variant(T, C, i, X, A);
+
   const deco = e("div", { key: "dc", style: { position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" } },
     e("div", { key: 1, style: { position: "absolute", right: -120, top: -120, width: 460, height: 460, borderRadius: "50%", background: mix(T.accent2, T.mode === "dark" ? 22 : 16, "transparent"), filter: "blur(10px)" } }),
     e("div", { key: 2, style: { position: "absolute", right: 120, bottom: -160, width: 380, height: 380, borderRadius: "50%", background: mix(T.accent, T.mode === "dark" ? 20 : 14, "transparent"), filter: "blur(6px)" } }),
@@ -280,10 +893,60 @@ const market: SlideFn = (T, C, i, X, A) => {
   });
   legendItems.push(e("div", { key: "note", style: { marginTop: 8, padding: "14px 18px", borderRadius: 12, background: T.mode === "dark" ? mix(T.surface, 70, T.bg) : mix(T.accent, 6, "#fff"), border: `1px solid ${border(T)}`, fontSize: 14, lineHeight: 1.5, color: T.muted } }, editableText(M.note, [A.k, "note"], X, { multiline: true })));
   const legend = e("div", { key: "leg", style: { display: "flex", flexDirection: "column", gap: 22, flex: 1 } }, legendItems);
+
+  // How the three figures are drawn is a template decision. "rings" is the
+  // original nested-circle diagram; the rest replace it wholesale rather than
+  // recolouring it, because a data treatment is a large part of a deck's voice.
+  const fig = tFigure(T);
+  const labels = ["TAM", "SAM", "SOM"] as const;
+  const widths = [100, 42, 13];
+
+  let body: N;
+  if (fig === "rings") {
+    body = e("div", { key: "g", style: { display: "flex", gap: 64, alignItems: "center", marginTop: "auto", marginBottom: "auto" } }, circle, legend);
+  } else if (fig === "bars") {
+    body = e("div", { key: "g", style: { display: "flex", flexDirection: "column", gap: 26, marginTop: "auto", marginBottom: "auto" } },
+      keys.map((key, k) => e("div", { key: k, style: { display: "flex", flexDirection: "column", gap: 9 } },
+        e("div", { key: "r", style: { display: "flex", alignItems: "baseline", gap: 14 } },
+          e("span", { key: "a", style: { fontFamily: fD(T), fontSize: 13, fontWeight: 600, letterSpacing: ".12em", color: T.muted, width: 46 } }, labels[k]),
+          e("span", { key: "v", style: { fontFamily: fD(T), fontWeight: 700, fontSize: 34, letterSpacing: "-0.02em", color: k === 0 ? T.accent : T.text } }, editableText(M[key]?.v || "", [A.k, key, "v"], X)),
+          e("span", { key: "l", style: { marginLeft: "auto", fontSize: 15, color: T.muted, maxWidth: 480, textAlign: "right" } }, editableText(M[key]?.l || "", [A.k, key, "l"], X))),
+        e("div", { key: "t", style: { height: 12, background: mix(T.text, 10, "transparent"), borderRadius: tRadius(T) ? 6 : 0 } },
+          e("div", { style: { width: `${widths[k]}%`, height: "100%", background: k === 0 ? T.accent : mix(T.accent, 45), borderRadius: "inherit" } })))),
+      e("p", { key: "n", style: { marginTop: 6, fontSize: 14, lineHeight: 1.5, color: T.muted, maxWidth: 780 } }, editableText(M.note, [A.k, "note"], X, { multiline: true })));
+  } else if (fig === "blocks") {
+    body = e("div", { key: "g", style: { display: "flex", flexDirection: "column", gap: 20, marginTop: "auto", marginBottom: "auto" } },
+      e("div", { key: "row", style: { display: "flex", gap: 20, alignItems: "flex-end", height: 300 } },
+        keys.map((key, k) => e("div", { key: k, style: { flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 14, height: `${44 + widths[k] * 0.56}%` } },
+          e("span", { key: "v", style: { fontFamily: fD(T), fontWeight: 900, fontSize: 40, letterSpacing: "-0.03em", color: T.text } }, editableText(M[key]?.v || "", [A.k, key, "v"], X)),
+          e("div", { key: "b", style: { flex: 1, background: k === 0 ? T.accent : mix(T.accent, 40), borderRadius: tRadius(T) } }),
+          e("div", { key: "t" },
+            e("div", { key: "a", style: { fontFamily: fD(T), fontSize: 13, fontWeight: 700, letterSpacing: ".1em", color: T.text } }, labels[k]),
+            e("div", { key: "l", style: { marginTop: 5, fontSize: 13.5, lineHeight: 1.4, color: T.muted } }, editableText(M[key]?.l || "", [A.k, key, "l"], X)))))),
+      e("p", { key: "n", style: { fontSize: 13.5, lineHeight: 1.5, color: T.muted, maxWidth: 780 } }, editableText(M.note, [A.k, "note"], X, { multiline: true })));
+  } else if (fig === "table") {
+    body = e("div", { key: "g", style: { display: "flex", flexDirection: "column", marginTop: "auto", marginBottom: "auto" } },
+      e("div", { key: "hd", style: { display: "grid", gridTemplateColumns: "90px 210px 1fr", borderBottom: `2px solid ${T.text}`, paddingBottom: 9 } },
+        ["", "Value", "Definition"].map((hd, k) => e("span", { key: k, style: { fontFamily: T.fontB, fontSize: 12, fontWeight: 600, letterSpacing: ".1em", textTransform: "uppercase", color: T.muted } }, hd))),
+      keys.map((key, k) => e("div", { key: k, style: { display: "grid", gridTemplateColumns: "90px 210px 1fr", alignItems: "baseline", borderBottom: `1px solid ${border(T)}`, padding: "16px 0" } },
+        e("span", { key: "a", style: { fontFamily: fD(T), fontSize: 15, fontWeight: 700, color: T.text } }, labels[k]),
+        e("span", { key: "v", style: { fontFamily: fD(T), fontWeight: 700, fontSize: 27, letterSpacing: "-0.02em", color: k === 0 ? T.accent : T.text } }, editableText(M[key]?.v || "", [A.k, key, "v"], X)),
+        e("span", { key: "l", style: { fontSize: 14.5, lineHeight: 1.45, color: T.muted } }, editableText(M[key]?.l || "", [A.k, key, "l"], X)))),
+      e("p", { key: "n", style: { marginTop: 18, fontSize: 13, lineHeight: 1.5, color: T.muted, maxWidth: 800 } }, editableText(M.note, [A.k, "note"], X, { multiline: true })));
+  } else {
+    // rows — ruled, editorial: no chart at all, the figures set as type.
+    body = e("div", { key: "g", style: { display: "flex", flexDirection: "column", marginTop: "auto", marginBottom: "auto" } },
+      keys.map((key, k) => e("div", { key: k, style: { display: "flex", alignItems: "baseline", gap: 24, borderTop: `1px solid ${border(T, true)}`, padding: "18px 0" } },
+        e("span", { key: "a", style: { fontFamily: T.fontB, fontSize: 12.5, fontWeight: 600, letterSpacing: ".14em", color: T.muted, width: 56 } }, labels[k]),
+        e("span", { key: "v", style: { fontFamily: fD(T), fontWeight: T.serif ? 400 : 600, fontSize: 42, letterSpacing: "-0.02em", color: k === 0 ? T.accent : T.text, width: 230 } }, editableText(M[key]?.v || "", [A.k, key, "v"], X)),
+        e("span", { key: "l", style: { fontSize: 16, lineHeight: 1.45, color: T.muted } }, editableText(M[key]?.l || "", [A.k, key, "l"], X)))),
+      e("p", { key: "n", style: { marginTop: 22, fontSize: 14, lineHeight: 1.55, color: T.muted, maxWidth: 780 } }, editableText(M.note, [A.k, "note"], X, { multiline: true })));
+  }
+
   const inner = e("div", { key: "in", style: { flex: 1, display: "flex", flexDirection: "column" } },
     eyebrow(T, A.eb),
     h1(T, editableText(M.headline, [A.k, "headline"], X), 46),
-    e("div", { key: "g", style: { display: "flex", gap: 64, alignItems: "center", marginTop: "auto", marginBottom: "auto" } }, circle, legend)
+    body
   );
   return shell(T, C, i, inner, { total: A.total });
 };
@@ -466,10 +1129,10 @@ const ask: SlideFn = (T, C, i, X, A) => {
 
 const closing: SlideFn = (T, C, i, X, A) => {
   const Cl = sec(C, A.k, EMPTY_CLOSING);
-  const deco = e("div", { key: "dc", style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" } },
+  const deco = tOrnament(T) !== "blobs" ? ornamentLayer(T) : e("div", { key: "dc", style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" } },
     e("div", { key: 1, style: { position: "absolute", left: -140, bottom: -160, width: 420, height: 420, borderRadius: "50%", background: mix(T.accent, T.mode === "dark" ? 16 : 10, "transparent"), filter: "blur(8px)" } }),
     e("div", { key: 2, style: { position: "absolute", right: -100, top: -120, width: 320, height: 320, borderRadius: "50%", background: mix(T.accent2, T.mode === "dark" ? 18 : 12, "transparent"), filter: "blur(8px)" } })
-  );
+  );;
   const inner = e("div", { key: "in", style: { flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 820 } },
     eyebrow(T, A.eb),
     e("h1", { key: "h", style: { margin: 0, fontFamily: fD(T), fontWeight: T.serif ? 600 : 700, fontSize: 62, lineHeight: 1.02, letterSpacing: "-0.03em", color: T.text } }, editableText(Cl.headline, [A.k, "headline"], X)),
@@ -557,10 +1220,10 @@ const persona: SlideFn = (T, C, i, X, A) => {
 
 const vision: SlideFn = (T, C, i, X, A) => {
   const V = sec(C, A.k, EMPTY_VISION);
-  const deco = e("div", { key: "dc", style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" } },
+  const deco = tOrnament(T) !== "blobs" ? ornamentLayer(T) : e("div", { key: "dc", style: { position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" } },
     e("div", { key: 1, style: { position: "absolute", right: -180, top: -140, width: 520, height: 520, borderRadius: "50%", background: mix(T.accent, T.mode === "dark" ? 15 : 9, "transparent"), filter: "blur(12px)" } }),
     e("div", { key: 2, style: { position: "absolute", left: -120, bottom: -180, width: 400, height: 400, borderRadius: "50%", background: mix(T.accent2, T.mode === "dark" ? 14 : 9, "transparent"), filter: "blur(10px)" } })
-  );
+  );;
   const inner = e("div", { key: "in", style: { flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", maxWidth: 940 } },
     eyebrow(T, A.eb),
     V.horizon

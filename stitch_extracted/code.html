@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+
+<html class="h-full bg-[#f8fafc] text-slate-800 antialiased selection:bg-indigo-500/20 selection:text-indigo-900" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IPRENEUR Accelerator | Venture Operating System</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            space: {
+              950: '#0f172a',
+              900: '#1e293b',
+              850: '#334155',
+              800: '#475569',
+              750: '#64748b',
+              700: '#94a3b8',
+            },
+            accent: {
+              primary: '#4f46e5',
+              cyan: '#0891b2',
+              emerald: '#059669',
+              amber: '#d97706',
+              violet: '#7c3aed',
+            }
+          },
+          boxShadow: {
+            'glow-subtle': '0 4px 20px -2px rgba(99, 102, 241, 0.12)',
+            'glow-emerald': '0 4px 20px -2px rgba(16, 185, 129, 0.14)',
+            'inner-subtle': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.9)',
+            'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
+            'card-hover': '0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .glass-panel {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid #e2e8f0;
+    }
+    .glass-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+    }
+    .glass-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -4px rgba(15, 23, 42, 0.03);
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 0; }
+      100% { transform: scale(0.95); opacity: 0; }
+    }
+    .radar-pulse::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 9999px;
+      border: 2px solid #059669;
+      animation: pulse-ring 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col md:flex-row bg-[#f8fafc] font-sans antialiased overflow-hidden text-slate-800">
+<!-- Ambient Light Orbs -->
+<div class="fixed top-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-indigo-200/35 blur-[130px] pointer-events-none -z-10"></div>
+<div class="fixed top-[40%] right-[-5%] w-[450px] h-[450px] rounded-full bg-cyan-200/30 blur-[140px] pointer-events-none -z-10"></div>
+<div class="fixed bottom-[-10%] left-[35%] w-[550px] h-[550px] rounded-full bg-emerald-200/30 blur-[150px] pointer-events-none -z-10"></div>
+<!-- BEGIN: NavigationSidebar -->
+<aside class="w-72 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 z-30 transition-all duration-300 relative shadow-sm" data-purpose="primary-sidebar">
+<!-- Top Brand & Team Switcher -->
+<div>
+<div class="p-5 pb-4 border-b border-slate-100">
+<!-- Brand / Identity -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 text-white font-black text-sm shadow-md shadow-indigo-600/20 border border-indigo-500/30">
+<span>IP</span>
+<div class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white"></div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="text-sm font-bold tracking-tight text-slate-900">IPRENEUR</span>
+<span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 tracking-wide font-mono">v3.4</span>
+</div>
+<span class="text-[11px] font-medium text-slate-500">Accelerator Operating System</span>
+</div>
+</div>
+<!-- Collapse / Settings Icon Button -->
+<button class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors" title="Quick actions">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewbox="0 0 24 24">
+<path d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Team / Cohort Switcher dropdown button -->
+<div class="mt-4">
+<button class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-left transition-all group">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-6 h-6 rounded-md bg-emerald-100 border border-emerald-200 text-emerald-700 flex items-center justify-center text-[10px] font-bold font-mono">
+                W24
+              </div>
+<div class="truncate">
+<p class="text-xs font-semibold text-slate-800 group-hover:text-slate-900 truncate">Winter 2025 Cohort</p>
+<p class="text-[10px] text-slate-500 truncate">18 portfolio companies</p>
+</div>
+</div>
+<svg class="w-4 h-4 text-slate-400 group-hover:text-slate-600 shrink-0 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Main Navigation Links -->
+<div class="px-3 py-4 space-y-1">
+<div class="px-3 pb-2 text-[10px] font-bold tracking-wider uppercase text-slate-400 font-mono">Core Platform</div>
+<a class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-100 shadow-xs transition-all group" href="#dashboard">
+<div class="flex items-center gap-3">
+<svg class="w-4 h-4 text-indigo-600 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="7" rx="1.5" width="7" x="3" y="3"></rect>
+<rect height="7" rx="1.5" width="7" x="14" y="3"></rect>
+<rect height="7" rx="1.5" width="7" x="14" y="14"></rect>
+<rect height="7" rx="1.5" width="7" x="3" y="14"></rect>
+</svg>
+<span class="font-semibold text-slate-900">Pitch Control</span>
+</div>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-indigo-100 text-indigo-700 font-semibold">5</span>
+</a>
+<a class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all group" href="#new-deck">
+<div class="flex items-center gap-3">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<path d="M12 8v8m-4-4h8" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Deck Generator</span>
+</div>
+<span class="text-[10px] font-mono text-slate-500 group-hover:text-slate-700 border border-slate-200 bg-white px-1 rounded shadow-xs">⌘N</span>
+</a>
+<a class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all group" href="#investor-crm">
+<div class="flex items-center gap-3">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.059 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Investor Radar</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>
+</a>
+<a class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all group" href="#analytics">
+<div class="flex items-center gap-3">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.25 2.25L15 6.75" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Telemetry &amp; Views</span>
+</div>
+<span class="text-[10px] text-emerald-600 font-semibold font-mono bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">+18%</span>
+</a>
+<div class="pt-4 px-3 pb-2 text-[10px] font-bold tracking-wider uppercase text-slate-400 font-mono">Preferences</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all group" href="#settings">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" stroke-linecap="round" stroke-linejoin="round"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+<span>Workspace Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all group" href="#billing">
+<svg class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="14" rx="2" width="20" x="2" y="5"></rect>
+<line x1="2" x2="22" y1="10" y2="10"></line>
+</svg>
+<span>Credits &amp; Billing</span>
+</a>
+</div>
+</div>
+<!-- Bottom Section: Quota Card & Founder Profile -->
+<div class="p-3 border-t border-slate-100 flex flex-col gap-3">
+<!-- High-End Plan / Compute Quota Card -->
+<div class="p-3.5 rounded-2xl bg-gradient-to-b from-indigo-50/70 to-slate-50 border border-indigo-100 shadow-xs relative overflow-hidden" data-purpose="tier-card">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-indigo-200/40 blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-2">
+<span class="text-[10px] font-bold uppercase tracking-wider text-indigo-900 font-mono">Venture Tier 1</span>
+<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">Active</span>
+</div>
+<div class="flex items-baseline justify-between mb-1.5">
+<p class="text-xs font-semibold text-slate-900">3 decks generation left</p>
+<span class="text-[10px] font-mono text-slate-500">2 / 5 used</span>
+</div>
+<!-- Segmented progress bar -->
+<div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden p-0.5 flex gap-1 mb-3">
+<div class="h-full w-2/5 bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-full"></div>
+</div>
+<button class="w-full py-1.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] transition-all text-xs font-semibold text-white tracking-wide shadow-sm shadow-indigo-600/20 flex items-center justify-center gap-1.5">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Upgrade to Syndicate</span>
+</button>
+</div>
+<!-- User Account Row -->
+<div class="flex items-center gap-3 p-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 hover:border-slate-300 cursor-pointer transition-all" data-purpose="user-profile-strip">
+<div class="relative">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-700 border border-indigo-400/40 flex items-center justify-center font-bold text-white text-xs shadow-xs font-mono">
+            AB
+          </div>
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+</div>
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-center gap-1">
+<span class="text-xs font-bold text-slate-900 truncate">abhi / founder</span>
+<span class="text-[9px] px-1 bg-slate-200/80 text-slate-700 rounded font-mono font-medium">Free</span>
+</div>
+<span class="text-[10px] text-slate-500 truncate">abhi@infospaceindia.com</span>
+</div>
+<svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+</aside>
+<!-- END: NavigationSidebar -->
+<!-- BEGIN: MainContentArea -->
+<main class="flex-1 flex flex-col h-full overflow-y-auto bg-[#f8fafc] custom-scrollbar relative">
+<!-- Executive Command Header -->
+<header class="sticky top-0 bg-white/90 backdrop-blur-xl border-b border-slate-200 px-6 lg:px-8 py-3.5 flex items-center justify-between z-20 shadow-xs" data-purpose="global-header">
+<!-- Search & Command Input -->
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="relative w-full">
+<div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="11" cy="11" r="8"></circle>
+<line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+</svg>
+</div>
+<input class="w-full pl-10 pr-20 py-1.5 text-xs text-slate-800 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-indigo-500 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400" placeholder="Search startup, domain, tags, or type '⌘K' for AI commands..." type="text"/>
+<div class="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1.5 pointer-events-none">
+<kbd class="px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 shadow-2xs rounded font-mono">⌘K</kbd>
+</div>
+</div>
+</div>
+<!-- Action Utilities & Realtime Pitch Telemetry -->
+<div class="flex items-center gap-3 ml-4">
+<!-- Live Pitch Engine Status Badge -->
+<div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span class="text-[11px] font-mono font-semibold">AI Pitch Engine Online</span>
+</div>
+<!-- Notification Trigger with active dot -->
+<button class="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors" title="Recent Alerts &amp; Investor Visits">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+</svg>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-600 ring-2 ring-white"></span>
+</button>
+<!-- Quick Import Trigger -->
+<button class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-900 shadow-2xs transition-all">
+<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Auto-Scrape URL</span>
+</button>
+<!-- Primary Action: Create Deck -->
+<button class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-semibold shadow-sm shadow-indigo-600/25 border border-indigo-500 transition-all">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<line x1="12" x2="12" y1="5" y2="19"></line>
+<line x1="5" x2="19" y1="12" y2="12"></line>
+</svg>
+<span>Create Deck</span>
+<span class="text-[10px] opacity-80 font-mono bg-indigo-700 px-1 py-0.2 rounded">N</span>
+</button>
+</div>
+</header>
+<!-- Workspace Body Area -->
+<div class="p-6 lg:p-8 max-w-[1440px] w-full mx-auto space-y-7">
+<!-- Dynamic Global Hero & Announcement Strip -->
+<section class="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-r from-blue-50/90 via-indigo-50/50 to-white border border-indigo-100/80 shadow-xs">
+<div class="absolute -right-20 -top-20 w-80 h-80 bg-indigo-200/40 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+<div class="space-y-1.5">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wide uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Demo Day Ready
+              </span>
+<span class="text-xs text-slate-500">• Winter Cohort Final Stretch</span>
+</div>
+<h1 class="text-xl lg:text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+              Cohort Pitch Deck Intelligence
+            </h1>
+<p class="text-xs text-slate-600 max-w-2xl leading-relaxed">
+              5 institutional-ready pitch decks generated. Pitch health benchmark across your portfolio averages <span class="text-slate-900 font-semibold">92.4%</span> investor completeness.
+            </p>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<div class="px-4 py-2 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center gap-3">
+<div class="text-right">
+<p class="text-[10px] font-mono uppercase text-slate-500 font-medium">Total Pipeline Value</p>
+<p class="text-sm font-bold text-slate-900 font-mono">$4.60M ARR</p>
+</div>
+<div class="w-2 h-8 rounded-full bg-indigo-100 overflow-hidden flex items-end">
+<div class="w-full h-3/4 bg-indigo-600 rounded-full"></div>
+</div>
+</div>
+<button class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-900 shadow-2xs transition-all flex items-center gap-1.5">
+<svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Export Cohort Pack</span>
+</button>
+</div>
+</div>
+</section>
+<!-- BEGIN: Advanced KPI / Metric Row -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-purpose="metrics-summary">
+<!-- Metric Card 1: Total Decks -->
+<article class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between group transition-all duration-300">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-mono">Portfolio Decks</span>
+<div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+<polyline points="2 17 12 22 22 17"></polyline>
+<polyline points="2 12 12 17 22 12"></polyline>
+</svg>
+</div>
+</div>
+<div class="mt-4 flex items-baseline justify-between">
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-extrabold tracking-tight text-slate-900 font-mono">5</span>
+<span class="text-[11px] text-slate-500 font-normal">Active</span>
+</div>
+<!-- Mini visual sparkline -->
+<div class="w-20 h-7 opacity-90">
+<svg class="w-full h-full text-indigo-600" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 80 28">
+<path d="M0 20 Q 20 18, 35 12 T 60 14 T 80 4" stroke-linecap="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span>Archived: <strong class="text-slate-700 font-medium">0 decks</strong></span>
+<span class="text-indigo-600 font-mono font-medium">100% indexed</span>
+</div>
+</article>
+<!-- Metric Card 2: Pitch Ready Rate -->
+<article class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between group transition-all duration-300">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-mono">Pitch Ready Rate</span>
+<div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-4 flex items-baseline justify-between">
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-extrabold tracking-tight text-slate-900 font-mono">100%</span>
+<span class="inline-flex items-center text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                5 / 5 Decks
+              </span>
+</div>
+<!-- Sparkline -->
+<div class="w-20 h-7 opacity-90">
+<svg class="w-full h-full text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 80 28">
+<path d="M0 22 L 20 18 L 40 10 L 60 12 L 80 3" stroke-linecap="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span>Audit status</span>
+<span class="text-emerald-700 font-mono font-semibold">Zero blocker alerts</span>
+</div>
+</article>
+<!-- Metric Card 3: In Progress / Pipeline Queue -->
+<article class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between group transition-all duration-300">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-mono">Pipeline In Review</span>
+<div class="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+</div>
+</div>
+<div class="mt-4 flex items-baseline justify-between">
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-extrabold tracking-tight text-slate-900 font-mono">0</span>
+<span class="text-[11px] text-slate-500 font-normal">Pending</span>
+</div>
+<span class="text-[10px] font-mono text-violet-700 px-2 py-0.5 rounded-full bg-violet-50 border border-violet-200 font-semibold">
+              Queue clear
+            </span>
+</div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span>Avg build speed</span>
+<span class="text-slate-700 font-mono">3.4 min / deck</span>
+</div>
+</article>
+<!-- Metric Card 4: Tracked Deal ARR -->
+<article class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col justify-between group transition-all duration-300 relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 w-20 h-20 bg-cyan-100/50 rounded-full blur-xl pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-500 uppercase tracking-wider font-mono">Tracked Deal ARR</span>
+<div class="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-600 border border-cyan-100 flex items-center justify-center group-hover:scale-105 transition-transform">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-4 flex items-baseline justify-between">
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-extrabold tracking-tight text-slate-900 font-mono">$4.6M</span>
+<span class="inline-flex items-center gap-0.5 text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                ↑ +18.4%
+              </span>
+</div>
+<!-- Sparkline -->
+<div class="w-20 h-7 opacity-90">
+<svg class="w-full h-full text-cyan-600" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 80 28">
+<path d="M0 24 Q 20 22, 30 16 T 60 8 T 80 2" stroke-linecap="round"></path>
+</svg>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+<span>Deal pipeline</span>
+<span class="text-cyan-700 font-mono font-semibold">14 VCs viewing</span>
+</div>
+</article>
+</section>
+<!-- END: Advanced KPI / Metric Row -->
+<!-- Main Two-Column Layout: Decks Grid + Investor Activity Feed -->
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-7">
+<!-- Left 3 Columns: Filters, View Controls, & Venture Deal Cards Grid -->
+<div class="xl:col-span-3 space-y-6">
+<!-- Filter and Controls Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-2 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+<!-- Segmented Category Filters -->
+<div class="flex items-center gap-1 overflow-x-auto custom-scrollbar p-1">
+<button class="px-3 py-1.5 rounded-xl bg-slate-900 text-white font-semibold text-xs shadow-xs flex items-center gap-1.5 shrink-0">
+<span>All Decks</span>
+<span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/20 text-white">5</span>
+</button>
+<button class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all flex items-center gap-1.5 shrink-0">
+<span>Ready to Pitch</span>
+<span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">5</span>
+</button>
+<button class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all flex items-center gap-1.5 shrink-0">
+<span>Under Review</span>
+<span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-500">0</span>
+</button>
+<button class="px-3 py-1.5 rounded-xl hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all flex items-center gap-1.5 shrink-0">
+<span>Drafts</span>
+<span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-500">0</span>
+</button>
+</div>
+<!-- Sorting & Layout Toggle Controls -->
+<div class="flex items-center gap-2.5 self-end sm:self-auto shrink-0 px-2">
+<button class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors">
+<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>Recent activity</span>
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M19.5 8.25l-7.5 7.5-7.5-7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<div class="flex items-center bg-slate-100 border border-slate-200 rounded-xl p-0.5">
+<button class="p-1.5 rounded-lg bg-white text-indigo-700 shadow-2xs border border-slate-200/80" title="Grid View">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="7" rx="1.5" width="7" x="3" y="3"></rect>
+<rect height="7" rx="1.5" width="7" x="14" y="3"></rect>
+<rect height="7" rx="1.5" width="7" x="14" y="14"></rect>
+<rect height="7" rx="1.5" width="7" x="3" y="14"></rect>
+</svg>
+</button>
+<button class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 transition-colors" title="List View">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<line x1="8" x2="21" y1="6" y2="6"></line>
+<line x1="8" x2="21" y1="12" y2="12"></line>
+<line x1="8" x2="21" y1="18" y2="18"></line>
+<line x1="3" x2="3.01" y1="6" y2="6"></line>
+<line x1="3" x2="3.01" y1="12" y2="12"></line>
+<line x1="3" x2="3.01" y1="18" y2="18"></line>
+</svg>
+</button>
+</div>
+</div>
+</div>
+<!-- BEGIN: PitchDecksGrid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" data-purpose="decks-grid">
+<!-- CARD 1: invest -->
+<article class="glass-card rounded-2xl flex flex-col justify-between overflow-hidden group transition-all duration-300 relative">
+<!-- Top Preview Header Banner -->
+<div class="h-32 bg-gradient-to-br from-emerald-50 via-teal-50/60 to-slate-50 p-4 flex flex-col justify-between border-b border-slate-100 relative overflow-hidden">
+<!-- Abstract Slide Thumbnail Geometry -->
+<div class="absolute -right-4 -bottom-6 w-32 h-24 rounded-lg bg-white shadow-xs border border-emerald-200/80 transform -rotate-6 group-hover:rotate-0 transition-transform duration-300 p-2.5 pointer-events-none">
+<div class="w-full h-2 rounded bg-emerald-500/20 mb-1.5"></div>
+<div class="w-3/4 h-1.5 rounded bg-slate-200 mb-1"></div>
+<div class="w-1/2 h-1.5 rounded bg-slate-200"></div>
+</div>
+<div class="flex items-start justify-between z-10">
+<div class="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+<polyline points="2 17 12 22 22 17"></polyline>
+<polyline points="2 12 12 17 22 12"></polyline>
+</svg>
+</div>
+<!-- Status pill with glowing radar ring -->
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+                    Ready
+                  </span>
+</div>
+<!-- Readiness Score Gauge -->
+<div class="z-10 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] uppercase font-mono text-slate-500 font-semibold">Score</span>
+<span class="text-xs font-bold text-slate-900 font-mono">96/100</span>
+</div>
+<span class="text-[10px] text-slate-500 font-mono">14 Slides</span>
+</div>
+</div>
+<!-- Card Body Content -->
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      invest
+                    </h3>
+<!-- Quick action dropdown trigger -->
+<button class="text-slate-400 hover:text-slate-700 p-1" title="Options">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="1"></circle>
+<circle cx="19" cy="12" r="1"></circle>
+<circle cx="5" cy="12" r="1"></circle>
+</svg>
+</button>
+</div>
+<!-- Website domain link with external icon -->
+<a class="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors" href="https://infospaceindia.com" rel="noopener noreferrer" target="_blank">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="2" x2="22" y1="12" y2="12"></line>
+<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+</svg>
+<span class="font-mono text-[11px]">infospaceindia.com/</span>
+</a>
+<!-- Category Tag Badge -->
+<div class="mt-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 line-clamp-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      Strategic Change Management &amp; Digital Transformation
+                    </span>
+</div>
+</div>
+<!-- Investor Engagement Bar & Footer -->
+<div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+<!-- Views and downloads -->
+<div class="flex items-center gap-3 font-mono text-[11px]">
+<span class="flex items-center gap-1 text-slate-700 font-semibold" title="Investor views">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+                      48
+                    </span>
+<span class="text-slate-400">8d ago</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Export PDF">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold transition-all border border-indigo-200">
+<span>Present</span>
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- CARD 2: XXXXXX -->
+<article class="glass-card rounded-2xl flex flex-col justify-between overflow-hidden group transition-all duration-300 relative">
+<!-- Top Preview Header Banner -->
+<div class="h-32 bg-gradient-to-br from-indigo-50 via-blue-50/60 to-slate-50 p-4 flex flex-col justify-between border-b border-slate-100 relative overflow-hidden">
+<div class="absolute -right-4 -bottom-6 w-32 h-24 rounded-lg bg-white shadow-xs border border-indigo-200/80 transform -rotate-6 group-hover:rotate-0 transition-transform duration-300 p-2.5 pointer-events-none">
+<div class="w-full h-2 rounded bg-indigo-500/20 mb-1.5"></div>
+<div class="w-2/3 h-1.5 rounded bg-slate-200 mb-1"></div>
+<div class="w-1/2 h-1.5 rounded bg-slate-200"></div>
+</div>
+<div class="flex items-start justify-between z-10">
+<div class="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center text-indigo-700 shadow-2xs">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+<path d="M9 18h6"></path>
+<path d="M10 22h4"></path>
+</svg>
+</div>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+                    Ready
+                  </span>
+</div>
+<div class="z-10 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] uppercase font-mono text-slate-500 font-semibold">Score</span>
+<span class="text-xs font-bold text-slate-900 font-mono">89/100</span>
+</div>
+<span class="text-[10px] text-slate-500 font-mono">11 Slides</span>
+</div>
+</div>
+<!-- Card Body Content -->
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      XXXXXX
+                    </h3>
+<button class="text-slate-400 hover:text-slate-700 p-1" title="Options">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="1"></circle>
+<circle cx="19" cy="12" r="1"></circle>
+<circle cx="5" cy="12" r="1"></circle>
+</svg>
+</button>
+</div>
+<span class="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="2" x2="22" y1="12" y2="12"></line>
+</svg>
+<span class="font-mono text-[11px]">no website</span>
+</span>
+<div class="mt-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+<span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                      Consultancy
+                    </span>
+</div>
+</div>
+<div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+<div class="flex items-center gap-3 font-mono text-[11px]">
+<span class="flex items-center gap-1 text-slate-700 font-semibold">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+                      19
+                    </span>
+<span class="text-slate-400">8d ago</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Export PDF">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold transition-all border border-indigo-200">
+<span>Present</span>
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- CARD 3: sales test deck -->
+<article class="glass-card rounded-2xl flex flex-col justify-between overflow-hidden group transition-all duration-300 relative">
+<div class="h-32 bg-gradient-to-br from-cyan-50 via-sky-50/60 to-slate-50 p-4 flex flex-col justify-between border-b border-slate-100 relative overflow-hidden">
+<div class="absolute -right-4 -bottom-6 w-32 h-24 rounded-lg bg-white shadow-xs border border-cyan-200/80 transform -rotate-6 group-hover:rotate-0 transition-transform duration-300 p-2.5 pointer-events-none">
+<div class="w-full h-2 rounded bg-cyan-500/20 mb-1.5"></div>
+<div class="w-4/5 h-1.5 rounded bg-slate-200 mb-1"></div>
+<div class="w-1/2 h-1.5 rounded bg-slate-200"></div>
+</div>
+<div class="flex items-start justify-between z-10">
+<div class="w-10 h-10 rounded-xl bg-cyan-100 border border-cyan-200 flex items-center justify-center text-cyan-700 shadow-2xs">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="20" rx="2" ry="2" width="16" x="4" y="2"></rect>
+<line x1="9" x2="9" y1="22" y2="22.01"></line>
+<line x1="15" x2="15" y1="22" y2="22.01"></line>
+<line x1="9" x2="9.01" y1="6" y2="6"></line>
+<line x1="15" x2="15.01" y1="6" y2="6"></line>
+</svg>
+</div>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+                    Ready
+                  </span>
+</div>
+<div class="z-10 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] uppercase font-mono text-slate-500 font-semibold">Score</span>
+<span class="text-xs font-bold text-slate-900 font-mono">94/100</span>
+</div>
+<span class="text-[10px] text-slate-500 font-mono">16 Slides</span>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      sales test deck
+                    </h3>
+<button class="text-slate-400 hover:text-slate-700 p-1" title="Options">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="1"></circle>
+<circle cx="19" cy="12" r="1"></circle>
+<circle cx="5" cy="12" r="1"></circle>
+</svg>
+</button>
+</div>
+<a class="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-cyan-600 transition-colors" href="https://razorpay.com" rel="noopener noreferrer" target="_blank">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="2" x2="22" y1="12" y2="12"></line>
+</svg>
+<span class="font-mono text-[11px]">razorpay.com/</span>
+</a>
+<div class="mt-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 line-clamp-1">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                      Fintech &amp; Business Banking Platform
+                    </span>
+</div>
+</div>
+<div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+<div class="flex items-center gap-3 font-mono text-[11px]">
+<span class="flex items-center gap-1 text-slate-700 font-semibold">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+                      64
+                    </span>
+<span class="text-slate-400">8d ago</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Export PDF">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold transition-all border border-indigo-200">
+<span>Present</span>
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- CARD 4: CyDI -->
+<article class="glass-card rounded-2xl flex flex-col justify-between overflow-hidden group transition-all duration-300 relative">
+<div class="h-32 bg-gradient-to-br from-purple-50 via-indigo-50/60 to-slate-50 p-4 flex flex-col justify-between border-b border-slate-100 relative overflow-hidden">
+<div class="absolute -right-4 -bottom-6 w-32 h-24 rounded-lg bg-white shadow-xs border border-purple-200/80 transform -rotate-6 group-hover:rotate-0 transition-transform duration-300 p-2.5 pointer-events-none">
+<div class="w-full h-2 rounded bg-purple-500/20 mb-1.5"></div>
+<div class="w-3/5 h-1.5 rounded bg-slate-200 mb-1"></div>
+<div class="w-1/2 h-1.5 rounded bg-slate-200"></div>
+</div>
+<div class="flex items-start justify-between z-10">
+<div class="w-10 h-10 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center text-purple-700 shadow-2xs">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<line x1="18" x2="18" y1="20" y2="10"></line>
+<line x1="12" x2="12" y1="20" y2="4"></line>
+<line x1="6" x2="6" y1="20" y2="14"></line>
+</svg>
+</div>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+                    Ready
+                  </span>
+</div>
+<div class="z-10 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] uppercase font-mono text-slate-500 font-semibold">Score</span>
+<span class="text-xs font-bold text-slate-900 font-mono">91/100</span>
+</div>
+<span class="text-[10px] text-slate-500 font-mono">12 Slides</span>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      CyDI
+                    </h3>
+<button class="text-slate-400 hover:text-slate-700 p-1" title="Options">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="1"></circle>
+<circle cx="19" cy="12" r="1"></circle>
+<circle cx="5" cy="12" r="1"></circle>
+</svg>
+</button>
+</div>
+<span class="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-400 italic">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="2" x2="22" y1="12" y2="12"></line>
+</svg>
+<span class="font-mono text-[11px]">no website</span>
+</span>
+<div class="mt-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+<span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                      Fintech
+                    </span>
+</div>
+</div>
+<div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+<div class="flex items-center gap-3 font-mono text-[11px]">
+<span class="flex items-center gap-1 text-slate-700 font-semibold">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+                      32
+                    </span>
+<span class="text-slate-400">25d ago</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Export PDF">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold transition-all border border-indigo-200">
+<span>Present</span>
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- CARD 5: Hiyrnow -->
+<article class="glass-card rounded-2xl flex flex-col justify-between overflow-hidden group transition-all duration-300 relative">
+<div class="h-32 bg-gradient-to-br from-teal-50 via-emerald-50/60 to-slate-50 p-4 flex flex-col justify-between border-b border-slate-100 relative overflow-hidden">
+<div class="absolute -right-4 -bottom-6 w-32 h-24 rounded-lg bg-white shadow-xs border border-teal-200/80 transform -rotate-6 group-hover:rotate-0 transition-transform duration-300 p-2.5 pointer-events-none">
+<div class="w-full h-2 rounded bg-teal-500/20 mb-1.5"></div>
+<div class="w-3/4 h-1.5 rounded bg-slate-200 mb-1"></div>
+<div class="w-1/2 h-1.5 rounded bg-slate-200"></div>
+</div>
+<div class="flex items-start justify-between z-10">
+<div class="w-10 h-10 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center text-teal-700 shadow-2xs">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+<circle cx="9" cy="7" r="4"></circle>
+<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+</svg>
+</div>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+                    Ready
+                  </span>
+</div>
+<div class="z-10 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="text-[10px] uppercase font-mono text-slate-500 font-semibold">Score</span>
+<span class="text-xs font-bold text-slate-900 font-mono">98/100</span>
+</div>
+<span class="text-[10px] text-slate-500 font-mono">15 Slides</span>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      Hiyrnow
+                    </h3>
+<button class="text-slate-400 hover:text-slate-700 p-1" title="Options">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="1"></circle>
+<circle cx="19" cy="12" r="1"></circle>
+<circle cx="5" cy="12" r="1"></circle>
+</svg>
+</button>
+</div>
+<a class="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-teal-600 transition-colors" href="https://www.hiyrnow.in" rel="noopener noreferrer" target="_blank">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="2" x2="22" y1="12" y2="12"></line>
+</svg>
+<span class="font-mono text-[11px]">www.hiyrnow.in/</span>
+</a>
+<div class="mt-3.5">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200 line-clamp-1">
+<span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                      AI-Powered Hiring Platform
+                    </span>
+</div>
+</div>
+<div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+<div class="flex items-center gap-3 font-mono text-[11px]">
+<span class="flex items-center gap-1 text-slate-700 font-semibold">
+<svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+                      81
+                    </span>
+<span class="text-slate-400">30d ago</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" title="Export PDF">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<button class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-semibold transition-all border border-indigo-200">
+<span>Present</span>
+<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</div>
+</article>
+<!-- CARD 6: Interactive "New Deck" Creation Action -->
+<article class="rounded-2xl border border-dashed border-indigo-300 bg-indigo-50/40 hover:bg-indigo-50/80 hover:border-indigo-500 transition-all p-7 flex flex-col items-center justify-center text-center group cursor-pointer relative overflow-hidden" data-purpose="new-deck-cta-card">
+<div class="w-14 h-14 rounded-2xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm">
+<svg class="w-6 h-6 transition-transform group-hover:rotate-90 duration-300" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<line x1="12" x2="12" y1="5" y2="19"></line>
+<line x1="5" x2="19" y1="12" y2="12"></line>
+</svg>
+</div>
+<h3 class="mt-4 text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition-colors">
+                New deck
+              </h3>
+<p class="mt-1 text-xs text-slate-500 max-w-[190px] leading-relaxed">
+                Start from live URL, PDF, or interactive investor pitch outline
+              </p>
+<div class="mt-5 flex items-center gap-2">
+<span class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-white border border-indigo-200 px-3 py-1.5 rounded-lg shadow-2xs group-hover:border-indigo-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+<span>Generate Now</span>
+<svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<polyline points="9 18 15 12 9 6"></polyline>
+</svg>
+</span>
+</div>
+</article>
+</section>
+<!-- END: PitchDecksGrid -->
+</div>
+<!-- Right 1 Column: Real-Time Investor Engagement & Deal Activity Rail -->
+<div class="space-y-5">
+<!-- Activity Feed Container -->
+<div class="glass-card rounded-2xl p-5 border border-slate-200 space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">Live VC Telemetry</h3>
+</div>
+<span class="text-[10px] font-mono text-slate-400 font-medium">Realtime</span>
+</div>
+<!-- Feed Item 1 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all space-y-1.5">
+<div class="flex items-center justify-between text-[10px]">
+<span class="font-bold text-slate-800">Sequoia Capital India</span>
+<span class="text-slate-400 font-mono">14m ago</span>
+</div>
+<p class="text-xs text-slate-600">
+                Viewed 12 slides of <span class="font-semibold text-slate-900">invest</span>
+</p>
+<div class="flex items-center gap-2 text-[10px] text-emerald-700 font-mono font-medium pt-1">
+<span>Avg session: 3m 42s</span>
+<span>•</span>
+<span>Financials viewed</span>
+</div>
+</div>
+<!-- Feed Item 2 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all space-y-1.5">
+<div class="flex items-center justify-between text-[10px]">
+<span class="font-bold text-slate-800">Lightspeed Venture Partners</span>
+<span class="text-slate-400 font-mono">2h ago</span>
+</div>
+<p class="text-xs text-slate-600">
+                Downloaded export of <span class="font-semibold text-slate-900">Hiyrnow</span>
+</p>
+<div class="flex items-center gap-2 text-[10px] text-indigo-700 font-mono font-medium pt-1">
+<span>Full deck PDF</span>
+<span>•</span>
+<span>IP score 98%</span>
+</div>
+</div>
+<!-- Feed Item 3 -->
+<div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-all space-y-1.5">
+<div class="flex items-center justify-between text-[10px]">
+<span class="font-bold text-slate-800">Matrix Partners</span>
+<span class="text-slate-400 font-mono">5h ago</span>
+</div>
+<p class="text-xs text-slate-600">
+                Forwarded <span class="font-semibold text-slate-900">sales test deck</span> to 2 partners
+              </p>
+<div class="flex items-center gap-2 text-[10px] text-cyan-700 font-mono font-medium pt-1">
+<span>Deep link shared</span>
+</div>
+</div>
+<!-- Quick Action button to view all analytics -->
+<button class="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 hover:text-slate-900 border border-slate-200 transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+<span>View Full Analytics Log</span>
+<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+<!-- Upcoming Cohort Milestones Rail Card -->
+<div class="glass-card rounded-2xl p-5 border border-slate-200 space-y-3.5">
+<div class="flex items-center justify-between">
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 font-mono">Demo Milestones</h3>
+<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-50 text-amber-800 border border-amber-200 font-semibold">12 Days Left</span>
+</div>
+<div class="space-y-2.5 text-xs">
+<div class="flex items-start gap-2.5">
+<div class="w-5 h-5 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[10px]">✓</div>
+<div>
+<p class="font-semibold text-slate-900">Pitch Deck V1 Draft</p>
+<p class="text-[11px] text-slate-500">All 5 startups passed narrative QA</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5">
+<div class="w-5 h-5 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[10px]">2</div>
+<div>
+<p class="font-semibold text-slate-800">Financial Model Audit</p>
+<p class="text-[11px] text-slate-500">Scheduled for Thursday, 3:00 PM</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5">
+<div class="w-5 h-5 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 mt-0.5 font-bold text-[10px]">3</div>
+<div>
+<p class="font-semibold text-slate-600">Venture Partner Dry Run</p>
+<p class="text-[11px] text-slate-400">Final dress rehearsal with Syndicate</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- END: MainContentArea -->
+</body></html>

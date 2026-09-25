@@ -199,6 +199,7 @@ class PPTRenderer:
         template_key: Optional[str] = None,
         template_data: Optional[dict] = None,
         sections: Optional[Sequence[str]] = None,
+        gallery_bytes: Optional[dict] = None,
     ) -> bytes:
         theme = get_theme(template_key)
         # Which template_data section enriches which slide depends on the deck
@@ -222,6 +223,8 @@ class PPTRenderer:
         palette = _apply_brand_accents(_theme_palette(theme), branding)
         slide_backgrounds = slide_backgrounds or {}
         template_data = template_data or {}
+        # {slot id -> image bytes} for the gallery slide's uploaded photos.
+        gallery_bytes = gallery_bytes or {}
         # Normalize once here so every placement site downstream can assume
         # PNG bytes — python-pptx can't embed SVG, which previously failed
         # silently at each add_picture() call.
@@ -252,7 +255,7 @@ class PPTRenderer:
             elif layout == "big_number":
                 self._big_number(slide, slide_data, palette, td=td)
             elif layout == "cards":
-                self._cards(slide, slide_data, palette, td=td)
+                self._cards(slide, slide_data, palette, td=td, gallery_bytes=gallery_bytes)
             elif layout == "two_column":
                 self._two_column(slide, slide_data, palette, td=td)
             elif layout == "timeline":
@@ -312,8 +315,12 @@ class PPTRenderer:
 
         closing = td.get("closing") or {}
         footer = (closing.get("contact") if s.slide_number != 1 and closing.get("contact") else None)
+        # The deck-type eyebrow ("Sales Presentation", "Partnership Proposal", …)
+        # rides in template_data's passthrough keys — every deck type but the
+        # investor one used to be mislabelled here.
+        eyebrow = str(td.get("eyebrow") or "").strip() or "Presentation"
         _txt(slide, Inches(3.5), Inches(6.9), Inches(6.3), Inches(0.4),
-             footer or "Investor Presentation  •  Confidential",
+             footer or f"{eyebrow}  •  Confidential",
              size=10, color=p["text_muted"], align=PP_ALIGN.CENTER)
 
     def _big_number(self, slide, s: SlideContent, p: dict, td: Optional[dict] = None):
@@ -403,7 +410,8 @@ class PPTRenderer:
         plot.series[0].format.fill.fore_color.rgb = p["accent1"]
         return True
 
-    def _cards(self, slide, s: SlideContent, p: dict, td: Optional[dict] = None):
+    def _cards(self, slide, s: SlideContent, p: dict, td: Optional[dict] = None,
+               gallery_bytes: Optional[dict] = None):
         """Feature/model/problem/team/competition/ask slide — dispatches to a
         real comparison table (Competitive Landscape) or doughnut chart (Ask)
         when template_data supplies that shape, else a 2-4 card grid sourced
@@ -418,6 +426,12 @@ class PPTRenderer:
 
         if td.get("use"):
             if self._ask_chart(slide, td, p, x=Inches(0.8), y=Inches(2.0), cx=Inches(5.5), cy=Inches(4.6)):
+                return
+
+        if td.get("slots"):
+            if self._gallery_frames(slide, td, p, x=Inches(0.6), y=Inches(2.0),
+                                    cx=Inches(12.1), cy=Inches(4.6),
+                                    gallery_bytes=gallery_bytes or {}):
                 return
 
         cards = self._resolve_cards(s, td)
@@ -489,6 +503,18 @@ class PPTRenderer:
                 }
                 for st in td["steps"][:4]
             ]
+        if td.get("cases"):
+            # Sales-deck proof points: the headline number leads, the customer
+            # names it, the before/after detail and any real quote follow.
+            out = []
+            for c in td["cases"][:4]:
+                body = " ".join(x for x in (c.get("d", ""), f"“{c['q']}”" if c.get("q") else "") if x)
+                out.append({
+                    "title": c.get("c", ""),
+                    "metric": " ".join(x for x in (c.get("m", ""), c.get("ml", "")) if x),
+                    "body": body.strip(),
+                })
+            return out
         if td.get("streams") or td.get("tiers"):
             cards = [
                 {
@@ -505,6 +531,75 @@ class PPTRenderer:
             if cards:
                 return cards[:4]
         return s.cards[:4] if s.cards else []
+
+    def _gallery_frames(self, slide, td: dict, p: dict, x, y, cx, cy,
+                        gallery_bytes: Optional[dict] = None) -> bool:
+        """Captioned image placeholders for template_data.galleryS.
+
+        Mirrors the on-screen gallery (TemplatedDeck.tsx `gallerySlide`): a 4x2
+        grid where a slot with `span` takes two columns, each filled with the
+        photo uploaded for that slot — matched by slot id first, then by
+        position, exactly as the preview does. Slots with no photo fall back to
+        the same captioned empty-media state the preview shows, so the founder
+        can drop an image in from PowerPoint.
+        """
+        gallery_bytes = gallery_bytes or {}
+        slots = [sl for sl in (td.get("slots") or []) if isinstance(sl, dict)][:6]
+        if not slots:
+            return False
+
+        COLS, ROWS, gap = 4, 2, 0.18
+        col_w = (cx.inches - gap * (COLS - 1)) / COLS
+        row_h = (cy.inches - gap * (ROWS - 1)) / ROWS
+
+        slot_ids = {str(sl.get("id", "")) for sl in slots}
+        claimed: set = set()
+
+        col = row = 0
+        for idx, sl in enumerate(slots):
+            span = 2 if sl.get("span") else 1
+            if col + span > COLS:          # wrap early rather than overflow
+                col, row = 0, row + 1
+            if row >= ROWS:
+                break
+
+            fx = Inches(x.inches + col * (col_w + gap))
+            fy = Inches(y.inches + row * (row_h + gap))
+            fw = Inches(col_w * span + gap * (span - 1))
+            fh = Inches(row_h)
+
+            frame = _rect(slide, fx, fy, fw, fh, p["surface2"])
+            frame.line.color.rgb = p["border"]
+            frame.line.width = Pt(1)
+
+            # Match by slot id first, then fall back to the next photo no slot
+            # has claimed. Each photo is placed at most once — a plain
+            # positional fallback double-places when ids are sparse (photos for
+            # g1 and g3 would also land g1's image on g2).
+            slot_id = str(sl.get("id", ""))
+            photo = gallery_bytes.get(slot_id)
+            if photo is not None:
+                claimed.add(slot_id)
+            else:
+                for key, val in gallery_bytes.items():
+                    if key not in claimed and key not in slot_ids:
+                        photo, _ = val, claimed.add(key)
+                        break
+
+            placed = False
+            if photo:
+                placed = _place_cover_image(slide, photo, fx, fy, fw, fh)
+
+            if not placed:
+                caption = str(sl.get("ph", "") or "").strip()
+                if caption:
+                    _txt(slide, fx + Inches(0.15), fy + fh / 2 - Inches(0.22),
+                         fw - Inches(0.3), Inches(0.44),
+                         caption, size=12, color=p["text_muted"],
+                         align=PP_ALIGN.CENTER, wrap=True)
+
+            col += span
+        return True
 
     def _competition_table(self, slide, td: dict, p: dict, x, y, cx, cy) -> bool:
         """Real comparison table for template_data.competition — this is
@@ -600,13 +695,35 @@ class PPTRenderer:
         return True
 
     def _two_column(self, slide, s: SlideContent, p: dict, td: Optional[dict] = None):
-        """Side-by-side comparison layout (Problem & Solution)."""
+        """Side-by-side comparison layout (Problem & Solution, Risks, Partner
+        roles, and the Product deck's persona slide)."""
         td = td or {}
+        # The persona section names its columns differently but is structurally
+        # the same two-column shape. `who` is the single most important line on
+        # the slide, so it fills the header subtitle when the AI left it empty.
+        is_persona = bool(td.get("jobs") or td.get("pains"))
+        if is_persona and not s.subtitle and td.get("who"):
+            s.subtitle = td["who"]
         self._slide_header(slide, s, p)
 
         # Prefer template_data.probsol (bold-lead {k,t} items + a footer line
         # per column) over the flatter SlideContent.columns.
-        if td.get("problem") and td.get("solution"):
+        if is_persona:
+            cols = [
+                {
+                    "heading": "Jobs to Be Done",
+                    "highlight": "",
+                    "points": [f"**{i.get('k', '')}:** {i.get('t', '')}" for i in (td.get("jobs") or [])[:4]],
+                    "foot": td.get("context", ""),
+                },
+                {
+                    "heading": "Today’s Friction",
+                    "highlight": "",
+                    "points": [f"**{i.get('k', '')}:** {i.get('t', '')}" for i in (td.get("pains") or [])[:4]],
+                    "foot": (f"“{td['quote']}”" if td.get("quote") else ""),
+                },
+            ]
+        elif td.get("problem") and td.get("solution"):
             cols = [
                 {
                     "heading": td.get("problemTitle") or "The Problem",
@@ -941,6 +1058,38 @@ def _image_size(img_bytes: bytes) -> Optional[tuple]:
             return img.width, img.height
     except Exception:
         return None
+
+
+def _place_cover_image(slide, img_bytes: bytes, x, y, w, h) -> bool:
+    """Fill a box with an image, cropped to preserve aspect ratio.
+
+    The CSS equivalent is `object-fit: cover`. python-pptx stretches a picture
+    to whatever width/height you give it, which distorts every photo that isn't
+    the frame's aspect — so instead place it filling the box and crop the
+    overflowing axis evenly from both sides via the picture's crop attributes.
+
+    Returns False if the bytes can't be decoded (e.g. an SVG), letting the
+    caller fall back to its placeholder rather than emitting a broken shape.
+    """
+    native = _image_size(img_bytes)
+    if not native or not native[0] or not native[1]:
+        return False
+    try:
+        pic = slide.shapes.add_picture(io.BytesIO(img_bytes), x, y, w, h)
+    except Exception:
+        return False
+
+    native_ar = native[0] / native[1]
+    box_ar = w / h
+    if native_ar > box_ar:
+        # Image is wider than the box — trim the sides.
+        frac = (1 - box_ar / native_ar) / 2
+        pic.crop_left = pic.crop_right = frac
+    elif native_ar < box_ar:
+        # Image is taller than the box — trim top and bottom.
+        frac = (1 - native_ar / box_ar) / 2
+        pic.crop_top = pic.crop_bottom = frac
+    return True
 
 
 def _fit_box(native: tuple, max_w: Emu, max_h: Emu) -> tuple:
