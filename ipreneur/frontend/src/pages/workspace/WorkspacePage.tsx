@@ -13,6 +13,7 @@ import { DeckPreview } from "@/components/workspace/DeckPreview";
 import { TemplatedDeckSection } from "@/components/workspace/deckTemplates/TemplatedDeckSection";
 import type { TemplateDeckData } from "@/components/workspace/deckTemplates/types";
 import { BrandingPanel } from "@/components/workspace/BrandingPanel";
+import { HourglassLoader } from "@/components/ui/HourglassLoader";
 import type { Project } from "@/types";
 
 const POLLING_MS = 3000;
@@ -172,9 +173,9 @@ export default function WorkspacePage() {
             )}
             {isActive && !jobStatus && (
               <motion.div key="starting" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 380 }}>
-                <Loader2 size={32} style={{ color: "var(--violet-500)", marginBottom: 14 }} className="animate-spin" />
-                <p style={{ font: "500 14px var(--font-body)", color: "var(--text-strong)" }}>Starting analysis…</p>
+                style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 380, textAlign: "center" }}>
+                <HourglassLoader size={64} />
+                <p style={{ font: "600 15px var(--font-body)", color: "var(--text-strong)", marginTop: 18 }}>Starting analysis…</p>
                 <p style={{ font: "400 13px var(--font-body)", color: "var(--text-muted)", marginTop: 5 }}>This takes about 2 minutes</p>
               </motion.div>
             )}

@@ -1,9 +1,10 @@
-import { Check, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { Check, Loader2, AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 
 import type { JobProgress } from "@/types";
 import { JOB_STEP_ORDER, JOB_STEP_LABELS } from "@/constants";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { HourglassLoader } from "@/components/ui/HourglassLoader";
 
 interface Props {
   progress: JobProgress;
@@ -11,10 +12,9 @@ interface Props {
 
 const s = {
   card: { background: "var(--surface-card)", border: "1px solid var(--border-subtle)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-sm)", padding: 26 } as React.CSSProperties,
-  head: { display: "flex", alignItems: "center", gap: 13, marginBottom: 22 } as React.CSSProperties,
-  mark: { width: 38, height: 38, borderRadius: "var(--radius-md)", background: "var(--grad-brand)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", flexShrink: 0, boxShadow: "var(--glow-brand)" } as React.CSSProperties,
-  title: { font: "700 17px var(--font-display)", color: "var(--text-strong)" } as React.CSSProperties,
-  sub: { marginTop: 3, font: "400 13px var(--font-body)", color: "var(--text-muted)" } as React.CSSProperties,
+  head: { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "10px 0 22px" } as React.CSSProperties,
+  title: { font: "700 18px var(--font-display)", color: "var(--text-strong)", marginTop: 16 } as React.CSSProperties,
+  sub: { marginTop: 5, font: "400 13px var(--font-body)", color: "var(--text-muted)", maxWidth: 440 } as React.CSSProperties,
   steps: { display: "flex", flexDirection: "column", gap: 6, marginTop: 24 } as React.CSSProperties,
   step: (cur: boolean, pend: boolean): React.CSSProperties => ({ display: "flex", alignItems: "center", gap: 14, padding: "10px 13px", borderRadius: "var(--radius-md)", border: "1px solid transparent", transition: "var(--transition)", opacity: pend ? 0.4 : 1, ...(cur ? { background: "var(--surface-sunken)", borderColor: "var(--border-subtle)" } : {}) }),
   icon: (done: boolean, cur: boolean): React.CSSProperties => ({ width: 26, height: 26, borderRadius: 99, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, ...(done ? { background: "var(--success-surface)", color: "var(--green-600)" } : cur ? { background: "var(--grad-brand)", color: "#fff" } : { background: "var(--surface-sunken)", color: "var(--text-faint)", border: "1px solid var(--border-subtle)" }) }),
@@ -34,10 +34,10 @@ export function AnalysisProgress({ progress }: Props) {
   return (
     <div style={s.card}>
       <div style={s.head}>
-        <span style={s.mark}><Sparkles size={18} /></span>
-        <div>
-          <div style={s.title}>AI analysis in progress</div>
-          <div style={s.sub}>{progress.message || (JOB_STEP_ORDER[currentStepIndex] ? JOB_STEP_LABELS[JOB_STEP_ORDER[currentStepIndex]] + "…" : "Starting…")}</div>
+        <HourglassLoader size={64} />
+        <div style={s.title}>AI Pitch Deck in Progress</div>
+        <div style={s.sub}>
+          {progress.message || (JOB_STEP_ORDER[currentStepIndex] ? JOB_STEP_LABELS[JOB_STEP_ORDER[currentStepIndex]] + "…" : "Analyzing market data and creating slides…")}
         </div>
       </div>
 

@@ -1233,3 +1233,22 @@ The thumbnail CSS used `transform: scale(calc(100cqw / 1280))`. `scale()` takes 
 - Backend PPTX fallback in `presentations.py` still renders Studio / Volume 2 / Infographic templates as Meridian (accepted under "React only").
 - Paused parameters plan: Phase 2 (profile UI + AI pre-fill), Phase 4 (selection engine), Phase 5 (evidence layer + dynamic Appendix).
 - PROJECT_LOG #30 still stands: real credentials remain in git history at `e346ba6` and should be rotated.
+
+---
+
+### 53. Uiverse Hourglass Loader Animation for Pitch Deck Generation
+
+**Objective:** Integrate the animated hourglass flipping loader by nima-mollazadeh (Uiverse) to display while a pitch deck is generating.
+
+**Changes:**
+1. **`HourglassLoader.tsx` (`frontend/src/components/ui/HourglassLoader.tsx`):**
+   - React SVG component featuring flipping hourglass geometry with dynamic React `useId()` for top and bottom clipping paths (`sand-mound-top`, `sand-mound-bottom`).
+   - Styled with application-matched color tokens (`--hue: 238` indigo-cobalt chassis, warm gold sand stream `#f59e0b` / `hsl(38, 96%, 60%)`, and multi-layer motion trails).
+2. **Animation Keyframes & Timing (`frontend/src/index.css`):**
+   - Integrated full physics animation definitions: `loader-flip`, `motion-thick`, `motion-medium`, `motion-thin`, `sand-drop`, `sand-fill`, `sand-grain-left`, `sand-grain-right`, `sand-line-left`, `sand-line-right`, `sand-mound-top`, `sand-mound-bottom`, `glare-top`, `glare-bottom`.
+3. **Workspace Generation View Integration:**
+   - **`WorkspacePage.tsx`:** Updated the initial analysis startup state (`isActive && !jobStatus`) to show `<HourglassLoader size={64} />`.
+   - **`AnalysisProgress.tsx`:** Updated the active multi-step AI synthesis card to feature `<HourglassLoader size={64} />` as the centerpiece hero loader above step progress and progress bars.
+
+`Files: frontend/src/components/ui/HourglassLoader.tsx, frontend/src/index.css, frontend/src/pages/workspace/WorkspacePage.tsx, frontend/src/components/workspace/AnalysisProgress.tsx`
+
