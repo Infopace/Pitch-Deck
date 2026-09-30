@@ -16,6 +16,7 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
@@ -43,6 +44,55 @@ logger.add(
 
 # ─── Lifespan ─────────────────────────────────────────────────────────────────
 
+async def _reconcile_orphaned_jobs() -> int:
+    """Fail jobs that were mid-flight when the process last stopped.
+
+    Generation runs in a detached daemon thread that does not survive a restart,
+    deploy or crash. Its job row is left at "running" forever, the project stays
+    "generating", and the user watches a spinner that will never resolve — with
+    no way to retry, because the project is not in a state the UI offers a retry
+    for. Nothing else ever revisits those rows.
+
+    Any job still marked running at startup therefore belongs to a process that
+    no longer exists. Marking it failed turns a permanent hang into a visible,
+    retryable error. This does not make generation survive a restart — moving it
+    onto the Celery worker is what would — but it stops a deploy from silently
+    stranding whatever was in flight.
+    """
+    from sqlalchemy import select, update
+    from app.db.session import get_db_context
+    from app.models.models import Job, Project
+
+    MSG = "Generation was interrupted by a server restart. Please try again."
+    try:
+        async with get_db_context() as db:
+            rows = (await db.execute(
+                select(Job.id, Job.project_id).where(Job.status.in_(("running", "queued")))
+            )).all()
+            if not rows:
+                return 0
+            job_ids = [r[0] for r in rows]
+            project_ids = [r[1] for r in rows]
+
+            await db.execute(
+                update(Job)
+                .where(Job.id.in_(job_ids))
+                .values(status="failed", error=MSG, completed_at=datetime.now(timezone.utc))
+            )
+            # Only projects still mid-flight — never touch one that finished since.
+            await db.execute(
+                update(Project)
+                .where(Project.id.in_(project_ids))
+                .where(Project.status.in_(("analyzing", "researching", "generating")))
+                .values(status="error", error_message=MSG)
+            )
+            await db.commit()
+            return len(job_ids)
+    except Exception as e:  # never let reconciliation stop the app booting
+        logger.warning(f"Could not reconcile orphaned jobs: {e}")
+        return 0
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application startup and shutdown lifecycle."""
@@ -52,6 +102,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if not settings.is_production:
         await init_db()
         logger.info("✅ Database tables ensured")
+
+    orphaned = await _reconcile_orphaned_jobs()
+    if orphaned:
+        logger.warning(f"⚠️  Failed {orphaned} job(s) orphaned by the previous shutdown")
 
     yield  # App runs here
 
