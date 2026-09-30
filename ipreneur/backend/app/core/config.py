@@ -98,6 +98,11 @@ class Settings(BaseSettings):
     crawl_timeout_ms: int = 30000
     crawl_max_pages: int = 18
 
+    # ── Error tracking ───────────────────────────────────────────────────────
+    #: Empty disables Sentry entirely — development and tests send nothing.
+    sentry_dsn: str = ""
+    sentry_traces_sample_rate: float = 0.1
+
     # ── Production guards ────────────────────────────────────────────────────
     #: Placeholders that are fine locally and unacceptable in production. A
     #: missing env var previously fell back silently, which for jwt_secret_key

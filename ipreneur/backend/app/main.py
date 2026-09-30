@@ -25,6 +25,7 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 
 from app.core.config import settings
+from app.core.ratelimit import limiter
 from app.db.session import engine, init_db
 
 
@@ -93,10 +94,37 @@ async def _reconcile_orphaned_jobs() -> int:
         return 0
 
 
+def _init_error_tracking() -> None:
+    """Send unhandled errors to Sentry when a DSN is configured.
+
+    Without this, a failure in production is only visible if someone is reading
+    logs at the time — and deck generation fails inside a background thread,
+    where nothing surfaces it to the user at all. No DSN means this is a no-op,
+    so development and tests are unaffected.
+    """
+    if not settings.sentry_dsn:
+        return
+    try:
+        import sentry_sdk
+
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            environment=settings.app_env,
+            # Traces are sampled; errors are always sent.
+            traces_sample_rate=settings.sentry_traces_sample_rate,
+            # Deck content is user business data — never ship request bodies.
+            send_default_pii=False,
+        )
+        logger.info("✅ Sentry error tracking enabled")
+    except Exception as e:  # tracking must never stop the app starting
+        logger.warning(f"Could not initialise Sentry: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application startup and shutdown lifecycle."""
     logger.info(f"🚀 Starting {settings.app_name} [{settings.app_env}]")
+    _init_error_tracking()
 
     # Create tables in dev
     if not settings.is_production:
@@ -126,6 +154,16 @@ def create_app() -> FastAPI:
     )
 
     # ── Middleware ───────────────────────────────────────────────────────────
+    # Rate limiting: the limiter is read off app.state by slowapi's decorator,
+    # and SlowAPIMiddleware applies any default limits.
+    from slowapi.errors import RateLimitExceeded
+    from slowapi import _rate_limit_exceeded_handler
+    from slowapi.middleware import SlowAPIMiddleware
+
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+    app.add_middleware(SlowAPIMiddleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,

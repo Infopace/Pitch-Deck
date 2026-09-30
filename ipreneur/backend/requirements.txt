@@ -45,3 +45,7 @@ celery[redis]
 # --- Dev / Testing ---
 pytest
 pytest-asyncio
+
+# --- Rate limiting & error tracking ---
+slowapi
+sentry-sdk

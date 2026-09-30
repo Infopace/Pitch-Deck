@@ -13,12 +13,13 @@ from typing import Optional
 import asyncio
 import threading
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Request, Response
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
 from app.api.deps.auth import get_current_user
+from app.core.ratelimit import limiter, GENERATION_LIMIT, CREATE_LIMIT
 from app.db.session import get_db, get_db_context
 from app.decks.registry import DEFAULT_DECK_FORMAT, DEFAULT_DECK_TYPE, resolve_sections
 from app.models.models import Job, Project, User, Presentation
@@ -328,7 +329,10 @@ def _schedule_background_task(project_id: str, job_id: str):
 
 
 @router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(CREATE_LIMIT)
 async def create_project(
+    request: Request,
+    response: Response,
     payload: ProjectCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -501,7 +505,10 @@ async def delete_project(
 
 
 @router.post("/{project_id}/analyze", response_model=JobProgressResponse)
+@limiter.limit(GENERATION_LIMIT)
 async def trigger_analysis(
+    request: Request,
+    response: Response,
     project_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
