@@ -1,7 +1,6 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "react-hot-toast";
 
 import { AuthGuard } from "@/components/auth/AuthGuard";
@@ -20,6 +19,7 @@ const EditorPage = lazy(() => import("@/pages/editor/EditorPage"));
 const TemplatesPage = lazy(() => import("@/pages/templates/TemplatesPage"));
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 const BillingPage = lazy(() => import("@/pages/billing/BillingPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 // ── React Query client ────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -60,8 +60,8 @@ export default function App() {
               </Route>
             </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* 404 Not Found Fallback */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
@@ -86,7 +86,6 @@ export default function App() {
         }}
       />
 
-      {import.meta.env.DEV && <ReactQueryDevtools />}
     </QueryClientProvider>
   );
 }
