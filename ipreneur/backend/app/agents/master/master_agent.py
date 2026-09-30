@@ -130,6 +130,44 @@ def _extract_json(raw: str) -> str:
     return re.sub(r",\s*([}\]])", r"\1", s.strip())
 
 
+class DeckTruncatedError(RuntimeError):
+    """The model hit its output ceiling before finishing the deck JSON."""
+
+
+def _raise_if_truncated(response, budget: int) -> None:
+    """Fail loudly when the model ran out of output tokens.
+
+    Without this the truncated JSON reaches _parse_json_lenient, which repairs
+    it into a short-but-valid deck or throws a generic parse error. Either way
+    the real cause — the deck outgrew gemini_max_tokens — is invisible, and a
+    25-slide Master deck silently becomes a broken one. The longer deck types
+    run 20-25 slides in a single JSON response, so this is reachable, not
+    theoretical.
+    """
+    reason = ""
+    try:
+        cands = getattr(response, "candidates", None) or []
+        if cands:
+            reason = str(getattr(cands[0], "finish_reason", "") or "")
+    except Exception:  # never let telemetry shape break generation
+        return
+    if "MAX_TOKENS" not in reason.upper():
+        return
+
+    used = ""
+    try:
+        um = getattr(response, "usage_metadata", None)
+        if um is not None:
+            used = f" (used {getattr(um, 'candidates_token_count', '?')} output tokens)"
+    except Exception:
+        pass
+    raise DeckTruncatedError(
+        f"The model hit its output limit of {budget} tokens before finishing the "
+        f"deck{used}. Raise GEMINI_MAX_TOKENS, or generate this deck type in "
+        f"sections."
+    )
+
+
 def _parse_json_lenient(raw: str) -> dict:
     """Extract JSON from an LLM response and parse it tolerantly.
 
@@ -252,8 +290,16 @@ class MasterDeckAgent:
                         contents=prompt,
                     )
                     raw = response.text
+                    _raise_if_truncated(response, settings.gemini_max_tokens)
                     break
                 except Exception as re:
+                    # Truncation is deterministic — the same prompt will overflow
+                    # the same ceiling every time. It must never enter the retry
+                    # path: _is_transient matches bare substrings like "500", so a
+                    # budget such as 16500 would make this message look transient
+                    # and burn four full generations before surfacing.
+                    if isinstance(re, DeckTruncatedError):
+                        raise
                     if _is_transient(re) and attempt < max_attempts - 1:
                         wait = (attempt + 1) * 5  # 5s, 10s, 15s
                         logger.warning(f"⚠️  Generation transient error (attempt {attempt+1}/{max_attempts}) — retrying in {wait}s | {re}")

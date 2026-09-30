@@ -5,7 +5,7 @@ All settings are read from environment variables / .env file.
 from functools import lru_cache
 from typing import List, Optional
 
-from pydantic import AnyHttpUrl, field_validator
+from pydantic import AnyHttpUrl, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     app_name: str = "iPreneur"
     app_env: str = "development"
     app_secret_key: str = "change_me"
-    app_debug: bool = True
+    app_debug: bool = False
     app_port: int = 8000
 
     @property
@@ -97,6 +97,39 @@ class Settings(BaseSettings):
     playwright_headless: bool = True
     crawl_timeout_ms: int = 30000
     crawl_max_pages: int = 18
+
+    # ── Production guards ────────────────────────────────────────────────────
+    #: Placeholders that are fine locally and unacceptable in production. A
+    #: missing env var previously fell back silently, which for jwt_secret_key
+    #: means tokens signed with a value published in this repo — anyone could
+    #: forge a login. Refuse to boot instead.
+    @model_validator(mode="after")
+    def _no_placeholder_secrets_in_production(self) -> "Settings":
+        if not self.is_production:
+            return self
+        problems: list[str] = []
+        if self.app_secret_key in ("", "change_me"):
+            problems.append("APP_SECRET_KEY is unset or still 'change_me'")
+        if self.jwt_secret_key in ("", "change_me"):
+            problems.append("JWT_SECRET_KEY is unset or still 'change_me'")
+        if len(self.jwt_secret_key) < 32:
+            problems.append("JWT_SECRET_KEY is shorter than 32 characters")
+        if self.app_debug:
+            problems.append("APP_DEBUG is true")
+        if not self.gemini_api_key:
+            problems.append("GEMINI_API_KEY is unset — deck generation cannot run")
+        if not self.gemini_model:
+            problems.append("GEMINI_MODEL is unset")
+        if any("localhost" in o or "127.0.0.1" in o for o in self.cors_origins_list):
+            problems.append(
+                "CORS_ORIGINS still contains localhost — set it to the deployed origin(s)"
+            )
+        if problems:
+            raise ValueError(
+                "Refusing to start with APP_ENV=production:" + chr(10) + "  - "
+                + (chr(10) + "  - ").join(problems)
+            )
+        return self
 
 
 @lru_cache
