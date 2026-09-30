@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 import { useAuthStore } from "@/stores/authStore";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -52,7 +52,7 @@ function resolveApiBaseUrl(): string {
   if (import.meta.env.PROD) {
     // eslint-disable-next-line no-console
     console.error(
-      "[iPreneur] VITE_API_URL was not set at build time. Falling back to the " +
+      "[Mint] VITE_API_URL was not set at build time. Falling back to the " +
         "same-origin path /api/v1. If the API is on another origin, set " +
         "VITE_API_URL in the deploy environment and rebuild."
     );

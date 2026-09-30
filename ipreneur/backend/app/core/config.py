@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     )
 
     # ── Application ──────────────────────────────────────────────────────────
-    app_name: str = "iPreneur"
+    app_name: str = "Mint"
     app_env: str = "development"
     app_secret_key: str = "change_me"
     app_debug: bool = False

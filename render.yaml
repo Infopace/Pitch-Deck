@@ -1,4 +1,4 @@
-# Render blueprint — backend API.
+# Render blueprint — backend API (Docker) + frontend static site.
 #
 # Docker runtime, not the native Python one: the crawler drives Playwright
 # Chromium, which needs libnss3/libgbm1/libcups2 and friends. Those are
@@ -10,6 +10,16 @@
 # The paths below are already written relative to the root.
 #
 # Deploy: Render dashboard → New → Blueprint → point at this repo.
+#
+# Deploy order matters once, because the two services name each other:
+#   1. Apply the blueprint. Both services are created; the frontend build fails
+#      or produces a broken bundle, because VITE_API_URL is not set yet.
+#   2. Copy the API's URL into the frontend's VITE_API_URL, and the frontend's
+#      URL into the API's CORS_ORIGINS.
+#   3. Redeploy the frontend (a Vite env var is read at BUILD time, so setting
+#      it is not enough on its own — the bundle has to be rebuilt).
+# There is no way to avoid the round trip: render.yaml cannot concatenate
+# `fromService` host into the `https://…/api/v1` shape either side needs.
 #
 # Secrets are deliberately `sync: false`. Render prompts for them once in the
 # dashboard and stores them there; they are never written into this file or
@@ -40,7 +50,7 @@ projects:
             plan: free
             region: singapore      # nearest to the Supabase ap-northeast-1 database
             healthCheckPath: /health
-            autoDeploy: true
+            autoDeployTrigger: commit   # `autoDeploy: true` is the deprecated spelling
 
             envVars:
               # ── Non-secret ───────────────────────────────────────────────
@@ -49,7 +59,7 @@ projects:
               - key: APP_DEBUG
                 value: "false"
               - key: APP_NAME
-                value: iPreneur
+                value: Mint
               - key: GEMINI_MODEL
                 value: gemini-2.5-flash
               - key: GEMINI_MODEL_RESEARCH
@@ -80,9 +90,68 @@ projects:
               - key: GEMINI_API_KEY_2
                 sync: false
 
+              # ── Supabase Storage (S3-compatible) ─────────────────────────
+              # Not optional in practice. StorageClient checks these four and
+              # silently falls back to _save_locally() when any is missing —
+              # writing generated .pptx files to the instance's ephemeral disk.
+              # On the free plan there is no persistent disk, so every deploy
+              # and every wake-from-sleep wipes them and past decks 404 on
+              # download. Values are the Supabase Storage S3 credentials from
+              # PROJECT_LOG #25.
+              - key: S3_ENDPOINT_URL
+                sync: false
+              - key: S3_ACCESS_KEY
+                sync: false
+              - key: S3_SECRET_KEY
+                sync: false
+              - key: S3_BUCKET_NAME
+                sync: false
+              - key: S3_REGION
+                value: ap-northeast-1
+              # Public base URL the app hands the browser for a stored file.
+              - key: CDN_BASE_URL
+                sync: false
+
               # ── Optional ─────────────────────────────────────────────────
               # Unset disables Sentry entirely; the app logs a line and carries on.
               - key: SENTRY_DSN
+                sync: false
+
+          # ── Frontend ───────────────────────────────────────────────────────
+          # A static site, not a web service: `npm run build` emits a plain
+          # dist/ of hashed assets, so there is nothing to keep running. Render
+          # serves it from its CDN, free, and it never sleeps — which also means
+          # the landing page stays up while the free API instance is asleep.
+          - type: web
+            runtime: static          # there is no `type: static`
+            name: ipreneur-web
+            repo: https://github.com/Puneethgowda4653/Pitch-Deck
+            branch: main
+            rootDir: ./ipreneur/frontend
+            # `npm ci` over `npm install`: package-lock.json is committed, and
+            # ci refuses to silently resolve a different tree than the lockfile.
+            buildCommand: npm ci && npm run build
+            staticPublishPath: dist
+            autoDeployTrigger: commit
+
+            # SPA fallback. The app uses BrowserRouter with real paths, so a
+            # direct visit to /templates asks the CDN for a file that does not
+            # exist. Without this rule that is a 404 — only clicking through
+            # from "/" would work. public/_redirects does NOT cover this:
+            # Render ignores that file (it is Netlify/Cloudflare syntax).
+            routes:
+              - type: rewrite
+                source: /*
+                destination: /index.html
+
+            envVars:
+              # The deployed API, including the /api/v1 prefix, e.g.
+              #   https://ipreneur-api.onrender.com/api/v1
+              # Baked into the bundle at build time by Vite, so changing it
+              # requires a redeploy, not just a restart. Left unset the client
+              # falls back to http://localhost:8000/api/v1 and logs a warning —
+              # every request from the deployed site would then fail.
+              - key: VITE_API_URL
                 sync: false
 
 # ── Celery worker ────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 // ─── Application Constants ────────────────────────────────────────────────────
 
-export const APP_NAME = "iPreneur";
+export const APP_NAME = "Mint";
 export const APP_TAGLINE = "AI Pitch Deck Studio";
 export const APP_VERSION = "1.0.0";
 

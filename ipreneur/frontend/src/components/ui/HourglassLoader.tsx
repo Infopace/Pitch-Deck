@@ -6,9 +6,9 @@ interface HourglassLoaderProps {
   hue?: number;
 }
 
-export function HourglassLoader({ size = 64, className = "", hue = 238 }: HourglassLoaderProps) {
-  const topClipId = useId().replace(/:/g, "_") + "_top";
-  const bottomClipId = useId().replace(/:/g, "_") + "_bottom";
+export function HourglassLoader({ size = 56, className = "", hue = 223 }: HourglassLoaderProps) {
+  const topClipId = useId().replace(/:/g, "_") + "_sand_mound_top";
+  const bottomClipId = useId().replace(/:/g, "_") + "_sand_mound_bottom";
 
   return (
     <div
@@ -21,7 +21,7 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
       }}
     >
       <svg
-        aria-label="Hourglass AI generation loader"
+        aria-label="loader being flipped clockwise and circled by three white curves fading in and out"
         role="img"
         style={{
           width: size,
@@ -32,31 +32,27 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
           "--hue": hue,
         }}
         viewBox="0 0 56 56"
-        className="hourglass-loader"
+        className="loader hourglass-loader"
       >
-        <defs>
-          <clipPath id={topClipId}>
-            <path
-              d="M 14.613 13.087 C 15.814 12.059 19.3 8.039 20.3 6.539 C 21.5 4.789 21.5 2.039 21.5 2.039 L 3 2.039 C 3 2.039 3 4.789 4.2 6.539 C 5.2 8.039 8.686 12.059 9.887 13.087 C 11 14.039 12.25 14.039 12.25 14.039 C 12.25 14.039 13.5 14.039 14.613 13.087 Z"
-              className="loader__sand-mound-top"
-            />
-          </clipPath>
-          <clipPath id={bottomClipId}>
-            <path
-              d="M 14.613 20.452 C 15.814 21.48 19.3 25.5 20.3 27 C 21.5 28.75 21.5 31.5 21.5 31.5 L 3 31.5 C 3 31.5 3 28.75 4.2 27 C 5.2 25.5 8.686 21.48 9.887 20.452 C 11 19.5 12.25 19.5 12.25 19.5 C 12.25 19.5 13.5 19.5 14.613 20.452 Z"
-              className="loader__sand-mound-bottom"
-            />
-          </clipPath>
-        </defs>
-
+        <clipPath id={topClipId}>
+          <path
+            d="M 14.613 13.087 C 15.814 12.059 19.3 8.039 20.3 6.539 C 21.5 4.789 21.5 2.039 21.5 2.039 L 3 2.039 C 3 2.039 3 4.789 4.2 6.539 C 5.2 8.039 8.686 12.059 9.887 13.087 C 11 14.039 12.25 14.039 12.25 14.039 C 12.25 14.039 13.5 14.039 14.613 13.087 Z"
+            className="loader__sand-mound-top"
+          />
+        </clipPath>
+        <clipPath id={bottomClipId}>
+          <path
+            d="M 14.613 20.452 C 15.814 21.48 19.3 25.5 20.3 27 C 21.5 28.75 21.5 31.5 21.5 31.5 L 3 31.5 C 3 31.5 3 28.75 4.2 27 C 5.2 25.5 8.686 21.48 9.887 20.452 C 11 19.5 12.25 19.5 12.25 19.5 C 12.25 19.5 13.5 19.5 14.613 20.452 Z"
+            className="loader__sand-mound-bottom"
+          />
+        </clipPath>
         <g transform="translate(2,2)">
-          {/* Orbital Speed Rings */}
           <g
             transform="rotate(-90,26,26)"
             strokeLinecap="round"
             strokeDashoffset="153.94"
             strokeDasharray="153.94 153.94"
-            stroke="hsl(var(--hue), 85%, 65%)"
+            stroke="hsl(0,0%,100%)"
             fill="none"
           >
             <circle
@@ -84,17 +80,13 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
               className="loader__motion-thin"
             />
           </g>
-
-          {/* Hourglass Model */}
           <g transform="translate(13.75,9.25)" className="loader__model">
-            {/* Glass body background */}
             <path
               d="M 1.5 2 L 23 2 C 23 2 22.5 8.5 19 12 C 16 15.5 13.5 13.5 13.5 16.75 C 13.5 20 16 18 19 21.5 C 22.5 25 23 31.5 23 31.5 L 1.5 31.5 C 1.5 31.5 2 25 5.5 21.5 C 8.5 18 11 20 11 16.75 C 11 13.5 8.5 15.5 5.5 12 C 2 8.5 1.5 2 1.5 2 Z"
-              fill="hsl(var(--hue), 90%, 92%)"
+              fill="hsl(var(--hue),90%,85%)"
             />
 
-            {/* Sand stream and particles */}
-            <g strokeLinecap="round" stroke="hsl(38, 96%, 60%)">
+            <g strokeLinecap="round" stroke="hsl(35,90%,90%)">
               <line
                 y2="20.75"
                 x2="12"
@@ -138,7 +130,7 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
                 x1="12"
                 strokeDasharray="1 107"
                 strokeWidth="1"
-                stroke="hsl(38, 96%, 52%)"
+                stroke="hsl(35,90%,83%)"
                 className="loader__sand-line-left"
               />
               <line
@@ -148,12 +140,11 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
                 x1="12.5"
                 strokeDasharray="12 96"
                 strokeWidth="1"
-                stroke="hsl(38, 96%, 52%)"
+                stroke="hsl(35,90%,83%)"
                 className="loader__sand-line-right"
               />
 
-              {/* Sand Mounds */}
-              <g strokeWidth="0" fill="hsl(38, 96%, 60%)">
+              <g strokeWidth="0" fill="hsl(35,90%,90%)">
                 <path
                   d="M 12.25 15 L 15.392 13.486 C 21.737 11.168 22.5 2 22.5 2 L 2 2.013 C 2 2.013 2.753 11.046 9.009 13.438 L 12.25 15 Z"
                   clipPath={`url(#${topClipId})`}
@@ -165,8 +156,7 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
               </g>
             </g>
 
-            {/* Glass Glare */}
-            <g strokeWidth="2" strokeLinecap="round" opacity="0.75" fill="none">
+            <g strokeWidth="2" strokeLinecap="round" opacity="0.7" fill="none">
               <path
                 d="M 19.437 3.421 C 19.437 3.421 19.671 6.454 17.914 8.846 C 16.157 11.238 14.5 11.5 14.5 11.5"
                 stroke="hsl(0,0%,100%)"
@@ -180,8 +170,7 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
               />
             </g>
 
-            {/* Top and Bottom Caps */}
-            <rect height="2" width="24.5" fill="hsl(var(--hue), 85%, 52%)" />
+            <rect height="2" width="24.5" fill="hsl(var(--hue),90%,50%)" />
             <rect
               height="1"
               width="19.5"
@@ -189,13 +178,13 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
               x="2.5"
               ry="0.5"
               rx="0.5"
-              fill="hsl(var(--hue), 85%, 62%)"
+              fill="hsl(var(--hue),90%,57.5%)"
             />
             <rect
               height="2"
               width="24.5"
               y="31.5"
-              fill="hsl(var(--hue), 85%, 52%)"
+              fill="hsl(var(--hue),90%,50%)"
             />
             <rect
               height="1"
@@ -204,7 +193,7 @@ export function HourglassLoader({ size = 64, className = "", hue = 238 }: Hourgl
               x="2.5"
               ry="0.5"
               rx="0.5"
-              fill="hsl(var(--hue), 85%, 62%)"
+              fill="hsl(var(--hue),90%,57.5%)"
             />
           </g>
         </g>

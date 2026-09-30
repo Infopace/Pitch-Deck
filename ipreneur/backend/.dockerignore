@@ -1,0 +1,69 @@
+# Docker build context excludes — see infrastructure/docker/backend/Dockerfile.
+#
+# The Dockerfile ends with `COPY . .`, so without this file the whole 466MB
+# backend directory is sent to the builder and baked into the image. Most of
+# that is a *Windows* virtualenv, which is useless in a Linux container and
+# would only shadow the site-packages that `pip install` already put there.
+#
+# Anything excluded here must be either regenerated in the image or supplied
+# at runtime. The app needs `app/` and `requirements.txt`; every directory it
+# writes to (uploads/, storage/) is created on demand by os.makedirs at boot.
+
+# ─── Secrets ──────────────────────────────────────────────────────────────────
+# .env holds the real Supabase password and S3 keys. Render supplies the
+# production values as environment variables, which pydantic-settings reads in
+# preference to a file — so a copied .env is pure leak with no upside: it would
+# sit readable in an image layer for anyone who can pull it.
+.env
+.env.*
+!.env.example
+
+# ─── Local virtualenv (453MB, built for Windows) ──────────────────────────────
+.venv/
+venv/
+env/
+
+# ─── Python bytecode and tool caches ──────────────────────────────────────────
+# `**/` is required: a .dockerignore pattern without it matches only the
+# context root, so a bare `__pycache__/` would leave every app/**/__pycache__
+# in place — stale Windows-compiled .pyc files shipped into a Linux image.
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ─── Local data that must not become image content ────────────────────────────
+# ipreneur.db is the pre-Supabase SQLite database with real project rows. In
+# production DATABASE_URL points at Supabase and this file is never read, but
+# shipping it puts customer data in the image.
+*.db
+*.sqlite3
+celerybeat-schedule
+
+# Generated decks and uploaded logos from local runs. On Render these live on
+# the instance's ephemeral disk and start empty.
+storage/
+uploads/
+*.pptx
+
+# ─── Development scratch: test scripts, run logs, pipeline dumps ──────────────
+# Unit tests are not run inside the image; CI runs them from the repo.
+test_*.py
+_test_step*.py
+*_test_output*.json
+inline_run.py
+run_generate_deck.py
+download_playwright_headless.py
+crawl_output.json
+pipeline_output.json
+*.log
+*_log.txt
+playwright_resolution.txt
+
+# ─── Editor / OS noise ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

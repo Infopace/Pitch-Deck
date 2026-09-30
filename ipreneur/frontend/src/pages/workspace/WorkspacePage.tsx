@@ -14,6 +14,7 @@ import { TemplatedDeckSection } from "@/components/workspace/deckTemplates/Templ
 import type { TemplateDeckData } from "@/components/workspace/deckTemplates/types";
 import { BrandingPanel } from "@/components/workspace/BrandingPanel";
 import { HourglassLoader } from "@/components/ui/HourglassLoader";
+import { Tv404 } from "@/components/ui/Tv404";
 import type { Project } from "@/types";
 
 const POLLING_MS = 3000;
@@ -115,6 +116,23 @@ export default function WorkspacePage() {
   const isDraft = project?.status === "draft";
   const isError = project?.status === "error";
 
+  if (projectQuery.isError && ((projectQuery.error as any)?.response?.status === 404 || !project)) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "75vh", padding: 24, textAlign: "center" }}>
+        <Tv404 />
+        <h2 style={{ font: "800 22px var(--font-display)", color: "var(--text-strong)", marginTop: 24 }}>
+          Pitch Deck Not Found
+        </h2>
+        <p style={{ font: "400 14px var(--font-body)", color: "var(--text-muted)", marginTop: 6, marginBottom: 24, maxWidth: 420 }}>
+          This pitch deck doesn't exist, may have been deleted, or the URL link is incorrect.
+        </p>
+        <Link to="/dashboard" style={{ textDecoration: "none" }}>
+          <Button variant="primary">Return to Dashboard</Button>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: "transparent", minHeight: "100vh" }}>
       {/* Topbar */}
@@ -166,6 +184,28 @@ export default function WorkspacePage() {
 
         <main style={{ minWidth: 0 }}>
           <AnimatePresence mode="wait">
+            {projectQuery.isLoading && (
+              <motion.div
+                key="loading-project"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: 380,
+                  textAlign: "center",
+                  gap: 16,
+                }}
+              >
+                <HourglassLoader size={64} />
+                <p style={{ font: "500 14px var(--font-body)", color: "var(--text-muted)", margin: 0 }}>
+                  Loading project…
+                </p>
+              </motion.div>
+            )}
             {isActive && jobStatus && (
               <motion.div key="progress" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <AnalysisProgress progress={jobStatus} />

@@ -17,6 +17,7 @@ import { renderSlide } from "@/components/workspace/deckTemplates/TemplatedDeck"
 import { FitSlide } from "@/components/workspace/deckTemplates/FitSlide";
 import { getTheme, ensureDeckFonts, DEFAULT_THEME_KEY } from "@/components/workspace/deckTemplates/themes";
 import { VIEW_CTX } from "@/components/workspace/deckTemplates/editing/editableText";
+import { HourglassLoader } from "@/components/ui/HourglassLoader";
 import type { Project } from "@/types";
 
 function getGreeting(): string {
@@ -254,16 +255,9 @@ export default function DashboardPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="animate-pulse overflow-hidden rounded-xl border border-slate-200/80 bg-white">
-                <div className="bg-slate-100" style={{ aspectRatio: "16 / 9" }} />
-                <div className="space-y-2 p-3">
-                  <div className="h-3 w-3/4 rounded bg-slate-100" />
-                  <div className="h-2.5 w-1/2 rounded bg-slate-100" />
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <HourglassLoader size={64} />
+            <p className="text-[13px] font-medium text-slate-500">Loading your decks…</p>
           </div>
         ) : isError ? (
           <div className="rounded-xl border border-red-200 bg-red-50/60 p-6 text-center">

@@ -10,6 +10,8 @@ import { DeckWorkspace } from "@/components/workspace/deckTemplates/DeckWorkspac
 import type { TemplateDeckData } from "@/components/workspace/deckTemplates/types";
 import type { EditPath } from "@/components/workspace/deckTemplates/editing/editableText";
 import { setByPath } from "@/components/workspace/deckTemplates/editing/setByPath";
+import { HourglassLoader } from "@/components/ui/HourglassLoader";
+import { Tv404 } from "@/components/ui/Tv404";
 
 const ep = {
   backLink: { display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0, font: "500 13px var(--font-body)", color: "var(--text-muted)", textDecoration: "none" } as React.CSSProperties,
@@ -23,7 +25,7 @@ export default function EditorPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const qc = useQueryClient();
 
-  const { data: project, isLoading } = useQuery({
+  const { data: project, isLoading, isError } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => projectsApi.get(projectId!),
     enabled: !!projectId,
@@ -91,8 +93,42 @@ export default function EditorPage() {
     }
   };
 
-  if (isLoading || !project) {
-    return <div style={ep.body}>Loading…</div>;
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          ...ep.body,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "60vh",
+          gap: 16,
+        }}
+      >
+        <HourglassLoader size={64} />
+        <p style={{ font: "500 14px var(--font-body)", color: "var(--text-muted)", margin: 0 }}>
+          Loading editor…
+        </p>
+      </div>
+    );
+  }
+
+  if (isError || !project) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "75vh", padding: 24, textAlign: "center" }}>
+        <Tv404 />
+        <h2 style={{ font: "800 22px var(--font-display)", color: "var(--text-strong)", marginTop: 24 }}>
+          Pitch Deck Not Found
+        </h2>
+        <p style={{ font: "400 14px var(--font-body)", color: "var(--text-muted)", marginTop: 6, marginBottom: 24, maxWidth: 420 }}>
+          The pitch deck you're trying to edit doesn't exist or has been removed.
+        </p>
+        <Link to="/dashboard" style={{ textDecoration: "none" }}>
+          <Button variant="primary">Return to Dashboard</Button>
+        </Link>
+      </div>
+    );
   }
 
   if (project.status !== "ready") {

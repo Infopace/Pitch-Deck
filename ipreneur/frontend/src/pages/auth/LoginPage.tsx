@@ -8,6 +8,7 @@ import {
   BuildIcon,
   ScaleIcon,
 } from "@/components/auth/RocketIllustration";
+import { MintLogo } from "@/components/brand/MintLogo";
 
 /**
  * Login — balanced three-column composition on desktop, compact card-only on mobile.
@@ -116,11 +117,9 @@ export default function LoginPage() {
             <div className="w-full max-w-[430px] rounded-[24px] border border-white bg-white/95 px-6 py-8 shadow-[0_20px_50px_rgba(53,70,120,0.12)] backdrop-blur-xl sm:px-8 sm:py-9">
               {/* Logo */}
               <div className="mb-5 flex justify-center">
-                <img
-                  src="/ipreneur-logo.webp"
-                  alt="iPreneur"
-                  className="h-auto w-[150px]"
-                />
+                <Link to="/" className="transition-transform duration-200 hover:scale-105">
+                  <MintLogo variant={1} height={42} textColor="#0f172a" />
+                </Link>
               </div>
 
               <div className="text-center">
@@ -128,7 +127,7 @@ export default function LoginPage() {
                   Welcome back
                 </h2>
                 <p className="mt-1 text-[14.5px] text-[#7183a1]">
-                  Sign in to your iPreneur account
+                  Sign in to your Mint account
                 </p>
               </div>
 

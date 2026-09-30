@@ -1252,3 +1252,42 @@ The thumbnail CSS used `transform: scale(calc(100cqw / 1280))`. `scale()` takes 
 
 `Files: frontend/src/components/ui/HourglassLoader.tsx, frontend/src/index.css, frontend/src/pages/workspace/WorkspacePage.tsx, frontend/src/components/workspace/AnalysisProgress.tsx`
 
+---
+
+### 54. Universal Animated Hourglass Loader Integration
+
+**Objective:** Propagate the animated hourglass loading indicator across all loading states in the application to replace raw text and standard spinners.
+
+**Changes:**
+1. **`PageLoader.tsx` (`frontend/src/components/shared/PageLoader.tsx`):**
+   - Upgraded global route suspense fallback to render `<HourglassLoader size={64} />` with styled typography message. All lazy route loads (`App.tsx`) now use the animated hourglass.
+2. **`EditorPage.tsx` (`frontend/src/pages/editor/EditorPage.tsx`):**
+   - Replaced plain text `Loading…` in `ep.body` with centered `<HourglassLoader size={64} />` and "Loading editor…" message.
+3. **`WorkspacePage.tsx` (`frontend/src/pages/workspace/WorkspacePage.tsx`):**
+   - Added animated `<HourglassLoader size={64} />` with "Loading project…" during initial `projectQuery.isLoading` state.
+4. **`DashboardPage.tsx` (`frontend/src/pages/dashboard/DashboardPage.tsx`):**
+   - Replaced card skeleton placeholder with centered `<HourglassLoader size={64} />` and "Loading your decks…" during initial data fetch.
+
+`Files: frontend/src/components/shared/PageLoader.tsx, frontend/src/pages/editor/EditorPage.tsx, frontend/src/pages/workspace/WorkspacePage.tsx, frontend/src/pages/dashboard/DashboardPage.tsx`
+
+---
+
+### 55. Uiverse Retro TV 404 Not Found Screen
+
+**Objective:** Implement the animated retro television 404 component by Praashoo7 (Uiverse) for all 404 and not-found states across the application.
+
+**Changes:**
+1. **`Tv404.tsx` (`frontend/src/components/ui/Tv404.tsx`):**
+   - React component implementing the retro television with dual antenna, curved glare bezel, dials/speakers, wooden feet, background 3D-scaled '404' typography, and dual CRT display modes (animated analog static noise on desktop, broadcast test pattern bars on mobile).
+2. **Keyframe Animations & Scoped CSS (`frontend/src/index.css`):**
+   - Added scoped `.tv-404-container` styling with responsive rem/em scaling, `@keyframes tv-static-noise`, dual-screen media queries, and clipped geometric antenna paths.
+   - Linked Google Font `Montserrat` in `frontend/index.html`.
+3. **Dedicated 404 Page (`frontend/src/pages/NotFoundPage.tsx`):**
+   - Fullscreen 404 page featuring `<Tv404 />`, title, description, and quick-action navigation ("Go Back", "Dashboard", "Home").
+4. **Application & Workspace Integration:**
+   - **`App.tsx`:** Updated catch-all route (`<Route path="*" ... />`) to render `<NotFoundPage />` instead of a silent redirect.
+   - **`WorkspacePage.tsx`:** Displays `<Tv404 />` with a direct return button when an invalid or deleted deck ID is requested.
+   - **`EditorPage.tsx`:** Displays `<Tv404 />` when trying to edit a nonexistent deck.
+
+`Files: frontend/src/components/ui/Tv404.tsx, frontend/src/pages/NotFoundPage.tsx, frontend/src/index.css, frontend/src/App.tsx, frontend/src/pages/workspace/WorkspacePage.tsx, frontend/src/pages/editor/EditorPage.tsx, frontend/index.html`
+

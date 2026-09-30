@@ -26,6 +26,9 @@ env/
 node_modules/
 dist/
 .vite/
+# TypeScript incremental build cache. Machine-local and rewritten on every
+# `tsc`, so committing it only produces conflicts.
+*.tsbuildinfo
 
 # ─── Crawl / generated artifacts ──────────────────────────────────────────────
 crawl_output.json

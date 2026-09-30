@@ -17,6 +17,7 @@ import {
 import { useAuthStore, useCurrentUser } from "@/stores/authStore";
 import { projectsApi } from "@/services/api/projects";
 import { billingApi } from "@/services/api/billing";
+import { MintLogo } from "@/components/brand/MintLogo";
 
 const IN_PROGRESS = ["analyzing", "researching", "generating"];
 const FAILED = ["failed", "error"];
@@ -99,10 +100,9 @@ export function DashboardLayout() {
   }, [navigate, location]);
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `relative flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium no-underline transition-all ${
-      isActive
-        ? "bg-slate-900 text-white shadow-sm"
-        : "text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm"
+    `relative flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium no-underline transition-all ${isActive
+      ? "bg-slate-900 text-white shadow-sm"
+      : "text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-sm"
     }`;
 
   const icon = (isActive: boolean) => (isActive ? "text-white" : "text-slate-400");
@@ -126,12 +126,9 @@ export function DashboardLayout() {
         `}
       >
         {/* ── Brand ── */}
-        <div className="flex items-center justify-between px-3.5 pb-3 pt-3.5">
-          <Link to="/dashboard" className="flex items-center gap-2 no-underline">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-blue-700 text-[11px] font-black text-white shadow-sm">
-              iP
-            </span>
-            <span className="text-[12.5px] font-bold uppercase tracking-tight text-slate-900">iPreneur</span>
+        <div className="flex items-center justify-between px-3 pb-3 pt-3">
+          <Link to="/dashboard" className="flex items-center no-underline transition-opacity hover:opacity-90">
+            <MintLogo variant={1} height={28} textColor="#0f172a" />
           </Link>
           <button
             onClick={() => setMobileOpen(false)}
@@ -295,9 +292,9 @@ export function DashboardLayout() {
             <Menu size={20} />
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-900">iPreneur</span>
-            <span className="rounded border border-blue-100 bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-700">
-              ACCELERATOR
+            <MintLogo variant={1} height={24} textColor="#0f172a" />
+            <span className="rounded border border-emerald-100 bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">
+              STUDIO
             </span>
           </div>
           <button className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Notifications">

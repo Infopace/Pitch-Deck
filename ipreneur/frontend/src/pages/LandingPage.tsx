@@ -1,1050 +1,520 @@
-import React, { useState } from "react";
+/**
+ * Landing page.
+ *
+ * Every claim here is checked against the code. The previous version advertised
+ * PDF export, shareable investor links with view tracking, "100% editable"
+ * PowerPoint output and Claude 3.5 — none of which the product does — plus
+ * usage figures and investor logos that were invented. Nothing on this page
+ * states a capability the application does not have.
+ *
+ * Product previews are rendered live through the real slide renderer, so what a
+ * visitor sees is literally what the generator produces.
+ */
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Sparkles,
-  ArrowRight,
-  Zap,
-  Play,
-  CheckCircle2,
-  ChevronRight,
-  Layout,
-  Globe,
-  FileText,
-  BarChart3,
-  Shield,
-  Layers,
-  Eye,
-  Download,
-  Star,
-  HelpCircle,
-  ArrowUpRight,
-  Palette,
-  ChevronDown,
-  ChevronUp,
-  TrendingUp,
-  Cpu,
-  Check,
-  Share2,
-  Lock,
+  ArrowRight, Check, ChevronDown, Globe, Search, Sparkles,
+  PencilLine, Download, Layers, FileText, Minus,
 } from "lucide-react";
 
 import HeroSection from "@/components/landing/HeroSection";
+import { THEMES, getTheme, ensureDeckFonts } from "@/components/workspace/deckTemplates/themes";
+import { SAMPLE_DECK } from "@/components/workspace/deckTemplates/sampleDeck";
+import { renderSlide } from "@/components/workspace/deckTemplates/TemplatedDeck";
+import { FitSlide } from "@/components/workspace/deckTemplates/FitSlide";
+import { VIEW_CTX } from "@/components/workspace/deckTemplates/editing/editableText";
+import { slideOrder, DECK_TYPES, deckTypeLabel } from "@/components/workspace/deckTemplates/deckTypes";
 
-// ── Showcase Slides for Interactive Live Preview ──────────────────────────────
-interface SlideContent {
-  id: number;
-  tag: string;
-  title: string;
-  subtitle: string;
-  type: "problem" | "solution" | "market" | "traction" | "business" | "ask";
-  badgeColor: string;
-}
+// ── Facts, each verified against the source ──────────────────────────────────
+// 13 deck types ........ backend/app/decks/registry.py
+// 40 templates ......... deckTemplates/themes.ts (4 families x 10)
+// 5-25 slides .......... resolve_sections() per deck type
+// Gemini two-pass ...... agents/master/master_agent.py:332 (_research_pass)
+// .pptx with charts .... ppt/engine/renderer.py (add_chart / add_table / add_textbox)
 
-const LIVE_SLIDES: SlideContent[] = [
+const ORDER = slideOrder("investor");
+
+const CAPABILITIES = [
+  { v: "13", label: "deck types, each with its own slide sequence" },
+  { v: "40", label: "designs, switchable on any deck at any time" },
+  { v: "5–25", label: "slides, decided by the deck type you pick" },
+  { v: ".pptx", label: "export with native charts and editable text" },
+];
+
+const STEPS = [
   {
-    id: 1,
-    tag: "01 · The Problem",
-    title: "Legacy Slide Software Was Built for 1995, Not Founders Raising Capital",
-    subtitle: "Founders spend 40+ hours per pitch deck aligning text boxes and wrestling PowerPoint templates. The result? Dense, uninspiring slides that fail to hook investors.",
-    type: "problem",
-    badgeColor: "text-black border-black/[0.10] bg-[#F4F4F5]",
+    icon: Globe,
+    step: "01",
+    title: "Start with your website",
+    body:
+      "Paste a URL. Mint reads your site and the public material around it to work out what you build, who you sell to, and how you make money — so you are correcting a draft instead of facing a blank page.",
   },
   {
-    id: 2,
-    tag: "02 · The Solution",
-    title: "AI-Native Pitch Medium: From URL to Investor Deck in 90 Seconds",
-    subtitle: "iPreneur automatically parses your company website, synthesizes your value proposition, models your market size, and formats a polished narrative ready for institutional VCs.",
-    type: "solution",
-    badgeColor: "text-black border-black/[0.14] bg-[#F4F4F5]",
+    icon: Search,
+    step: "02",
+    title: "It researches before it writes",
+    body:
+      "A first pass runs live web research to gather market size, competitors and comparable companies. A second pass turns that into slides. Market figures arrive with the reasoning attached, so you can check a number before an investor does.",
   },
   {
-    id: 3,
-    tag: "03 · Market Sizing",
-    title: "Tapping a $64B Global Presentation & Venture Intelligence Market",
-    subtitle: "Over 2.4M new technology startups are funded globally every year, each requiring multiple bespoke decks across Seed, Series A, customer pilots, and Board updates.",
-    type: "market",
-    badgeColor: "text-black border-black/[0.14] bg-[#F4F4F5]",
-  },
-  {
-    id: 4,
-    tag: "04 · Traction & Velocity",
-    title: "Explosive Product-Led Growth: 4.8x YoY with $2.1M ARR",
-    subtitle: "Strong founder word-of-mouth driving organic referral loops across top tier accelerators like Y Combinator, Techstars, and Sequoia scout networks.",
-    type: "traction",
-    badgeColor: "text-[#047857] border-black/[0.14] bg-[#F4F4F5]",
-  },
-  {
-    id: 5,
-    tag: "05 · Business Model",
-    title: "High-Margin SaaS + Enterprise Venture Deal-Flow Subscriptions",
-    subtitle: "Predictable recurring revenue with 88% gross margins and 142% Net Dollar Retention (NDR) across growing startup teams and accelerator cohorts.",
-    type: "business",
-    badgeColor: "text-black border-black/[0.10] bg-[#F4F4F5]",
-  },
-  {
-    id: 6,
-    tag: "06 · The Ask",
-    title: "Raising $3.5M Seed to Scale AI Generation & Investor Intelligence",
-    subtitle: "Allocation: 60% Engineering & Multimodal LLMs, 25% Growth & Accelerator Partnerships, 15% Operations & Investor Deal Network.",
-    type: "ask",
-    badgeColor: "text-black border-black/[0.14] bg-[#F4F4F5]",
+    icon: PencilLine,
+    step: "03",
+    title: "Edit it, then take it with you",
+    body:
+      "Click any headline, bullet or figure on any slide to change it. Try all 40 designs on your finished deck. Download a PowerPoint file and keep working in PowerPoint, Keynote or Slides.",
   },
 ];
 
-// ── Prompt Suggestions for the Generator Bar ─────────────────────────────────
-const PROMPT_SUGGESTIONS = [
-  "Series A pitch deck for an AI healthcare triage copilot",
-  "Seed stage deck for autonomous drone logistics in supply chain",
-  "Fintech developer API replacing legacy core banking architecture",
-  "B2B SaaS customer retention engine with predictive churn ML",
-  "ClimateTech carbon offset verification platform using satellite radar",
-];
+// Grouped the way founders actually think about the work, not by the registry's
+// internal ordering. Slide counts come from the registry at render time.
+const DECK_GROUPS: {
+  group: string; blurb: string; keys: string[]; img: string; alt: string;
+}[] = [
+    {
+      group: "Raising money",
+      blurb: "From a five-slide teaser to a full narrative for a partner meeting.",
+      keys: ["investor", "demoday", "elevator", "update"],
+      img: "/images/template_fintech.jpg",
+      alt: "A faceted green glass and brass sculpture on a travertine plinth",
+    },
+    {
+      group: "Selling and going to market",
+      blurb: "Decks aimed at a buyer or a partner rather than an investor.",
+      keys: ["sales", "gtm", "product", "partnership"],
+      img: "/images/template_ai_saas.jpg",
+      alt: "A polished black iridescent knot suspended in a white gallery",
+    },
+    {
+      group: "Explaining the company",
+      blurb: "The longer documents — for a board, a bank, or a new hire.",
+      keys: ["general", "business", "vision", "master"],
+      img: "/images/template_enterprise.jpg",
+      alt: "A travertine and reeded-glass architectural installation",
+    },
+    {
+      group: "Deciding internally",
+      blurb: "A written argument for a decision your team has to make.",
+      keys: ["internal"],
+      img: "/images/template_deeptech.jpg",
+      alt: "A swept white and carbon-fibre form against a concrete column",
+    },
+  ];
 
-// ── Format Options ────────────────────────────────────────────────────────────
-const FORMAT_TABS = [
-  { id: "pitch-deck", label: "Pitch deck", desc: "10–13 investor-vetted slides" },
-  { id: "executive", label: "Executive", desc: "Dense financial and growth metrics" },
-  { id: "seed", label: "Seed", desc: "High-signal problem-solution format" },
-  { id: "one-pager", label: "Web summary", desc: "Interactive link you can send" },
-];
+const FAMILY_NOTES: Record<string, string> = {
+  Classic: "Soft cards and gradients. The safe choice for a partner meeting.",
+  Studio: "Distinct compositions — editorial, brutalist, technical, photographic.",
+  "Volume 2": "Swiss grids, broadsheets, bold posters, terminals and bento layouts.",
+  Infographic: "Data-forward covers: donut charts, heatmaps, radial dashboards.",
+};
 
-// ── Templates ─────────────────────────────────────────────────────────────────
-const TEMPLATES = [
-  {
-    id: 1,
-    title: "Next-Gen AI SaaS Platform",
-    category: "AI & SaaS",
-    stage: "Series A ($14M Raised)",
-    slides: "12 Slides",
-    headline: "The Intelligence Engine for Autonomous Enterprise",
-    subhead: "Multimodal AI Orchestration Layer for Complex Enterprise Workflows",
-    metrics: [
-      { label: "ARR Run-Rate", value: "$14.2M" },
-      { label: "Net Retention", value: "142% NDR" },
-      { label: "Gross Margin", value: "88%" },
-    ],
-    accentColor: "from-[#110c26] to-[#080514]",
-    tagColor: "text-[#C4B5FD] border-[#A78BFA]/30 bg-[#8B5CF6]/15",
-    rating: "4.95",
-    tags: ["LLM Architecture", "ARR Growth", "Team Moat"],
-  },
-  {
-    id: 2,
-    title: "Nexus Pay Global Infrastructure",
-    category: "Fintech",
-    stage: "Series Seed ($4.2M)",
-    slides: "10 Slides",
-    headline: "Borderless Treasury & Global Developer Payments",
-    subhead: "Instant Multi-Currency Liquidity & Programmable Settlement Engine",
-    metrics: [
-      { label: "Payment Volume", value: "$12.4B" },
-      { label: "Transactions", value: "215M+" },
-      { label: "Multi-Currency", value: "50+ Pairs" },
-    ],
-    accentColor: "from-[#041a18] to-[#020d0c]",
-    tagColor: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
-    rating: "4.98",
-    tags: ["Payments Volume", "Multi-Currency", "SOC 2 Type II"],
-  },
-  {
-    id: 3,
-    title: "Autonomous Drone Logistics Network",
-    category: "DeepTech",
-    stage: "Seed ($5.5M)",
-    slides: "11 Slides",
-    headline: "Autonomous Middle-Mile Air Cargo Logistics",
-    subhead: "Zero-Emission Heavy Payload Drones for Critical Supply Chains",
-    metrics: [
-      { label: "Active Routes", value: "14 Hubs" },
-      { label: "Market TAM", value: "$84B" },
-      { label: "Regulation", value: "FAA Part 135" },
-    ],
-    accentColor: "from-[#051822] to-[#020b10]",
-    tagColor: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
-    rating: "4.92",
-    tags: ["Hardware Moat", "Pilot Contracts", "TAM $84B"],
-  },
-  {
-    id: 4,
-    title: "Venture Intelligence & Market Sizing",
-    category: "Enterprise",
-    stage: "Series B ($28M)",
-    slides: "14 Slides",
-    headline: "Real-Time Venture Dealflow & Market Intelligence",
-    subhead: "Automated Competitor Analysis and Verified Market Sizing Models",
-    metrics: [
-      { label: "Decks Analyzed", value: "500K+" },
-      { label: "Capital Raised", value: "$680M+" },
-      { label: "Partner Response", value: "94% Rate" },
-    ],
-    accentColor: "from-[#081226] to-[#040813]",
-    tagColor: "text-blue-400 border-blue-500/30 bg-blue-500/10",
-    rating: "4.99",
-    tags: ["Market Share", "Competitor Matrix", "Web Crawling"],
-  },
-];
-
-// ── FAQs ──────────────────────────────────────────────────────────────────────
 const FAQS = [
   {
-    q: "How does iPreneur generate a deck from just a URL or prompt?",
-    a: "iPreneur uses intelligent web-crawling to scan your landing page, product docs, and public materials. It then extracts your core value propositions, target customer profiles, and competitive moats. Claude 3.5 and venture financial models craft a tight 10-to-12 slide narrative formatted with pixel-perfect precision.",
+    q: "What do I have to give it to get a deck?",
+    a: "A company name and a website is enough to start. The more you tell it — stage, business model, traction, who you sell to — the less you will have to correct afterwards. You can fill those in as you go rather than up front.",
   },
   {
-    q: "Can I export my finished deck to Microsoft PowerPoint (.pptx) or PDF?",
-    a: "Yes! Every deck can be exported with a single click to native Microsoft PowerPoint (.pptx) vector files or high-res vector PDFs. All shapes, texts, tables, and metric cards remain 100% editable in PowerPoint, Keynote, or Google Slides.",
+    q: "How long is the deck, and can I change that?",
+    a: "The deck type decides it. Elevator is five slides, Demo Day is ten, Investor is twenty-four, and the Master deck runs to twenty-five. You pick the type when you create the deck, and every slide can be edited afterwards.",
   },
   {
-    q: "Can I share a live link with investors and track their views?",
-    a: "Absolutely. Much like Gamma, every iPreneur deck has a published responsive web link. You can send it directly to investors, and our built-in viewer telemetry dashboard will notify you when they open it, showing how many minutes they spent on each slide.",
+    q: "Can I export to PowerPoint?",
+    a: "Yes, as a .pptx file. Download from the project page and you get native PowerPoint: real text boxes you can retype, real tables, and real charts that stay charts. There is also an in-app export that captures each slide exactly as you see it on screen — pixel-accurate, but the slides come through as images rather than editable shapes. Choose based on whether you want to keep editing or want an exact visual copy. There is no PDF export yet.",
   },
   {
-    q: "How does the AI market research & TAM calculation work?",
-    a: "Instead of guessing market size on spreadsheets, iPreneur's AI queries live industry data, SEC filings, and recent comparable funding rounds to calculate defensible TAM, SAM, and SOM figures, complete with source citations that investors respect.",
+    q: "Which AI writes it?",
+    a: "Google's Gemini, in two passes. The first researches your company and market with live web search rather than relying only on what the model was trained on; the second writes the slides from that research. Splitting the two is what keeps market figures anchored to something checkable.",
   },
   {
-    q: "Is my proprietary startup data and pitch material private?",
-    a: "Yes. Your drafts, numbers, and inputs are encrypted with AES-256 at rest and TLS 1.3 in transit. We never use your proprietary pitch deck data or financial metrics to train public AI models.",
+    q: "Can I use my own branding?",
+    a: "Upload a logo and it appears on every slide. Upload photos and they fill the gallery slots. Both are applied when the deck is drawn, so they survive a change of template and never pass through the AI.",
+  },
+  {
+    q: "If I switch template, do I lose my edits?",
+    a: "No. The words and the design are kept apart. Switching template redraws the same content in a new one, including on decks you generated before that template existed, and your edits come with it.",
+  },
+  {
+    q: "Do I have to re-enter everything for a second deck?",
+    a: "No. What you tell Mint about your company is stored on a company profile, separate from any one deck. Each deck type draws the parts it needs from that profile, so the second deck asks far less than the first.",
   },
 ];
+
+function DeckTypeRow({ k }: { k: string }) {
+  const n = useMemo(() => slideOrder(k).length, [k]);
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-slate-200/80 py-2.5 last:border-b-0">
+      <span className="text-[14px] font-medium tracking-[-0.01em] text-slate-900">
+        {deckTypeLabel(k)}
+      </span>
+      <span className="l-meta shrink-0 tabular-nums text-[12px]">{n} slides</span>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [selectedFormat, setSelectedFormat] = useState("pitch-deck");
-  const [promptText, setPromptText] = useState("");
-  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [previewKey, setPreviewKey] = useState(THEMES[0].key);
+  const [slideIdx, setSlideIdx] = useState(0);
 
-  const currentSlide = LIVE_SLIDES[activeSlideIndex];
+  useMemo(() => { ensureDeckFonts(); return null; }, []);
+  const theme = useMemo(() => getTheme(previewKey), [previewKey]);
 
-
-  const handlePromptSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = promptText.trim() || PROMPT_SUGGESTIONS[0];
-    navigate(`/register?prompt=${encodeURIComponent(query)}&format=${selectedFormat}`);
-  };
-
-  const handleChipClick = (suggestion: string) => {
-    setPromptText(suggestion);
-  };
-
-  const nextSlide = () => {
-    setActiveSlideIndex((prev) => (prev + 1) % LIVE_SLIDES.length);
-  };
-
-  const prevSlide = () => {
-    setActiveSlideIndex((prev) => (prev - 1 + LIVE_SLIDES.length) % LIVE_SLIDES.length);
-  };
-
-  const filteredTemplates =
-    selectedCategory === "All"
-      ? TEMPLATES
-      : TEMPLATES.filter((t) => t.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+  const families = useMemo(() => {
+    const seen = new Map<string, typeof THEMES>();
+    for (const t of THEMES) {
+      // themes.ts keeps the four families in order; bucket by 10.
+      const i = THEMES.indexOf(t);
+      const fam = i < 10 ? "Classic" : i < 20 ? "Studio" : i < 30 ? "Volume 2" : "Infographic";
+      seen.set(fam, [...(seen.get(fam) ?? []), t]);
+    }
+    return [...seen.entries()];
+  }, []);
 
   return (
-    <div className="ipr-landing min-h-screen selection:bg-black/10 relative">
-      <div>
-        {/* ── HERO SECTION ── */}
-        <HeroSection />
+    <div className="ipr-landing relative min-h-screen selection:bg-blue-600/15">
+      <HeroSection />
 
-        {/* ── LOGOS & SOCIAL PROOF BAR ─────────────────────────────────── */}
-        {/* ── Proof ─────────────────────────────────────────────────────────
-             The figures are the content; the four identical rounded cards
-             they used to sit in were only packaging. A hairline grid gives
-             them structure without dressing each one as an object. ───────── */}
-        <section className="l-panel border-y border-black/[0.07]">
-          <div className="max-w-[1180px] mx-auto px-4 sm:px-6 py-14 sm:py-16">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-black/[0.10]">
-              {[
-                { v: "500K+", label: "Decks generated" },
-                { v: "$680M+", label: "Raised by founders using them" },
-                { v: "94%", label: "Reach a second meeting" },
-                { v: "90s", label: "Average build time" },
-              ].map((s) => (
-                <div key={s.label} className="l-panel px-5 py-7 sm:px-7">
-                  <div className="font-[family-name:var(--font-display)] text-[2rem] sm:text-[2.5rem] font-extrabold tracking-[-0.035em] leading-none text-black tabular-nums">
-                    {s.v}
-                  </div>
-                  <div className="l-body mt-2.5 text-[13px]">{s.label}</div>
+      {/* ── What the product is, in four numbers ─────────────────────── */}
+      <section className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto max-w-[1180px] px-4 py-14 sm:px-6 sm:py-16">
+          <div className="grid grid-cols-2 gap-px bg-slate-200/70 md:grid-cols-4">
+            {CAPABILITIES.map((s) => (
+              <div key={s.label} className="l-panel px-5 py-7 sm:px-7">
+                <div className="font-[family-name:var(--font-display)] text-[2rem] font-semibold leading-none tracking-[-0.025em] text-slate-900 tabular-nums sm:text-[2.5rem]">
+                  {s.v}
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-12 flex flex-wrap items-baseline justify-center gap-x-9 gap-y-3">
-              <span className="l-meta">Built by founders backed by</span>
-              {[
-                "Y Combinator",
-                "Sequoia",
-                "Techstars",
-                "a16z crypto",
-                "Accel",
-                "Founders Fund",
-              ].map((n) => (
-                <span
-                  key={n}
-                  className="text-[15px] font-semibold tracking-[-0.015em] text-[#52525B]"
-                >
-                  {n}
-                </span>
-              ))}
-            </div>
+                <div className="l-body mt-2.5 text-[13px]">{s.label}</div>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── LIVE INTERACTIVE DECK SHOWCASE (GAMMA SLIDE VIEWER) ───────── */}
-        <section id="showcase" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto bg-transparent">
-          <div className="max-w-[46rem] mb-10">
-            <h2 className="l-title mb-4">Click through one it already wrote</h2>
+      {/* ── How it works ─────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+        <div className="mb-12 max-w-[46rem]">
+          <h2 className="l-title mb-4">A website goes in. A deck comes out.</h2>
+          <p className="l-lede">
+            Three steps, and you can stop at any of them. Most of the work is
+            correcting what it got wrong, not writing from nothing.
+          </p>
+        </div>
+
+        <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
+          {STEPS.map((s) => (
+            <div key={s.step} className="l-panel p-7">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
+                  <s.icon size={16} />
+                </span>
+                <span className="l-meta tabular-nums">{s.step}</span>
+              </div>
+              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+                {s.title}
+              </h3>
+              <p className="l-body text-[14px] leading-relaxed">{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Live deck preview — the real renderer, not a screenshot ───── */}
+      <section id="showcase" className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+          <div className="mb-10 max-w-[46rem]">
+            <h2 className="l-title mb-4">This is the actual output</h2>
             <p className="l-lede">
-              This is a real thirteen-slide investor deck, rendered the way it
-              arrives. Move between slides and watch the layout hold — the
-              numbers, the charts and the type stay aligned on every one.
+              Rendered live by the same code that draws your deck in the editor —
+              not a screenshot. Change the design and watch the same content
+              redraw, exactly as it does on a deck you have already made.
             </p>
           </div>
 
-          {/* Slide Deck Container */}
-          <div className="bg-[#FAFAFA] rounded-3xl border border-black/[0.10] shadow-none overflow-hidden">
-            {/* Top Toolbar: Slide Tabs */}
-            <div className="p-4 sm:p-5 border-b border-black/[0.10] bg-[#FAFAFA] flex items-center justify-between gap-4">
-              <div className="flex items-center gap-1.5 overflow-x-auto w-full pb-1 sm:pb-0 scrollbar-none">
-                {LIVE_SLIDES.map((slide, idx) => (
-                  <button
-                    key={slide.id}
-                    onClick={() => setActiveSlideIndex(idx)}
-                    className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap ${
-                      activeSlideIndex === idx
-                        ? "bg-black text-white shadow-none"
-                        : "text-[#52525B] hover:text-black hover:bg-black/[0.05]"
-                    }`}
-                  >
-                    {slide.tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Dynamic Slide Canvas */}
-            <div className="p-6 sm:p-12 min-h-[420px] sm:min-h-[480px] bg-[#FAFAFA] border-b border-black/[0.10] flex flex-col justify-between transition-colors duration-500 relative">
-              {/* Slide Meta Badge */}
-              <div className="flex items-center justify-between">
-                <span className={`text-xs font-bold px-3 py-1 rounded-full border ${currentSlide.badgeColor}`}>
-                  {currentSlide.tag}
-                </span>
-                <div className="flex items-center gap-3 text-xs opacity-70 font-mono">
-                  <span>Nexus AI · Series A</span>
-                  <span>•</span>
-                  <span>Confidential</span>
-                </div>
-              </div>
-
-              {/* Slide Content Core */}
-              <div className="my-8 max-w-3xl">
-                <h3 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight mb-4 text-black">
-                  {currentSlide.title}
-                </h3>
-                <p className="text-sm sm:text-base leading-relaxed mb-8 text-[#52525B]">
-                  {currentSlide.subtitle}
-                </p>
-
-                {/* Conditional Dynamic Data Blocks per Slide */}
-                {currentSlide.type === "problem" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-[#DC2626] text-xl font-bold">40+ Hours</div>
-                      <div className="text-xs text-[#52525B] mt-1">Wasted per pitch deck on slide layout</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-amber-600 text-xl font-bold">82% Drop-off</div>
-                      <div className="text-xs text-[#52525B] mt-1">VCs discard dense bullet-point slides</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black text-xl font-bold">Stale Data</div>
-                      <div className="text-xs text-[#52525B] mt-1">Manual spreadsheets miss market shifts</div>
-                    </div>
-                  </div>
-                )}
-
-                {currentSlide.type === "solution" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black font-bold text-sm mb-1">Web Crawl Engine</div>
-                      <div className="text-xs text-[#52525B]">Extracts positioning, tech stack, and ICP in seconds</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black font-bold text-sm mb-1">Claude 3.5 Storycraft</div>
-                      <div className="text-xs text-[#52525B]">Narrative framing tailored for tier-1 partner meetings</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black font-bold text-sm mb-1">Responsive Decks</div>
-                      <div className="text-xs text-[#52525B]">Flawless on phone screens and conference projectors</div>
-                    </div>
-                  </div>
-                )}
-
-                {currentSlide.type === "market" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-xs uppercase font-bold text-[#52525B]">Total Addressable (TAM)</div>
-                      <div className="text-2xl font-black text-black mt-1">$64 Billion</div>
-                      <div className="text-[11px] text-[#52525B] mt-1">Global enterprise presentation spend</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-xs uppercase font-bold text-black">Serviceable (SAM)</div>
-                      <div className="text-2xl font-black text-black mt-1">$18.2 Billion</div>
-                      <div className="text-[11px] text-[#52525B] mt-1">Tech founders &amp; venture ecosystems</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-xs uppercase font-bold text-black">Obtainable (SOM)</div>
-                      <div className="text-2xl font-black text-black mt-1">$3.4 Billion</div>
-                      <div className="text-[11px] text-[#52525B] mt-1">AI-assisted deck creation &amp; analytics</div>
-                    </div>
-                  </div>
-                )}
-
-                {currentSlide.type === "traction" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-[#047857] text-xl font-bold">+380% YoY</div>
-                      <div className="text-xs text-[#52525B] mt-1">Organic user growth via founder shares</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black text-xl font-bold">$180K MRR</div>
-                      <div className="text-xs text-[#52525B] mt-1">Scaling towards $4.5M ARR run-rate</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black text-xl font-bold">142% NDR</div>
-                      <div className="text-xs text-[#52525B] mt-1">Team seat expansions across startups</div>
-                    </div>
-                  </div>
-                )}
-
-                {currentSlide.type === "business" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black font-bold text-sm">Self-Serve Pro ($29/mo)</div>
-                      <div className="text-xs text-[#52525B] mt-1">Unlimited AI deck generations, PowerPoint export, viewer analytics</div>
-                    </div>
-                    <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                      <div className="text-black font-bold text-sm">Venture &amp; Accelerator Tier ($499/mo)</div>
-                      <div className="text-xs text-[#52525B] mt-1">Batch deck auditing, branded accelerator themes, deal-flow portals</div>
-                    </div>
-                  </div>
-                )}
-
-                {currentSlide.type === "ask" && (
-                  <div className="p-4 rounded-xl border border-black/[0.10] bg-[#FAFAFA]">
-                    <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-                      <span className="text-sm font-bold text-black">Use of Funds ($3.5M Seed Round)</span>
-                      <span className="text-xs font-mono font-bold text-black">$1.8M already committed by lead VC</span>
-                    </div>
-                    <div className="w-full h-3 bg-[#EFEFF1] rounded-full overflow-hidden flex">
-                      <div className="bg-black h-full w-[60%]" title="60% Multimodal AI & Engineering" />
-                      <div className="bg-black h-full w-[25%]" title="25% Go-To-Market & Accelerator Growth" />
-                      <div className="bg-black/30 h-full w-[15%]" title="15% Operations & Legal" />
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-[#52525B] mt-2 font-medium">
-                      <span>■ 60% AI Core &amp; Infra</span>
-                      <span>■ 25% Growth</span>
-                      <span>■ 15% Ops</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Bottom Nav Controls */}
-              <div className="flex items-center justify-between pt-4 border-t border-black/[0.07]">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={prevSlide}
-                    className="px-3 py-1.5 rounded-lg border border-black/[0.14] bg-[#FAFAFA] hover:bg-black/[0.05] text-xs font-bold text-black transition-colors shadow-none"
-                  >
-                    ← Previous
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className="px-3 py-1.5 rounded-lg border border-black/[0.14] bg-[#FAFAFA] hover:bg-black/[0.05] text-xs font-bold text-black transition-colors shadow-none"
-                  >
-                    Next →
-                  </button>
-                  <span className="text-xs text-[#52525B] ml-2 font-mono">
-                    Slide {activeSlideIndex + 1} of {LIVE_SLIDES.length}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Link
-                    to="/register"
-                    className="text-xs px-4 py-1.5 rounded-full font-bold bg-black text-white hover:bg-[#27272A] transition-colors flex items-center gap-1.5 shadow-none"
-                  >
-                    <Download className="w-3.5 h-3.5 text-white/70" />
-                    <span>Export This Deck</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── FORMAT CARDS: "GENERATE ANYTHING IN SECONDS" ─────────────── */}
-        <section className="py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-black/[0.07] bg-transparent">
-          <div className="max-w-[46rem] mb-12">
-            <span className="ipr-eyebrow mb-2 block">
-              Flexible AI Formats
-            </span>
-            <h2 className="l-title">
-              One prompt. Every format your raise demands.
-            </h2>
-            <p className="l-lede mt-4">
-              Break free from rigid 16:9 boxes. Create pitch decks, dense memos, or live shareable web summaries.
-            </p>
+          <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_18px_50px_rgba(0,0,0,.10)]">
+            <FitSlide render={() => renderSlide(theme, SAMPLE_DECK, slideIdx, VIEW_CTX, ORDER)} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1: Pitch Decks */}
-            <div className="bg-[#FAFAFA] rounded-2xl p-7 border border-black/[0.10] shadow-none hover:shadow-none hover:border-black/20 transition-all flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#F4F4F5] text-black flex items-center justify-center mb-6 shadow-none">
-                  <Layout className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-black mb-2">Investor Pitch Decks</h3>
-                <p className="text-sm text-[#52525B] leading-relaxed mb-6">
-                  Thirteen sequenced slides curated for VC partner meetings. Problem, market size, traction, and unit economics organized with razor-sharp clarity.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-black/[0.07] flex items-center justify-between text-xs text-black font-bold">
-                <span>PPTX + PDF Ready</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-
-            {/* Card 2: Interactive Web Summaries */}
-            <div className="bg-[#FAFAFA] rounded-2xl p-7 border border-black/[0.10] shadow-none hover:shadow-none hover:border-black/20 transition-all flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#F4F4F5] text-black flex items-center justify-center mb-6 shadow-none">
-                  <Globe className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-black mb-2">Interactive Web Decks</h3>
-                <p className="text-sm text-[#52525B] leading-relaxed mb-6">
-                  Send investors a lightning-fast responsive link. No bulky 45MB email attachments. Includes built-in slide analytics to see who is reading.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-black/[0.07] flex items-center justify-between text-xs text-black font-bold">
-                <span>Live View Analytics</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-
-            {/* Card 3: Executive One-Pagers */}
-            <div className="bg-[#FAFAFA] rounded-2xl p-7 border border-black/[0.10] shadow-none hover:shadow-none hover:border-black/20 transition-all flex flex-col justify-between">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-[#F4F4F5] text-black flex items-center justify-center mb-6 shadow-none">
-                  <FileText className="w-6 h-6" />
-                </div>
-                <h3 className="text-xl font-bold text-black mb-2">Executive One-Pagers</h3>
-                <p className="text-sm text-[#52525B] leading-relaxed mb-6">
-                  High-density investor memos perfect for initial cold outreach and angel syndicates. Packs team credentials, growth KPIs, and the round ask.
-                </p>
-              </div>
-              <div className="pt-4 border-t border-black/[0.07] flex items-center justify-between text-xs text-black font-bold">
-                <span>High Signal Teaser</span>
-                <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── VISUAL DEEP DIVES (FEATURING GENERATED IMAGES) ───────────── */}
-        <section id="features" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-black/[0.07] bg-transparent">
-          {/* Feature 1: Market Research */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F4F4F5] border border-black/[0.10] text-xs font-bold text-black mb-4">
-                <Cpu className="w-3.5 h-3.5 text-black" />
-                <span>Automated Market Intelligence</span>
-              </div>
-              <h3 className="text-3xl sm:text-4xl font-extrabold text-black tracking-tight leading-tight mb-4">
-                Never guess your TAM or competitor landscape again.
-              </h3>
-              <p className="text-[#52525B] text-base leading-relaxed mb-6">
-                Most pitch decks get shredded during partner meetings for generic market stats. iPreneur crawls current industry metrics, queries venture databases, and generates defensible market sizing charts backed by real data.
-              </p>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#F4F4F5] text-black flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm text-[#3F3F46] font-medium">
-                    Calculates defensible TAM, SAM, and SOM with cited methodologies
-                  </span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#F4F4F5] text-black flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm text-[#3F3F46] font-medium">
-                    Auto-maps 2x2 competitor positioning matrix highlighting your unique moat
-                  </span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#F4F4F5] text-black flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm text-[#3F3F46] font-medium">
-                    Extracts recent valuation multiples and exit comparables in your sector
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative rounded-2xl overflow-hidden border border-black/[0.10] shadow-none bg-black">
-              <img
-                src="/images/market_research_ai.jpg"
-                alt="Market Opportunity TAM, SAM, SOM Pitch Deck Slide"
-                className="w-full h-auto object-cover transform transition-transform duration-500 hover:scale-[1.02]"
-              />
-            </div>
-          </div>
-
-          {/* Feature 2: Investor Analytics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24">
-            <div className="order-2 lg:order-1 relative rounded-2xl overflow-hidden border border-black/[0.10] shadow-none bg-black">
-              <img
-                src="/images/investor_analytics.jpg"
-                alt="Live Investor Deck Telemetry Review on Tablet"
-                className="w-full h-auto object-cover transform transition-transform duration-500 hover:scale-[1.02]"
-              />
-            </div>
-
-            <div className="order-1 lg:order-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F4F4F5] border border-black/[0.14] text-xs font-bold text-black mb-4">
-                <Eye className="w-3.5 h-3.5" />
-                <span>Deal-Flow Telemetry</span>
-              </div>
-              <h3 className="text-3xl sm:text-4xl font-extrabold text-black tracking-tight leading-tight mb-4">
-                See exactly which slides investors spend time on.
-              </h3>
-              <p className="text-[#52525B] text-base leading-relaxed mb-6">
-                Stop wondering if the partner actually opened your deck. iPreneur delivers slide-by-slide engagement telemetry so you enter every pitch meeting armed with unfair information.
-              </p>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#F4F4F5] text-black flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm text-[#3F3F46] font-medium">
-                    Real-time notifications when an investor opens your link
-                  </span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#F4F4F5] text-black flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm text-[#3F3F46] font-medium">
-                    Heatmap of seconds spent on financials vs team vs unit economics
-                  </span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-[#F4F4F5] text-black flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="text-sm text-[#3F3F46] font-medium">
-                    Password protection, expiration dates, and one-click access revocation
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── TEMPLATE GALLERY ────────────────────────────────────────── */}
-        <section id="templates" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-black/[0.07] bg-transparent">
-          <div className="max-w-[46rem] mb-12">
-            <span className="ipr-eyebrow mb-2 block">
-              Venture-Vetted Templates
-            </span>
-            <h2 className="l-title">
-              Start with decks that actually raised capital
-            </h2>
-            <p className="l-lede mt-4">
-              Browse proven pitch deck architectures modeled after successful Series Seed and Series A raises.
-            </p>
-
-            {/* Category Filters */}
-            <div className="flex items-center justify-center flex-wrap gap-2 mt-8">
-              {["All", "AI & SaaS", "Fintech", "DeepTech", "Enterprise"].map((cat) => (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-1.5">
+              {ORDER.slice(0, 6).map((slot, i) => (
                 <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`text-xs font-bold px-4 py-2 rounded-full transition-all ${
-                    selectedCategory === cat
-                      ? "bg-black text-white shadow-none"
-                      : "bg-[#F4F4F5] text-[#52525B] hover:text-black hover:bg-black/[0.05]"
-                  }`}
+                  key={slot.key}
+                  onClick={() => setSlideIdx(i)}
+                  className={`rounded-full border px-3 py-1 text-[12px] font-medium transition-colors ${i === slideIdx
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-300 bg-white text-slate-500 hover:bg-slate-50"
+                    }`}
                 >
-                  {cat}
+                  {slot.eyebrow || slot.key}
                 </button>
               ))}
             </div>
+            <span className="l-meta text-[12px]">
+              Slide {slideIdx + 1} · {theme.name}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredTemplates.map((template) => (
-              <div
-                key={template.id}
-                className="bg-[#FAFAFA] rounded-2xl overflow-hidden border border-black/[0.10] hover:border-black/30 transition-all duration-300 group flex flex-col justify-between shadow-none hover:shadow-none"
+          <div className="mt-8 flex gap-1.5 overflow-x-auto pb-2">
+            {THEMES.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setPreviewKey(t.key)}
+                title={`${t.name} — ${t.mood}`}
+                aria-label={`Preview the ${t.name} design`}
+                className="shrink-0 overflow-hidden rounded-md transition"
+                style={{
+                  width: 84,
+                  border: t.key === previewKey ? `2px solid ${t.accent}` : "2px solid rgba(0,0,0,.10)",
+                }}
               >
-                {/* Real-time Pitch Deck Slide Preview */}
-                <div className={`relative aspect-[16/9] overflow-hidden bg-gradient-to-br ${template.accentColor} p-6 sm:p-7 flex flex-col justify-between select-none border-b border-white/10 group-hover:scale-[1.01] transition-transform duration-300`}>
-                  {/* Slide Top Meta */}
-                  <div className="flex items-center justify-between z-10">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${template.tagColor}`}>
-                        {template.category}
-                      </span>
-                      <span className="text-[10px] font-mono text-white/60">{template.stage}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-black/40 backdrop-blur-md px-2.5 py-0.5 rounded-md border border-white/10">
-                      <Star className="w-3 h-3 fill-amber-400" />
-                      <span>{template.rating}</span>
-                    </div>
-                  </div>
+                <FitSlide render={() => renderSlide(t, SAMPLE_DECK, 0, VIEW_CTX, ORDER)} />
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-                  {/* Slide Main Content */}
-                  <div className="my-auto z-10 py-2">
-                    <div className="text-white/40 text-[10px] uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                      Slide 01 · Pitch Deck Overview
-                    </div>
-                    <h5 className="text-white font-extrabold text-base sm:text-lg leading-snug tracking-tight mb-1">
-                      {template.headline}
-                    </h5>
-                    <p className="text-white/60 text-xs line-clamp-1">
-                      {template.subhead}
-                    </p>
-                  </div>
+      {/* ── 13 deck types ────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+        <div className="mb-12 max-w-[46rem]">
+          <h2 className="l-title mb-4">Not every deck is a pitch deck</h2>
+          <p className="l-lede">
+            A demo-day teaser is not a shortened investor deck, and a sales deck
+            is not a pitch with the price added. Each of the {Object.keys(DECK_TYPES).length}{" "}
+            types here has its own slide sequence, written for the room it is
+            going into.
+          </p>
+        </div>
 
-                  {/* Slide Bottom Key Metrics */}
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3 z-10">
-                    {template.metrics.map((m, mIdx) => (
-                      <div key={mIdx} className="bg-white/[0.10] backdrop-blur-md rounded-lg p-2 sm:p-2.5 border border-white/10 text-left">
-                        <div className="text-[9px] sm:text-[10px] text-white/50 uppercase font-semibold truncate">{m.label}</div>
-                        <div className="text-xs sm:text-sm font-black text-white mt-0.5">{m.value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Ambient subtle glow effects */}
-                  <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="grid gap-px bg-slate-200/70 md:grid-cols-2 lg:grid-cols-4">
+          {DECK_GROUPS.map((g) => (
+            <div key={g.group} className="l-panel flex flex-col">
+              <img
+                src={g.img}
+                alt={g.alt}
+                loading="lazy"
+                className="aspect-[16/9] w-full object-cover"
+              />
+              <div className="p-7">
+                <h3 className="mb-1.5 text-[16px] font-semibold tracking-[-0.015em] text-slate-900">
+                  {g.group}
+                </h3>
+                <p className="l-body mb-4 text-[13px] leading-relaxed">{g.blurb}</p>
+                <div>
+                  {g.keys.map((k) => (
+                    <DeckTypeRow key={k} k={k} />
+                  ))}
                 </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-                <div className="p-6">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <h4 className="text-lg font-bold text-black group-hover:text-black transition-colors">
-                      {template.title}
-                    </h4>
-                    <span className="text-xs text-[#52525B] font-mono">{template.slides}</span>
-                  </div>
+      {/* ── Designs ──────────────────────────────────────────────────── */}
+      <section className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+          <div className="mb-12 max-w-[46rem]">
+            <h2 className="l-title mb-4">Forty designs, and you can change your mind</h2>
+            <p className="l-lede">
+              The words and the design are stored separately, so switching
+              template redraws the same deck rather than starting a new one —
+              including on decks you made before that design existed.
+            </p>
+          </div>
 
-                  <div className="flex flex-wrap gap-1.5 mb-6">
-                    {template.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#FAFAFA] border border-black/[0.10] text-[#52525B]"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-black/[0.07]">
-                    <span className="text-xs font-bold text-[#52525B]">{template.category}</span>
-                    <Link
-                      to={`/register?template=${encodeURIComponent(template.title)}`}
-                      className="text-xs px-4 py-2 rounded-full font-bold bg-black text-white hover:bg-[#27272A] transition-colors flex items-center gap-1.5"
+          <div className="grid gap-px bg-slate-200/70 md:grid-cols-2 lg:grid-cols-4">
+            {families.map(([fam, list]) => (
+              <div key={fam} className="l-panel p-7">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-900">{fam}</h3>
+                  <span className="l-meta tabular-nums text-[12px]">{list.length}</span>
+                </div>
+                <p className="l-body mb-5 text-[13px] leading-relaxed">{FAMILY_NOTES[fam]}</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {list.slice(0, 4).map((t) => (
+                    <span
+                      key={t.key}
+                      className="overflow-hidden rounded border border-slate-200"
                     >
-                      <span>Use Template</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-white/70" />
-                    </Link>
-                  </div>
+                      <FitSlide render={() => renderSlide(t, SAMPLE_DECK, 0, VIEW_CTX, ORDER)} />
+                    </span>
+                  ))}
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── BEFORE & AFTER COMPARISON ────────────────────────────────── */}
-        <section id="comparison" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-black/[0.07] bg-transparent">
-          <div className="max-w-[46rem] mb-12">
-            <span className="ipr-eyebrow mb-2 block">
-              The Fundamental Upgrade
-            </span>
-            <h2 className="l-title">
-              Why top founders are ditching legacy slides
-            </h2>
-            <p className="l-lede mt-4">
-              Comparing 1990s slide software with iPreneur's AI-native presentation engine.
+      {/* ── Editing, branding, export ────────────────────────────────── */}
+      <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+        <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
+          {[
+            {
+              icon: PencilLine,
+              title: "Edit the words in place",
+              body:
+                "Click a headline, a bullet or a number on the slide itself and retype it. No separate form, no round trip through the AI. Your edits stay yours — regenerating never silently overwrites them.",
+            },
+            {
+              icon: Layers,
+              title: "Your logo, your photos",
+              body:
+                "Upload a logo and it sits on every slide. Upload product shots and they fill the gallery slots. Both are applied when the deck is drawn, so they survive a change of design.",
+            },
+            {
+              icon: Download,
+              title: "Leave with a real file",
+              body:
+                "Download a .pptx with native text boxes, tables and charts that are still charts in PowerPoint. Or take a pixel-exact image export if you would rather it look identical to the screen.",
+            },
+          ].map((c) => (
+            <div key={c.title} className="l-panel p-7">
+              <span className="mb-5 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
+                <c.icon size={16} />
+              </span>
+              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+                {c.title}
+              </h3>
+              <p className="l-body text-[14px] leading-relaxed">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Company profile ──────────────────────────────────────────── */}
+      <section className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2">
+          <div>
+            <h2 className="l-title mb-4">Answer once, not once per deck</h2>
+            <p className="l-lede mb-6">
+              What you know about your company — your model, your numbers, your
+              customers — is kept on a company profile, not buried inside one
+              deck. Each deck type pulls the parts it needs.
             </p>
+            <ul className="space-y-3">
+              {[
+                "Your first deck asks the most; every deck after it asks less.",
+                "A sales deck and an investor deck read the same facts and choose differently.",
+                "Values carry where they came from — you, your website, or research.",
+                "Figures that follow from others are worked out rather than asked for.",
+              ].map((t) => (
+                <li key={t} className="flex gap-2.5">
+                  <Check size={15} className="mt-0.5 shrink-0 text-blue-600" />
+                  <span className="l-body text-[14px]">{t}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* The Old Way */}
-            <div className="p-8 rounded-3xl bg-[#FAFAFA] border border-[#DC2626]/25 shadow-none">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-[#DC2626]/[0.08] text-[#DC2626] flex items-center justify-center font-bold">
-                  ✕
-                </div>
-                <h3 className="text-xl font-bold text-[#B91C1C]">The Traditional Slide Way</h3>
-              </div>
-
-              <div className="space-y-4 text-sm text-[#52525B]">
-                <div className="flex items-start gap-3">
-                  <span className="text-[#DC2626] font-bold">•</span>
-                  <span><strong>40+ hours spent:</strong> Wrestling text box margins, font sizes, and layout bugs.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[#DC2626] font-bold">•</span>
-                  <span><strong>Wall of text bullets:</strong> VCs get bored after slide 2 and miss your key traction.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[#DC2626] font-bold">•</span>
-                  <span><strong>Stale market stats:</strong> Copy-pasting outdated analyst charts from Google image search.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[#DC2626] font-bold">•</span>
-                  <span><strong>Clunky attachments:</strong> 50MB PDFs that bounce in VC inboxes or look broken on mobile.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-[#DC2626] font-bold">•</span>
-                  <span><strong>Zero viewer telemetry:</strong> Complete blind spot on whether an investor actually read your deck.</span>
-                </div>
-              </div>
-            </div>
-
-            {/* The iPreneur Way */}
-            <div className="p-8 rounded-3xl bg-[#F4F4F5] border-2 border-black/25 shadow-none relative overflow-hidden">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold">
-                  ✓
-                </div>
-                <h3 className="text-xl font-bold text-black">The iPreneur Way</h3>
-              </div>
-
-              <div className="space-y-4 text-sm text-[#3F3F46]">
-                <div className="flex items-start gap-3">
-                  <span className="text-black font-bold">✓</span>
-                  <span><strong>Ready in 90 seconds:</strong> A full thirteen-slide narrative built from your URL or prompt.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-black font-bold">✓</span>
-                  <span><strong>Adaptive card layouts:</strong> Crisp visuals, charts, and metrics formatted automatically.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-black font-bold">✓</span>
-                  <span><strong>Live market research:</strong> Defensible TAM/SAM/SOM modeled with recent comparable rounds.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-black font-bold">✓</span>
-                  <span><strong>Responsive web link + PPTX:</strong> Opens instantly on phones, laptops, and Keynote/PowerPoint.</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-black font-bold">✓</span>
-                  <span><strong>Slide heatmaps:</strong> Know the second an investor opens your deck and what they spent time on.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── TESTIMONIALS / WALL OF LOVE ─────────────────────────────── */}
-        <section className="py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-black/[0.07] bg-transparent">
-          <div className="max-w-[46rem] mb-12">
-            <span className="ipr-eyebrow mb-2 block">
-              Founder Experiences
-            </span>
-            <h2 className="l-title">
-              Trusted by founders who closed rounds
-            </h2>
-            <p className="l-lede mt-4">
-              Real stories from founders who raised millions using iPreneur.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-7 rounded-2xl bg-[#FAFAFA] border border-black/[0.10] shadow-none hover:shadow-none flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-1 text-black mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-black" />
-                  ))}
-                </div>
-                <p className="text-[#3F3F46] text-sm leading-relaxed mb-6 italic">
-                  "We closed our $3.2M Seed in under three weeks. The lead partner specifically mentioned that our deck stood out from the 50 other pitch decks he saw that week because of the clarity of our market TAM and unit economics."
-                </p>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-black/[0.07]">
-                <div>
-                  <div className="text-sm font-bold text-black">Elena Rostova</div>
-                  <div className="text-xs text-[#52525B]">CEO, SynthAI (YC W25)</div>
-                </div>
-                <span className="text-xs px-2.5 py-1 rounded font-bold bg-[#F4F4F5] text-black">
-                  $3.2M Seed
-                </span>
-              </div>
-            </div>
-
-            <div className="p-7 rounded-2xl bg-[#FAFAFA] border border-black/[0.10] shadow-none hover:shadow-none flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-1 text-black mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-black" />
-                  ))}
-                </div>
-                <p className="text-[#3F3F46] text-sm leading-relaxed mb-6 italic">
-                  "I was spending entire weekends fighting PowerPoint formatting. With iPreneur, dropping our staging URL produced an 11-slide deck with our exact brand typography and colors in 90 seconds. Mind-blowing."
-                </p>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-black/[0.07]">
-                <div>
-                  <div className="text-sm font-bold text-black">Marcus Vance</div>
-                  <div className="text-xs text-[#52525B]">Co-founder, NovaPay</div>
-                </div>
-                <span className="text-xs px-2.5 py-1 rounded bg-[#F4F4F5] text-black font-bold">
-                  $12M Series A
-                </span>
-              </div>
-            </div>
-
-            <div className="p-7 rounded-2xl bg-[#FAFAFA] border border-black/[0.10] shadow-none hover:shadow-none flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-1 text-black mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-black" />
-                  ))}
-                </div>
-                <p className="text-[#3F3F46] text-sm leading-relaxed mb-6 italic">
-                  "The investor analytics are an unfair advantage. Knowing that a partner spent 3 minutes re-reading our gross margin slide allowed me to open our partner meeting directly addressing their unit economics questions."
-                </p>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-black/[0.07]">
-                <div>
-                  <div className="text-sm font-bold text-black">Priya Sharma</div>
-                  <div className="text-xs text-[#52525B]">Founder, BioPulse</div>
-                </div>
-                <span className="text-xs px-2.5 py-1 rounded bg-[#F4F4F5] text-black font-bold">
-                  $5.8M Seed
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── INTERACTIVE FAQ ACCORDION ────────────────────────────────── */}
-        <section id="faq" className="py-20 px-4 sm:px-6 max-w-4xl mx-auto border-t border-black/[0.07] bg-transparent">
-          <div className="max-w-[46rem] mb-12">
-            <span className="ipr-eyebrow mb-2 block">
-              Common Questions
-            </span>
-            <h2 className="l-title">
-              Everything you need to know
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            {FAQS.map((faq, idx) => (
+          <div className="rounded-xl border border-slate-200/80 bg-white p-7">
+            <div className="l-meta mb-4">What a deck is built from</div>
+            {[
+              ["Your website", "read on the way in"],
+              ["Live market research", "gathered before writing"],
+              ["What you tell it", "confirmed, not retyped"],
+              ["Figures it derives", "worked out from the rest"],
+            ].map(([a, b], i) => (
               <div
-                key={idx}
-                className="bg-[#FAFAFA] rounded-xl border border-black/[0.10] shadow-none overflow-hidden transition-colors"
+                key={a}
+                className="flex items-baseline justify-between gap-4 border-b border-slate-200/80 py-3 last:border-b-0"
               >
+                <span className="flex items-center gap-2.5 text-[14px] font-medium text-slate-900">
+                  <span className="l-meta tabular-nums text-[11px]">0{i + 1}</span>
+                  {a}
+                </span>
+                <span className="l-meta text-right text-[12px]">{b}</span>
+              </div>
+            ))}
+            <div className="mt-5 flex items-start gap-2.5 rounded-lg border border-blue-100 bg-blue-50/70 p-4">
+              <Sparkles size={15} className="mt-0.5 shrink-0 text-slate-900" />
+              <p className="l-body text-[13px] leading-relaxed">
+                Market figures come back with the reasoning attached, so you can
+                check a number before someone else does.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── What it does not do ──────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+        <div className="mb-8 max-w-[46rem]">
+          <h2 className="l-title mb-4">What it does not do yet</h2>
+          <p className="l-lede">
+            Worth knowing before you sign up, rather than after.
+          </p>
+        </div>
+        <div className="grid gap-px bg-slate-200/70 sm:grid-cols-3">
+          {[
+            ["No PDF export", "PowerPoint only for now. PowerPoint will export a PDF for you."],
+            ["No shareable link", "You send the file. There is no hosted link for investors yet."],
+            ["No view tracking", "Nothing tells you when a deck was opened or for how long."],
+          ].map(([t, b]) => (
+            <div key={t} className="l-panel p-7">
+              <div className="mb-2.5 flex items-center gap-2">
+                <Minus size={14} className="shrink-0 text-slate-400" />
+                <h3 className="text-[15px] font-semibold tracking-[-0.015em] text-slate-900">{t}</h3>
+              </div>
+              <p className="l-body text-[13px] leading-relaxed">{b}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FAQ ──────────────────────────────────────────────────────── */}
+      <section className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto max-w-[820px] px-4 py-20 sm:px-6">
+          <h2 className="l-title mb-10">Questions</h2>
+          <div className="border-t border-slate-200/80">
+            {FAQS.map((f, i) => (
+              <div key={f.q} className="border-b border-slate-200/80">
                 <button
-                  type="button"
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 text-black font-bold text-base sm:text-lg hover:text-black"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  aria-expanded={openFaq === i}
+                  className="flex w-full items-center justify-between gap-4 py-5 text-left"
                 >
-                  <span>{faq.q}</span>
-                  {openFaq === idx ? (
-                    <ChevronUp className="w-5 h-5 text-black flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-[#52525B] flex-shrink-0" />
-                  )}
+                  <span className="text-[15px] font-medium tracking-[-0.015em] text-slate-900">
+                    {f.q}
+                  </span>
+                  <ChevronDown
+                    size={17}
+                    className={`shrink-0 text-slate-400 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
+                  />
                 </button>
-                {openFaq === idx && (
-                  <div className="px-6 pb-5 text-[#52525B] text-sm leading-relaxed border-t border-black/[0.07] pt-3">
-                    {faq.a}
-                  </div>
+                {openFaq === i && (
+                  <p className="l-body max-w-[62ch] pb-5 text-[14px] leading-relaxed">{f.a}</p>
                 )}
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ── FINAL CTA BANNER ─────────────────────────────────────────── */}
-        {/* ── Closing ───────────────────────────────────────────────────────
-             The one large dark surface on the page. It reads as the end of a
-             deck rather than as another section. ──────────────────────────── */}
-        <section className="py-20 sm:py-28 px-4 sm:px-6">
-          <div className="max-w-[1100px] mx-auto">
-            <div className="rounded-[28px] bg-black text-white px-8 sm:px-14 py-14 sm:py-20">
-              <p className="text-[13px] text-white/55 mb-6">
-                Free to start. No card required.
-              </p>
-              <h2 className="font-[family-name:var(--font-display)] text-[2.25rem] sm:text-[3.5rem] font-extrabold tracking-[-0.038em] leading-[1.0] max-w-[18ch] mb-6">
-                Your next raise starts with a great deck.
-              </h2>
-              <p className="text-[17px] leading-[1.55] text-white/70 max-w-[48ch] mb-10">
-                Paste your website and read the first draft in about ninety
-                seconds. Every slide is yours to edit afterwards.
-              </p>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-x-8 gap-y-5">
-                <Link
-                  to="/register"
-                  className="l-press inline-flex items-center justify-center gap-2 px-7 py-3.5 text-[15px] font-semibold bg-white text-black rounded-full hover:bg-white/90 transition-colors duration-150 self-start"
-                >
-                  <span>Build my deck</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-white/60">
-                  <span>300 free credits</span>
-                  <span>PowerPoint and PDF export</span>
-                  <span>Your data stays private</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── MODERN FOOTER ───────────────────────────────────────────── */}
-        <footer className="border-t border-black/[0.07] bg-transparent py-12 px-4 sm:px-6">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <img
-                src="/ipreneur-logo.webp"
-                alt="iPreneur"
-                className="h-6 w-auto object-contain"
-              />
-              <span className="text-xs text-[#52525B] font-mono">
-                © 2026 iPreneur Inc. · Minimalist Edition
-              </span>
-            </div>
-
-            <div className="flex items-center gap-6 text-xs font-semibold text-[#52525B]">
-              <a href="#features" className="hover:text-black transition-colors">Features</a>
-              <a href="#templates" className="hover:text-black transition-colors">Templates</a>
-              <a href="#comparison" className="hover:text-black transition-colors">Comparison</a>
-              <Link to="/login" className="hover:text-black transition-colors">Sign in</Link>
-              <Link to="/register" className="hover:text-black transition-colors">Get Started</Link>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-[#047857] font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#F4F4F5] animate-pulse" />
-              <span>All AI Generators Operational</span>
-            </div>
-          </div>
-        </footer>
-      </div>
+      {/* ── Close ────────────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1180px] px-4 py-24 text-center sm:px-6">
+        <h2 className="mx-auto mb-5 max-w-[18ch] font-[family-name:var(--font-display)] text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.025em] text-slate-900 sm:text-[3.25rem]">
+          Start with your website.
+        </h2>
+        <p className="l-lede mx-auto mb-9 max-w-[46ch]">
+          Three decks on the free plan. No card, and nothing to install.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => navigate("/register")}
+            className="l-press inline-flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-slate-800"
+          >
+            Build your first deck <ArrowRight size={16} />
+          </button>
+          <Link
+            to="/login"
+            className="l-press inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-7 py-3.5 text-[15px] font-medium text-slate-900 no-underline"
+          >
+            <FileText size={16} /> Sign in
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
