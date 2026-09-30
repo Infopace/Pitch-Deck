@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 import bcrypt
 from pydantic import BaseModel, EmailStr, ConfigDict
 from jose import jwt
@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.ratelimit import limiter, AUTH_LIMIT
 from app.db.session import get_db
 from app.models.models import User
 
@@ -52,7 +53,8 @@ def _create_access_token(user_id: str) -> str:
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit(AUTH_LIMIT)
+async def register(request: Request, response: Response, payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
     # Check if user exists
     result = await db.execute(select(User).where(User.email == payload.email))
     existing = result.scalar_one_or_none()
@@ -74,7 +76,8 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
 
 
 @router.post("/login")
-async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+@limiter.limit(AUTH_LIMIT)
+async def login(request: Request, response: Response, payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     if not user:
