@@ -17,82 +17,91 @@
 # app/core/config.py — a missing or placeholder value fails the deploy with a
 # list of problems rather than starting an insecure service.
 
-services:
-  - type: web
-    name: ipreneur-api
-    runtime: docker
-    repo: https://github.com/Puneethgowda4653/Pitch-Deck
-    branch: main
-    dockerfilePath: ./ipreneur/infrastructure/docker/backend/Dockerfile
-    dockerContext: ./ipreneur/backend
+projects:
+  - name: pitch deck
+    environments:
+      - name: production
+        services:
+          - type: web
+            name: ipreneur-api
+            runtime: docker
+            repo: https://github.com/Puneethgowda4653/Pitch-Deck
+            branch: main
+            dockerfilePath: ./ipreneur/infrastructure/docker/backend/Dockerfile
+            dockerContext: ./ipreneur/backend
 
-    # Not `free`: free services sleep after ~15 minutes idle, and deck
-    # generation runs in a background thread that a sleep kills exactly like a
-    # deploy does. `standard` rather than `starter` because Chromium plus
-    # python-pptx plus a 32K-token response is tight in 512MB.
-    plan: standard
-    region: singapore          # nearest to the Supabase ap-northeast-1 database
-    healthCheckPath: /health
-    autoDeploy: true
+            # `free` is a deliberate cost choice and the tightest part of this
+            # deploy. Two consequences to expect rather than debug:
+            #   - the instance sleeps after ~15 min idle, and a sleep kills an
+            #     in-flight deck generation exactly like a deploy does;
+            #   - 512MB has to hold Chromium, python-pptx and a 32K-token
+            #     response, so generation can OOM under any real load.
+            # Raise to `standard` if either starts biting.
+            plan: free
+            region: singapore      # nearest to the Supabase ap-northeast-1 database
+            healthCheckPath: /health
+            autoDeploy: true
 
-    envVars:
-      # ── Non-secret ─────────────────────────────────────────────────────────
-      - key: APP_ENV
-        value: production
-      - key: APP_DEBUG
-        value: "false"
-      - key: APP_NAME
-        value: iPreneur
-      - key: GEMINI_MODEL
-        value: gemini-2.5-flash
-      - key: GEMINI_MODEL_RESEARCH
-        value: gemini-2.5-flash
-      - key: GEMINI_MAX_TOKENS
-        value: "32768"
-      - key: GEMINI_THINKING_BUDGET
-        value: "2048"
-      - key: PLAYWRIGHT_BROWSERS_PATH
-        value: /home/appuser/.cache/ms-playwright
+            envVars:
+              # ── Non-secret ───────────────────────────────────────────────
+              - key: APP_ENV
+                value: production
+              - key: APP_DEBUG
+                value: "false"
+              - key: APP_NAME
+                value: iPreneur
+              - key: GEMINI_MODEL
+                value: gemini-2.5-flash
+              - key: GEMINI_MODEL_RESEARCH
+                value: gemini-2.5-flash
+              - key: GEMINI_MAX_TOKENS
+                value: "32768"
+              - key: GEMINI_THINKING_BUDGET
+                value: "2048"
+              - key: PLAYWRIGHT_BROWSERS_PATH
+                value: /home/appuser/.cache/ms-playwright
 
-      # Must be the deployed frontend origin. The production guard rejects a
-      # value still containing localhost, so this cannot be left as a default.
-      - key: CORS_ORIGINS
-        sync: false
+              # Must be the deployed frontend origin. The production guard
+              # rejects a value still containing localhost, so this cannot be
+              # left as a default.
+              - key: CORS_ORIGINS
+                sync: false
 
-      # ── Secrets — set these in the Render dashboard ────────────────────────
-      # Generate the two keys with: openssl rand -hex 32
-      - key: APP_SECRET_KEY
-        sync: false
-      - key: JWT_SECRET_KEY
-        sync: false
-      - key: DATABASE_URL          # Supabase pooler URL, includes the password
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GEMINI_API_KEY_2
-        sync: false
+              # ── Secrets — set these in the Render dashboard ───────────────
+              # Generate the two keys with: openssl rand -hex 32
+              - key: APP_SECRET_KEY
+                sync: false
+              - key: JWT_SECRET_KEY
+                sync: false
+              - key: DATABASE_URL      # Supabase pooler URL, includes the password
+                sync: false
+              - key: GEMINI_API_KEY
+                sync: false
+              - key: GEMINI_API_KEY_2
+                sync: false
 
-      # ── Optional ──────────────────────────────────────────────────────────
-      # Unset disables Sentry entirely; the app logs a line and carries on.
-      - key: SENTRY_DSN
-        sync: false
+              # ── Optional ─────────────────────────────────────────────────
+              # Unset disables Sentry entirely; the app logs a line and carries on.
+              - key: SENTRY_DSN
+                sync: false
 
 # ── Celery worker ────────────────────────────────────────────────────────────
 # Deliberately not defined yet. app/workers/tasks/analysis.py still runs the
 # older four-agent pipeline, while the live path uses MasterDeckAgent — adding
 # a worker now would start a process that either sits idle or, if wired,
 # regresses generation. Once the pipeline is ported, this is the same image
-# with a different start command:
+# with a different start command, as a second entry under the `services` list
+# of the production environment above:
 #
-#   - type: worker
-#     name: ipreneur-worker
-#     runtime: docker
-#     dockerfilePath: ./ipreneur/infrastructure/docker/backend/Dockerfile
-#     dockerContext: ./ipreneur/backend
-#     plan: standard
-#     dockerCommand: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
-#     envVars:
-#       - key: CELERY_BROKER_URL      # Upstash: rediss://…?ssl_cert_reqs=required
-#         sync: false
-#       - key: CELERY_RESULT_BACKEND
-#         sync: false
+#          - type: worker
+#            name: ipreneur-worker
+#            runtime: docker
+#            dockerfilePath: ./ipreneur/infrastructure/docker/backend/Dockerfile
+#            dockerContext: ./ipreneur/backend
+#            plan: free
+#            dockerCommand: celery -A app.workers.celery_app worker --loglevel=info --concurrency=2
+#            envVars:
+#              - key: CELERY_BROKER_URL   # Upstash: rediss://…?ssl_cert_reqs=required
+#                sync: false
+#              - key: CELERY_RESULT_BACKEND
+#                sync: false
