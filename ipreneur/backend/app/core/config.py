@@ -75,6 +75,18 @@ class Settings(BaseSettings):
     # ── CORS ─────────────────────────────────────────────────────────────────
     cors_origins: str = "http://localhost:3000"
 
+    #: Regex matched against the Origin header, in addition to the exact list
+    #: above. Exists for Cloudflare Pages preview deployments: every commit gets
+    #: its own <hash>.<project>.pages.dev host, so they cannot be enumerated in
+    #: cors_origins and every API call from a preview would fail CORS.
+    #:
+    #: Example: r"https://[a-z0-9-]+\.mint-abc\.pages\.dev"
+    #:
+    #: Keep it anchored to your own project. A loose pattern (".*pages.dev")
+    #: lets any Cloudflare user's site call this API with the browser's
+    #: credentials attached, since allow_credentials is on.
+    cors_origin_regex: Optional[str] = None
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]

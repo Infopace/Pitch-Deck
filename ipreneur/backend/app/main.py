@@ -163,9 +163,13 @@ def create_app() -> FastAPI:
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
 
+    # allow_origin_regex is additive to allow_origins, not a replacement: the
+    # production frontend is matched by the exact list, preview deployments by
+    # the regex. Passing None leaves behaviour exactly as it was.
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
+        allow_origin_regex=settings.cors_origin_regex,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
