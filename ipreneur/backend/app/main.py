@@ -126,10 +126,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"🚀 Starting {settings.app_name} [{settings.app_env}]")
     _init_error_tracking()
 
-    # Create tables in dev
-    if not settings.is_production:
-        await init_db()
-        logger.info("✅ Database tables ensured")
+    # Ensure database tables exist
+    await init_db()
+    logger.info("✅ Database tables ensured")
 
     orphaned = await _reconcile_orphaned_jobs()
     if orphaned:

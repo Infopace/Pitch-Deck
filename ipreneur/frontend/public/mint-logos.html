@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mint — Brand Logo Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(16, 185, 129, 0.4);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --mint-primary: #10b981;
+      --mint-light: #34d399;
+      --mint-glow: rgba(16, 185, 129, 0.25);
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --card-hover-border: #10b981;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    [data-theme="navy"] {
+      --bg: #0b1329;
+      --card-bg: #111d3f;
+      --card-border: rgba(255, 255, 255, 0.1);
+      --card-hover-border: #38ef7d;
+      --text: #ffffff;
+      --text-muted: #8fa0cc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 24px 80px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 999px;
+      color: #10b981;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--text) 30%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 17px;
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+
+    /* Controls bar */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .theme-btn {
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+
+    .theme-btn.active {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    }
+
+    /* Grid of concepts */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 28px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
+    }
+
+    .card:hover {
+      border-color: var(--card-hover-border);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 35px -10px var(--mint-glow);
+    }
+
+    .option-tag {
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .logo-stage {
+      width: 100%;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .card-info {
+      width: 100%;
+      text-align: center;
+      border-top: 1px solid var(--card-border);
+      padding-top: 20px;
+    }
+
+    .concept-title {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .concept-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      min-height: 40px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .btn {
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: scale(1.02);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--mint-primary);
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #10b981;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Live navbar mock test */
+    .mock-navbar-section {
+      margin-top: 60px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 32px;
+    }
+
+    .mock-navbar-section h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .mock-navbar-section p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .mock-header {
+      background: rgba(11, 19, 41, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mock-links {
+      display: flex;
+      gap: 24px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .mock-cta {
+      background: #10b981;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+
+  <div class="container">
+    <header>
+      <div class="badge">Brand Identity & Concept Suite</div>
+      <h1>Mint — Logo Direction Suite</h1>
+      <p class="subtitle">
+        Explore 6 custom-crafted modern logo directions for <strong>Mint</strong>. Click any option to copy its clean SVG code or test it in dark & light themes.
+      </p>
+
+      <div class="controls">
+        <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">Theme:</span>
+        <button class="theme-btn active" onclick="setTheme('dark')">Dark Obsidian</button>
+        <button class="theme-btn" onclick="setTheme('navy')">Deep Pitch Navy</button>
+        <button class="theme-btn" onclick="setTheme('light')">Crisp Light</button>
+      </div>
+    </header>
+
+    <div class="grid">
+
+      <!-- ================= CONCEPT 1 ================= -->
+      <div class="card">
+        <span class="option-tag">Concept 01 • Recommended</span>
+        <div class="logo-stage" id="stage-1">
+          <!-- Logo 1: Geometric M-Leaf Lockup -->
+          <svg width="220" height="54" viewBox="0 0 220 54" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <defs>
+              <linearGradient id="mintGrad1" x1="4" y1="6" x2="44" y2="46" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="50%" stop-color="#10B981"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+              <linearGradient id="mintGradLeaf" x1="18" y1="12" x2="38" y2="34" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#6EE7B7"/>
+                <stop offset="100%" stop-color="#047857"/>
+              </linearGradient>
+            </defs>
+            <!-- Emblem: Architectural M with dynamic folded center forming a crisp Mint leaf -->
+            <path d="M8 44V10L22 28L18 44H8Z" fill="url(#mintGrad1)"/>
+            <path d="M42 44V10L28 28L32 44H42Z" fill="url(#mintGrad1)" fill-opacity="0.85"/>
+            <!-- Central diamond-leaf peak -->
+            <path d="M25 4C25 4 39 12 37 28C35 40 25 44 25 44C25 44 15 40 13 28C11 12 25 4 25 4Z" fill="url(#mintGradLeaf)"/>
+            <path d="M25 10V38" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.5"/>
+            <!-- Typography: Bold Modern Sans -->
+            <text x="64" y="36" font-family="'Plus Jakarta Sans', sans-serif" font-size="32" font-weight="900" letter-spacing="-0.5" fill="currentColor">mint</text>
+            <circle cx="160" cy="18" r="4.5" fill="#10B981"/>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="concept-title">Geometric M-Leaf</h3>
+          <p class="concept-desc">Sleek architectural 'M' combined with a central emerald leaf vein and mint spark dot. Forward-looking, tech-forward, and trustworthy.</p>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="copyLogo(1)">Copy SVG</button>
+            <button class="btn btn-secondary" onclick="previewInMock(1)">Preview in Nav</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CONCEPT 2 ================= -->
+      <div class="card">
+        <span class="option-tag">Concept 02</span>
+        <div class="logo-stage" id="stage-2">
+          <!-- Logo 2: Faceted Mint Coin / Token -->
+          <svg width="220" height="54" viewBox="0 0 220 54" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <defs>
+              <linearGradient id="hexGrad" x1="6" y1="4" x2="46" y2="48" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#10B981"/>
+                <stop offset="100%" stop-color="#022c22"/>
+              </linearGradient>
+              <linearGradient id="leafGrad2" x1="14" y1="12" x2="36" y2="38" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#A7F3D0"/>
+                <stop offset="100%" stop-color="#10B981"/>
+              </linearGradient>
+            </defs>
+            <!-- Hexagonal Faceted Token / Emblem representing "Minting" startups & decks -->
+            <rect x="6" y="5" width="40" height="40" rx="12" fill="url(#hexGrad)" stroke="#34D399" stroke-width="2"/>
+            <!-- Twin sprout / dynamic leaf vector inside -->
+            <path d="M26 13C33 13 36 19 35 27C34 35 26 37 26 37C26 37 18 35 17 27C16 19 19 13 26 13Z" fill="url(#leafGrad2)"/>
+            <path d="M26 20C21 23 20 28 26 33C32 28 31 23 26 20Z" fill="#064e3b" fill-opacity="0.4"/>
+            <!-- Wordmark -->
+            <text x="62" y="35" font-family="'Space Grotesk', sans-serif" font-size="30" font-weight="700" letter-spacing="1" fill="currentColor">MINT</text>
+            <text x="156" y="24" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="800" letter-spacing="1.5" fill="#10B981">STUDIO</text>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="concept-title">Faceted Mint Token</h3>
+          <p class="concept-desc">Rounded squircle token with an embossed organic mint sprig. Evokes the concept of "minting" winning pitch decks and funding.</p>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="copyLogo(2)">Copy SVG</button>
+            <button class="btn btn-secondary" onclick="previewInMock(2)">Preview in Nav</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CONCEPT 3 ================= -->
+      <div class="card">
+        <span class="option-tag">Concept 03 • Ultra-Modern</span>
+        <div class="logo-stage" id="stage-3">
+          <!-- Logo 3: Dimensional Origami Ribbon 'M' -->
+          <svg width="220" height="54" viewBox="0 0 220 54" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <defs>
+              <linearGradient id="ribbon1" x1="6" y1="8" x2="28" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#059669"/>
+                <stop offset="100%" stop-color="#10B981"/>
+              </linearGradient>
+              <linearGradient id="ribbon2" x1="16" y1="6" x2="38" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+              <linearGradient id="ribbon3" x1="28" y1="8" x2="48" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#6EE7B7"/>
+                <stop offset="100%" stop-color="#10B981"/>
+              </linearGradient>
+            </defs>
+            <!-- 3D Ribbon M -->
+            <path d="M8 42L18 8L26 24L18 42H8Z" fill="url(#ribbon1)"/>
+            <path d="M18 8L27 24L36 8L44 24L36 42H26L34 26L26 12L18 8Z" fill="url(#ribbon2)"/>
+            <path d="M36 8L46 42H36L28 26L36 8Z" fill="url(#ribbon3)"/>
+            <!-- Wordmark -->
+            <text x="64" y="37" font-family="'Plus Jakarta Sans', sans-serif" font-size="34" font-weight="900" letter-spacing="-1" fill="currentColor">mint</text>
+            <circle cx="152" cy="33" r="4" fill="#34D399"/>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="concept-title">Folded Origami Ribbon</h3>
+          <p class="concept-desc">Multi-toned dimensional ribbon forming a dynamic, continuous 'M'. Highly modern SaaS aesthetic reminiscent of modern unicorn tech brands.</p>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="copyLogo(3)">Copy SVG</button>
+            <button class="btn btn-secondary" onclick="previewInMock(3)">Preview in Nav</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CONCEPT 4 ================= -->
+      <div class="card">
+        <span class="option-tag">Concept 04</span>
+        <div class="logo-stage" id="stage-4">
+          <!-- Logo 4: Growth Sprout & Pitch Signal -->
+          <svg width="220" height="54" viewBox="0 0 220 54" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <defs>
+              <linearGradient id="sproutGrad" x1="10" y1="6" x2="40" y2="44" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#10B981"/>
+                <stop offset="100%" stop-color="#047857"/>
+              </linearGradient>
+            </defs>
+            <!-- Upward growth bars turning into a double mint leaf -->
+            <rect x="8" y="26" width="6" height="18" rx="3" fill="#10B981" fill-opacity="0.4"/>
+            <rect x="18" y="18" width="6" height="26" rx="3" fill="#10B981" fill-opacity="0.75"/>
+            <!-- Central blooming sprout -->
+            <path d="M28 44V16C28 16 28 8 36 8C44 8 44 18 36 22C30 25 28 44 28 44Z" fill="url(#sproutGrad)"/>
+            <path d="M28 24C28 24 23 16 17 18C12 20 14 28 21 29C26 30 28 44 28 44" fill="#34D399"/>
+            <!-- Wordmark -->
+            <text x="60" y="36" font-family="'Plus Jakarta Sans', sans-serif" font-size="31" font-weight="800" letter-spacing="-0.5" fill="currentColor">Mint</text>
+            <text x="135" y="36" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#10B981">.AI</text>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="concept-title">Growth Sprout & Signal</h3>
+          <p class="concept-desc">Ascending metric bars that culminate in a vibrant budding leaf with '.AI' badge. Perfect for founders, metrics, and venture pitch decks.</p>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="copyLogo(4)">Copy SVG</button>
+            <button class="btn btn-secondary" onclick="previewInMock(4)">Preview in Nav</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CONCEPT 5 ================= -->
+      <div class="card">
+        <span class="option-tag">Concept 05</span>
+        <div class="logo-stage" id="stage-5">
+          <!-- Logo 5: Infinity Mint Loop -->
+          <svg width="220" height="54" viewBox="0 0 220 54" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <defs>
+              <linearGradient id="infGrad" x1="6" y1="12" x2="46" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="50%" stop-color="#10B981"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+            <!-- Infinity Loop shaped like a fresh leaf silhouette -->
+            <path d="M16 16C9 23 9 33 16 39C23 45 30 36 34 30C38 36 44 41 48 35C52 28 46 17 38 17C30 17 26 26 23 29C20 23 22 10 16 16Z" 
+                  stroke="url(#infGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="44" cy="20" r="3" fill="#10B981"/>
+            <!-- Wordmark -->
+            <text x="64" y="37" font-family="'Space Grotesk', sans-serif" font-size="32" font-weight="700" letter-spacing="-0.5" fill="currentColor">mint</text>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="concept-title">Infinity Mint Loop</h3>
+          <p class="concept-desc">A continuous loop curving into leaf contours. Symbolizes seamless iteration, perpetual generation, and boundless creativity.</p>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="copyLogo(5)">Copy SVG</button>
+            <button class="btn btn-secondary" onclick="previewInMock(5)">Preview in Nav</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= CONCEPT 6 ================= -->
+      <div class="card">
+        <span class="option-tag">Concept 06 • Minimalist Luxury</span>
+        <div class="logo-stage" id="stage-6">
+          <!-- Logo 6: Neo-Monogram Spark -->
+          <svg width="220" height="54" viewBox="0 0 220 54" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg">
+            <defs>
+              <linearGradient id="sparkGrad" x1="12" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+            <!-- Sharp, editorial M monogram with 4-point star leaf-cut -->
+            <rect x="6" y="8" width="38" height="38" rx="8" fill="#10B981" fill-opacity="0.1" stroke="#10B981" stroke-width="1.5"/>
+            <path d="M14 36V18L25 29L36 18V36" stroke="url(#sparkGrad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- 4-point AI sparkle -->
+            <path d="M38 10C38 10 39 15 42 16C39 17 38 22 38 22C38 22 37 17 34 16C37 15 38 10 38 10Z" fill="#34D399"/>
+            <!-- Wordmark -->
+            <text x="62" y="36" font-family="'Plus Jakarta Sans', sans-serif" font-size="30" font-weight="900" letter-spacing="1" fill="currentColor">MINT</text>
+          </svg>
+        </div>
+        <div class="card-info">
+          <h3 class="concept-title">Neo-Monogram Spark</h3>
+          <p class="concept-desc">Geometric framed monogram 'M' accentuated by an intelligent star-spark. Premium, executive, venture-ready presence.</p>
+          <div class="actions">
+            <button class="btn btn-primary" onclick="copyLogo(6)">Copy SVG</button>
+            <button class="btn btn-secondary" onclick="previewInMock(6)">Preview in Nav</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Navbar Test -->
+    <div class="mock-navbar-section">
+      <h2>Live Navigation Bar Preview</h2>
+      <p>See how your chosen logo looks directly integrated inside the top navigation header of your application:</p>
+      
+      <div class="mock-header">
+        <div id="mock-nav-logo-slot">
+          <!-- Default loaded with Concept 1 -->
+        </div>
+        
+        <div class="mock-links">
+          <span>Deck Builder</span>
+          <span>Templates</span>
+          <span>AI Copilot</span>
+          <span>Pricing</span>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <span style="font-size: 14px; font-weight: 500; color: #cbd5e1;">Sign In</span>
+          <div class="mock-cta">Start Free</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toast-text">SVG code copied to clipboard!</span>
+  </div>
+
+  <script>
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function previewInMock(id) {
+      const stage = document.getElementById('stage-' + id);
+      const svg = stage.querySelector('svg').cloneNode(true);
+      svg.setAttribute('height', '36');
+      svg.setAttribute('width', '160');
+      const slot = document.getElementById('mock-nav-logo-slot');
+      slot.innerHTML = '';
+      slot.appendChild(svg);
+
+      showToast("Concept " + id + " loaded into live navbar preview!");
+    }
+
+    function copyLogo(id) {
+      const stage = document.getElementById('stage-' + id);
+      const svgHtml = stage.querySelector('svg').outerHTML;
+      navigator.clipboard.writeText(svgHtml).then(() => {
+        showToast("Concept " + id + " SVG copied to clipboard!");
+      }).catch(err => {
+        console.error(err);
+      });
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').innerText = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // Initialize mock with Concept 1
+    window.onload = function() {
+      previewInMock(1);
+    };
+  </script>
+</body>
+</html>

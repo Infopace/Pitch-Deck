@@ -23,6 +23,11 @@ class Base(DeclarativeBase):
 
 # Determine database URL — fallback to SQLite if asyncpg is not available
 _db_url = settings.database_url
+if _db_url.startswith("postgres://"):
+    _db_url = _db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+elif _db_url.startswith("postgresql://") and not _db_url.startswith("postgresql+asyncpg://"):
+    _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 if "postgresql+asyncpg" in _db_url:
     try:
         import asyncpg  # noqa: F401
@@ -82,32 +87,24 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 async def init_db() -> None:
     """Initialise the database.
 
-    - SQLite (local dev): runs create_all + lightweight column migration +
-      schema drift check. All three are needed because SQLite has no Alembic
-      migration runner.
-    - PostgreSQL (Supabase / prod): does nothing. Tables are managed by
-      Alembic. Running create_all against a live Supabase pool wastes two
-      connections at startup and can push the session-mode pool over its limit.
+    Runs create_all to ensure all required tables exist (idempotent across both
+    PostgreSQL and SQLite).
     """
-    if "sqlite" not in _db_url:
-        # PostgreSQL — Alembic owns the schema. Nothing to do here.
-        logger.info("⚡ PostgreSQL detected — skipping init_db (Alembic manages schema)")
-        return
-
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-        # Lightweight dev migration: create_all won't ADD columns to existing
-        # tables. Add any missing project columns (SQLite dev only).
-        rows = await conn.exec_driver_sql("PRAGMA table_info('projects')")
-        cols = {r[1] for r in rows.fetchall()}
-        _dev_add_cols = {
-            "template_key": "VARCHAR(32)",
-            "assets": "TEXT",  # JSONType serializes to TEXT on SQLite
-        }
-        for col, ddl in _dev_add_cols.items():
-            if col not in cols:
-                await conn.exec_driver_sql(f"ALTER TABLE projects ADD COLUMN {col} {ddl}")
+        if "sqlite" in _db_url:
+            # Lightweight dev migration: create_all won't ADD columns to existing
+            # tables. Add any missing project columns (SQLite dev only).
+            rows = await conn.exec_driver_sql("PRAGMA table_info('projects')")
+            cols = {r[1] for r in rows.fetchall()}
+            _dev_add_cols = {
+                "template_key": "VARCHAR(32)",
+                "assets": "TEXT",  # JSONType serializes to TEXT on SQLite
+            }
+            for col, ddl in _dev_add_cols.items():
+                if col not in cols:
+                    await conn.exec_driver_sql(f"ALTER TABLE projects ADD COLUMN {col} {ddl}")
 
     await check_schema_drift()
 
