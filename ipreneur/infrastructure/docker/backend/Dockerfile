@@ -66,4 +66,8 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Shell form so ${PORT} expands. Render (and most PaaS) assign a port via the
+# PORT environment variable and route to it; a hardcoded 8000 only works if the
+# platform happens to probe that port. Falls back to 8000 for local docker run
+# and docker-compose, which set no PORT.
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
