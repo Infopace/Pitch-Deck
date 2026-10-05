@@ -1,92 +1,27 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Sparkles,
-  ArrowRight,
   Globe,
-  Download,
+  ArrowRight,
+  Sparkles,
   TrendingUp,
-  Layers,
-  Zap,
+  BarChart3,
+  Users,
   CheckCircle2,
-  FileSpreadsheet,
-  ShieldCheck,
-  ChevronRight,
+  Download,
+  Zap,
 } from "lucide-react";
 import { MintLogo } from "@/components/brand/MintLogo";
 import "./HeroSection.css";
 
-const DECK_PREVIEWS = [
-  {
-    id: "market",
-    tabLabel: "01 Market TAM",
-    tag: "MARKET OPPORTUNITY",
-    title: "A $28.4B Market Reaching Inflection Point",
-    stats: [
-      { label: "Total Addressable Market", val: "$28.4B", change: "+24.2% YoY" },
-      { label: "Serviceable Market (SAM)", val: "$7.2B", change: "Enterprise" },
-      { label: "Target Segment Capture", val: "$620M", change: "Year 3 Horizon" },
-    ],
-    highlight: "Autonomous synthesis from 14 industry analyst sources.",
-    visualType: "bars",
-  },
-  {
-    id: "problem",
-    tabLabel: "02 The Problem",
-    tag: "THE CORE PROBLEM",
-    title: "Founders Waste 50+ Hours Building Decks from Scratch",
-    stats: [
-      { label: "Average Time Spent", val: "54 hrs", change: "Per pitch round" },
-      { label: "Agency Retainer Cost", val: "$8,500+", change: "Standard fee" },
-      { label: "Narrative Rejection Rate", val: "72%", change: "Weak data backing" },
-    ],
-    highlight: "Unstructured messaging and unverifiable stats kill investor conviction early.",
-    visualType: "problem",
-  },
-  {
-    id: "solution",
-    tabLabel: "03 Solution",
-    tag: "THE MINT PLATFORM",
-    title: "From Website to Investor-Grade Deck in 60 Seconds",
-    stats: [
-      { label: "Generation Speed", val: "< 60s", change: "Full 15 slides" },
-      { label: "Research Coverage", val: "100%", change: "Live verified facts" },
-      { label: "Native PPTX Export", val: "Editable", change: "Zero lock-in" },
-    ],
-    highlight: "Dual-pass intelligence: Deep site crawl + automated competitive landscape.",
-    visualType: "solution",
-  },
-  {
-    id: "traction",
-    tabLabel: "04 Traction",
-    tag: "VALIDATION & TRACTION",
-    title: "Exponential Growth Backed by Real Unit Economics",
-    stats: [
-      { label: "Monthly Recurring Revenue", val: "$184K", change: "+42% MoM" },
-      { label: "Net Revenue Retention", val: "138%", change: "Zero churn cohort" },
-      { label: "Customer Acquisition Cost", val: "$142", change: "3.8mo payback" },
-    ],
-    highlight: "Charts and financial models export as real PowerPoint vector shapes.",
-    visualType: "traction",
-  },
-];
-
-const DECK_TYPES_PILLS = [
-  "⚡ Investor Pitch",
-  "🚀 YC Demo Day",
-  "💼 Enterprise Sales",
-  "📈 Series A Round",
-  "🔥 Product Launch",
-];
-
 export default function HeroSection() {
   const navigate = useNavigate();
   const [promptText, setPromptText] = useState("");
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeCard, setActiveCard] = useState<number>(1); // center card active by default
 
-  const handleBuildDeck = (e?: React.FormEvent, presetType?: string) => {
+  const handleBuildDeck = (e?: React.FormEvent, preset?: string) => {
     if (e) e.preventDefault();
-    const query = promptText.trim() || (presetType ? `Build an ${presetType} deck` : "");
+    const query = promptText.trim() || (preset ? `Build a ${preset} deck` : "");
     if (query) {
       navigate(`/register?prompt=${encodeURIComponent(query)}`);
     } else {
@@ -94,240 +29,300 @@ export default function HeroSection() {
     }
   };
 
-  const currentPreview = DECK_PREVIEWS[activeTab];
-
   return (
-    <section className="hero-root">
-      {/* Dynamic atmospheric lighting */}
-      <div className="hero-mesh-glow" aria-hidden="true" />
-      <div className="hero-grid-pattern" aria-hidden="true" />
+    <section className="hero-c1-root">
+      {/* Subtle light mesh background gradients matching the rest of the landing page */}
+      <div className="hero-c1-ambient" aria-hidden="true" />
+      <div className="hero-c1-grid" aria-hidden="true" />
 
       {/* ── TOP NAVBAR ── */}
-      <header className="hero-header">
-        <Link to="/" className="hero-brand" aria-label="Mint Home">
-          <MintLogo variant={1} height={36} textColor="#ffffff" />
+      <header className="hero-c1-header">
+        <Link to="/" className="hero-c1-logo" aria-label="Mint Home">
+          <MintLogo variant={1} height={34} textColor="#0F172A" />
         </Link>
 
-        <nav className="hero-nav">
-          <a href="#showcase" className="nav-item">Live Deck</a>
-          <a href="#features" className="nav-item">How It Works</a>
-          <a href="#templates" className="nav-item">Templates</a>
-          <a href="#comparison" className="nav-item">Why Mint</a>
-          <a href="#faq" className="nav-item">FAQ</a>
+        <nav className="hero-c1-nav">
+          <a href="#showcase">Live Deck</a>
+          <a href="#features">How It Works</a>
+          <a href="#templates">Templates</a>
+          <a href="#comparison">Why Mint</a>
+          <a href="#faq">FAQ</a>
         </nav>
 
-        <div className="hero-actions">
-          <Link to="/login" className="btn-signin">Sign In</Link>
-          <Link to="/register" className="btn-start-primary">
-            <span>Start Free</span>
-            <ArrowRight size={15} />
+        <div className="hero-c1-nav-actions">
+          <Link to="/login" className="c1-sign-in">Sign in</Link>
+          <Link to="/register" className="c1-start-free">
+            <span>Start free</span>
+            <ArrowRight size={14} />
           </Link>
         </div>
       </header>
 
-      {/* ── HERO HERO CONTENT CONTAINER ── */}
-      <div className="hero-container">
-        {/* LEFT COLUMN: Narrative & Action Console */}
-        <div className="hero-left-content">
-          <div className="hero-badge">
-            <span className="badge-pulse">
-              <span className="pulse-dot" />
-            </span>
-            <Sparkles size={13} className="badge-sparkle" />
-            <span>Autonomous Pitch Deck Generator 2.0</span>
-          </div>
-
-          <h1 className="hero-heading">
-            Turn your website or idea into an{" "}
-            <span className="hero-highlight-text">investor-ready deck.</span>
-          </h1>
-
-          <p className="hero-subheading">
-            Paste your company URL. Mint conducts deep market research,
-            structures the narrative, and creates a tailored, data-backed presentation — ready to customize and export to PowerPoint.
-          </p>
-
-          {/* Interactive Input Intake Bar */}
-          <form onSubmit={handleBuildDeck} className="hero-intake-card">
-            <div className="intake-field">
-              <Globe className="intake-icon" size={19} />
-              <input
-                type="text"
-                value={promptText}
-                onChange={(e) => setPromptText(e.target.value)}
-                placeholder="yourcompany.com — or enter your startup idea"
-                className="intake-input"
-              />
-            </div>
-            <button type="submit" className="intake-submit-btn">
-              <Zap size={16} />
-              <span>Generate Deck</span>
-            </button>
-          </form>
-
-          {/* Quick preset selector chips */}
-          <div className="hero-preset-chips">
-            <span className="chips-label">Popular architectures:</span>
-            <div className="chips-list">
-              {DECK_TYPES_PILLS.map((pill) => (
-                <button
-                  key={pill}
-                  type="button"
-                  onClick={() => handleBuildDeck(undefined, pill)}
-                  className="preset-chip"
-                >
-                  {pill}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Trust Value Proof Items */}
-          <div className="hero-proof-row">
-            <div className="proof-pill">
-              <CheckCircle2 size={15} className="proof-check" />
-              <span>13 Deck Types</span>
-            </div>
-            <div className="proof-pill">
-              <CheckCircle2 size={15} className="proof-check" />
-              <span>Live Market Research</span>
-            </div>
-            <div className="proof-pill">
-              <CheckCircle2 size={15} className="proof-check" />
-              <span>Editable .PPTX Export</span>
-            </div>
-          </div>
+      {/* ── CENTER HERO HERO CONTENT ── */}
+      <div className="hero-c1-content">
+        {/* Eyebrow Badge */}
+        <div className="hero-c1-badge">
+          <Sparkles size={13} className="text-blue-600" />
+          <span>Autonomous AI Pitch Deck Generator</span>
         </div>
 
-        {/* RIGHT COLUMN: Interactive 3D Deck Studio Showcase */}
-        <div className="hero-right-showcase">
-          <div className="deck-showcase-wrapper">
-            {/* Ambient card back glow */}
-            <div className="deck-ambient-glow" />
+        {/* Main Headline */}
+        <h1 className="hero-c1-title">
+          The Deck That Closes <span className="hero-c1-gradient">The Round</span>
+        </h1>
 
-            {/* Floating Live Indicator Badge */}
-            <div className="floating-metric-badge top-right">
-              <div className="metric-glow-dot" />
-              <div className="metric-text-group">
-                <span className="metric-title">Gemini 2.5 Multi-Agent</span>
-                <span className="metric-val">14 market sources verified</span>
+        {/* Subtitle */}
+        <p className="hero-c1-subtitle">
+          Instantly generate professional, data-driven investor pitch decks with AI.
+          <br className="hidden sm:inline" /> Input your website, Mint creates your winning presentation.
+        </p>
+
+        {/* Search / URL Intake Pill Bar */}
+        <form onSubmit={handleBuildDeck} className="hero-c1-input-bar">
+          <div className="c1-input-group">
+            <Globe size={18} className="c1-input-icon" />
+            <input
+              type="text"
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              placeholder="Enter your company website URL (e.g. yourstartup.com)"
+              className="c1-input"
+            />
+          </div>
+          <button type="submit" className="c1-generate-btn">
+            <span>Generate Deck</span>
+            <ArrowRight size={15} />
+          </button>
+        </form>
+
+        {/* Quick architecture filter chips */}
+        <div className="hero-c1-chips">
+          <span className="chips-hint">Presets:</span>
+          {["⚡ Investor Pitch", "🚀 YC Demo Day", "💼 Enterprise Sales", "📈 Series A"].map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => handleBuildDeck(undefined, preset)}
+              className="c1-chip"
+            >
+              {preset}
+            </button>
+          ))}
+        </div>
+
+        {/* ── 3D FAN-OUT PRESENTATION SHOWCASE ── */}
+        <div className="hero-c1-showcase-stage">
+          <div className="hero-c1-fanout-deck">
+            
+            {/* ── SLIDE 1: Market Size (TAM) (Left angled card) ── */}
+            <div
+              className={`fanout-card card-left ${activeCard === 0 ? "is-focused" : ""}`}
+              onMouseEnter={() => setActiveCard(0)}
+            >
+              <div className="card-topbar">
+                <div className="card-tag">
+                  <BarChart3 size={11} className="text-emerald-600" />
+                  <span>Market Opportunity</span>
+                </div>
+                <span className="card-slide-num">Slide 03</span>
               </div>
-            </div>
 
-            {/* Floating Export Format Badge */}
-            <div className="floating-metric-badge bottom-left">
-              <Download size={15} className="metric-icon" />
-              <div className="metric-text-group">
-                <span className="metric-title">PowerPoint (.pptx)</span>
-                <span className="metric-val">Native vector shapes</span>
-              </div>
-            </div>
+              <div className="card-body">
+                <h4 className="card-title">Total Addressable Market (TAM)</h4>
+                <p className="card-caption">Global cloud presentation & automated reporting</p>
 
-            {/* Main Interactive Studio Slide Frame */}
-            <div className="deck-preview-card">
-              {/* Studio window chrome bar */}
-              <div className="deck-card-topbar">
-                <div className="deck-dots">
-                  <span className="dot dot-red" />
-                  <span className="dot dot-yellow" />
-                  <span className="dot dot-green" />
-                </div>
-                <div className="deck-file-title">
-                  <span>Apex Robotics — Series A Master.pptx</span>
-                </div>
-                <div className="deck-status-pill">
-                  <Layers size={12} />
-                  <span>40 Themes</span>
-                </div>
-              </div>
-
-              {/* Slide Interactive Navigation Tabs */}
-              <div className="deck-slide-tabs">
-                {DECK_PREVIEWS.map((tab, idx) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setActiveTab(idx)}
-                    className={`slide-tab-btn ${activeTab === idx ? "active" : ""}`}
-                  >
-                    {tab.tabLabel}
-                  </button>
-                ))}
-              </div>
-
-              {/* Active Slide Canvas Visual */}
-              <div className="slide-canvas">
-                <div className="slide-content-header">
-                  <span className="slide-category-tag">{currentPreview.tag}</span>
-                  <h3 className="slide-main-title">{currentPreview.title}</h3>
+                <div className="tam-hero-stat">
+                  <span className="tam-label">Global Target</span>
+                  <div className="tam-number">$4.5T</div>
+                  <span className="tam-growth">+28% YoY CAGR</span>
                 </div>
 
-                {/* 3 Metric Cards Grid */}
-                <div className="slide-metrics-grid">
-                  {currentPreview.stats.map((st, i) => (
-                    <div key={i} className="slide-stat-card">
-                      <span className="stat-label">{st.label}</span>
-                      <div className="stat-number">{st.val}</div>
-                      <span className="stat-change">{st.change}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Interactive Graphic Representation */}
-                <div className="slide-visual-container">
-                  <div className="visual-graphic-bar">
-                    <div className="graphic-bar-fill" style={{ width: `${80 + activeTab * 5}%` }} />
+                {/* Bar chart graphic */}
+                <div className="tam-bars-graphic">
+                  <div className="bar-col">
+                    <div className="bar-fill" style={{ height: "35%" }} />
+                    <span className="bar-year">'23</span>
                   </div>
-                  <div className="slide-footer-intel">
-                    <div className="intel-pill">
-                      <ShieldCheck size={13} className="text-emerald-400" />
-                      <span>{currentPreview.highlight}</span>
+                  <div className="bar-col">
+                    <div className="bar-fill" style={{ height: "48%" }} />
+                    <span className="bar-year">'24</span>
+                  </div>
+                  <div className="bar-col">
+                    <div className="bar-fill" style={{ height: "64%" }} />
+                    <span className="bar-year">'25</span>
+                  </div>
+                  <div className="bar-col">
+                    <div className="bar-fill" style={{ height: "82%" }} />
+                    <span className="bar-year">'26</span>
+                  </div>
+                  <div className="bar-col highlight">
+                    <div className="bar-fill" style={{ height: "100%" }} />
+                    <span className="bar-year">'27</span>
+                  </div>
+                </div>
+
+                <div className="card-footer-metric">
+                  <span className="metric-chip">Serviceable Market: $840B</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SLIDE 2: Projected Revenue (Center elevated hero card) ── */}
+            <div
+              className={`fanout-card card-center ${activeCard === 1 ? "is-focused" : ""}`}
+              onMouseEnter={() => setActiveCard(1)}
+            >
+              <div className="card-topbar">
+                <div className="card-tag">
+                  <TrendingUp size={11} className="text-blue-600" />
+                  <span>Financial Projection</span>
+                </div>
+                <span className="card-slide-num badge-pill">Slide 07 • Master</span>
+              </div>
+
+              <div className="card-body">
+                <div className="center-header-row">
+                  <div>
+                    <h4 className="card-title">Projected Revenue Growth</h4>
+                    <p className="card-caption">Multi-year ARR scaling model with enterprise tier</p>
+                  </div>
+                  <div className="center-live-pill">
+                    <span className="live-dot" />
+                    <span>Live Model</span>
+                  </div>
+                </div>
+
+                {/* Financial KPI chips */}
+                <div className="financial-kpi-row">
+                  <div className="kpi-box">
+                    <span className="kpi-label">Projected ARR</span>
+                    <div className="kpi-val">$8.4M</div>
+                    <span className="kpi-badge text-emerald-600">3.8x Growth</span>
+                  </div>
+                  <div className="kpi-box">
+                    <span className="kpi-label">Target Margin</span>
+                    <div className="kpi-val">84%</div>
+                    <span className="kpi-badge text-blue-600">SaaS Benchmark</span>
+                  </div>
+                  <div className="kpi-box">
+                    <span className="kpi-label">Net Retention</span>
+                    <div className="kpi-val">138%</div>
+                    <span className="kpi-badge text-emerald-600">Expansion</span>
+                  </div>
+                </div>
+
+                {/* Curved growth line visualization */}
+                <div className="financial-chart-container">
+                  <svg className="growth-curve-svg" viewBox="0 0 340 90" fill="none">
+                    <defs>
+                      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#2563EB" stopOpacity="0.25" />
+                        <stop offset="100%" stopColor="#2563EB" stopOpacity="0.0" />
+                      </linearGradient>
+                      <linearGradient id="strokeGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#3B82F6" />
+                        <stop offset="50%" stopColor="#10B981" />
+                        <stop offset="100%" stopColor="#059669" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M 10 75 Q 90 70, 160 50 T 330 14 L 330 90 L 10 90 Z"
+                      fill="url(#chartGrad)"
+                    />
+                    <path
+                      d="M 10 75 Q 90 70, 160 50 T 330 14"
+                      stroke="url(#strokeGrad)"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                    />
+                    {/* Data point glowing circles */}
+                    <circle cx="10" cy="75" r="4" fill="#3B82F6" />
+                    <circle cx="160" cy="50" r="4" fill="#10B981" />
+                    <circle cx="330" cy="14" r="5" fill="#059669" stroke="#ffffff" strokeWidth="2" />
+                  </svg>
+                </div>
+
+                <div className="card-center-footer">
+                  <div className="footer-export-info">
+                    <Download size={13} className="text-slate-400" />
+                    <span>Real vector chart in PowerPoint (.pptx)</span>
+                  </div>
+                  <span className="font-mono text-[11px] font-semibold text-slate-500">
+                    Series A Target
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── SLIDE 3: Executive Team (Right angled card) ── */}
+            <div
+              className={`fanout-card card-right ${activeCard === 2 ? "is-focused" : ""}`}
+              onMouseEnter={() => setActiveCard(2)}
+            >
+              <div className="card-topbar">
+                <div className="card-tag">
+                  <Users size={11} className="text-indigo-600" />
+                  <span>Leadership Team</span>
+                </div>
+                <span className="card-slide-num">Slide 11</span>
+              </div>
+
+              <div className="card-body">
+                <h4 className="card-title">Founders & Leadership</h4>
+                <p className="card-caption">Proven track record with prior exits in enterprise AI</p>
+
+                {/* Team member cards */}
+                <div className="team-members-list">
+                  <div className="team-member-card">
+                    <div className="team-avatar avatar-1">SC</div>
+                    <div className="team-meta">
+                      <span className="team-name">Sarah Chen</span>
+                      <span className="team-role">CEO & Co-Founder</span>
+                      <span className="team-prev">Ex-Stripe • MIT CS</span>
                     </div>
-                    <span className="intel-count">Slide {activeTab + 1} of 14</span>
+                  </div>
+
+                  <div className="team-member-card">
+                    <div className="team-avatar avatar-2">AL</div>
+                    <div className="team-meta">
+                      <span className="team-name">Alex Lee</span>
+                      <span className="team-role">CTO & Co-Founder</span>
+                      <span className="team-prev">Ex-Google Brain • Stanford PhD</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="card-team-trust">
+                  <div className="trust-pill">
+                    <Zap size={11} className="text-amber-500" />
+                    <span>Backed by top tier angels & accelerators</span>
                   </div>
                 </div>
               </div>
-
-              {/* Bottom Interactive Control */}
-              <div className="deck-card-footer">
-                <span className="footer-theme-info">
-                  Theme: <strong>Emerald Obsidian</strong> • Slide 16:9 Wide
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleBuildDeck(undefined, "investor")}
-                  className="footer-edit-btn"
-                >
-                  <span>Build This Deck</span>
-                  <ChevronRight size={14} />
-                </button>
-              </div>
             </div>
+
           </div>
         </div>
       </div>
 
-      {/* ── REAL CAPABILITY STATUS BANNER ── */}
-      <div className="hero-metrics-ribbon">
-        <div className="ribbon-inner">
-          <div className="ribbon-item">
-            <span className="ribbon-number">13</span>
-            <span className="ribbon-desc">Deck Architectures</span>
+      {/* ── REAL PRODUCT NUMBERS STATUS RIBBON ── */}
+      <div className="hero-c1-ribbon">
+        <div className="c1-ribbon-grid">
+          <div className="c1-ribbon-col">
+            <span className="c1-ribbon-num">13</span>
+            <span className="c1-ribbon-text">Deck Types (Investor, Demo Day, Sales...)</span>
           </div>
-          <div className="ribbon-divider" />
-          <div className="ribbon-item">
-            <span className="ribbon-number">40+</span>
-            <span className="ribbon-desc">Curated Theme Designs</span>
+          <div className="c1-ribbon-col">
+            <span className="c1-ribbon-num">40</span>
+            <span className="c1-ribbon-text">Themes Switchable with 1-Click</span>
           </div>
-          <div className="ribbon-divider" />
-          <div className="ribbon-item">
-            <span className="ribbon-number">&lt; 60s</span>
-            <span className="ribbon-desc">Average Generation Speed</span>
+          <div className="c1-ribbon-col">
+            <span className="c1-ribbon-num">&lt; 60s</span>
+            <span className="c1-ribbon-text">Full Presentation Generation</span>
           </div>
-          <div className="ribbon-divider" />
-          <div className="ribbon-item">
-            <span className="ribbon-number">.pptx</span>
-            <span className="ribbon-desc">Native PowerPoint Export</span>
+          <div className="c1-ribbon-col">
+            <span className="c1-ribbon-num">.pptx</span>
+            <span className="c1-ribbon-text">Native Vector Shapes & Charts</span>
           </div>
         </div>
       </div>
