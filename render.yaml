@@ -11,18 +11,26 @@
 #
 # Deploy: Render dashboard → New → Blueprint → point at this repo.
 #
-# The frontend is NOT here. It is hosted on Cloudflare Pages, which reads
-# frontend/public/_redirects for the SPA fallback natively — Render ignores that
-# file and needs a `routes:` rewrite instead. Pages config lives in the
-# Cloudflare dashboard: root directory ipreneur/frontend, build `npm run build`,
-# output dist, and env vars VITE_API_URL (must include the /api/v1 suffix — the
-# client strips it back off to locate /uploads) and NODE_VERSION=20.
+# The frontend is NOT here. It is a Cloudflare Worker serving static assets,
+# configured by frontend/wrangler.jsonc rather than by anything in this repo's
+# Render config. SPA routing comes from that file's
+# `not_found_handling: single-page-application`, which is why public/_redirects
+# was deleted in 10dcd84 — a wildcard rule there fights the Worker's own
+# fallback and produces a redirect loop.
 #
-# Both URLs are predictable from the names, so neither side has to wait for the
-# other: this service is https://<name>.onrender.com and Pages is
-# https://<project>.pages.dev. Set CORS_ORIGINS to the Pages URL up front.
-# Note a Vite env var is read at BUILD time, so changing VITE_API_URL later
-# requires a Pages redeploy, not just a restart.
+# VITE_API_URL is set on the Worker and must include the /api/v1 suffix: the
+# client strips it back off to locate /uploads. Vite reads it at BUILD time, so
+# changing it needs a redeploy of the Worker, not a restart.
+#
+# Set CORS_ORIGINS below to the Worker's origin, exactly, with no trailing
+# slash. A mismatch does not fail the deploy — the API starts healthy and every
+# browser request dies in preflight with "Disallowed CORS origin", which reads
+# like a broken login rather than a config error.
+#
+# WARNING: the live API was created by hand in the dashboard, not from this
+# file — it is named Pitch-Deck, builds ipreneur/backend/Dockerfile, and does
+# not track anything below. Applying this blueprint would create a SECOND,
+# separate service rather than updating that one.
 #
 # Secrets are deliberately `sync: false`. Render prompts for them once in the
 # dashboard and stores them there; they are never written into this file or
@@ -74,19 +82,19 @@ projects:
               - key: PLAYWRIGHT_BROWSERS_PATH
                 value: /home/appuser/.cache/ms-playwright
 
-              # Must be the deployed frontend origin — the Cloudflare Pages
+              # Must be the deployed frontend origin — the Cloudflare Worker
               # URL, no trailing slash. The production guard rejects a value
               # still containing localhost, so this cannot be left as a default.
               - key: CORS_ORIGINS
                 sync: false
 
-              # Optional. Cloudflare Pages gives every commit its own
-              # <hash>.<project>.pages.dev host, which cannot be enumerated in
-              # CORS_ORIGINS — without this, API calls from a preview
-              # deployment fail CORS while production works fine. Anchor it to
-              # your own project, e.g.
-              #   https://[a-z0-9-]+\.mint-abc\.pages\.dev
-              # A loose pattern would let any Cloudflare site call this API.
+              # Optional. Cloudflare gives each preview/version its own
+              # <prefix>-<worker>.<subdomain>.workers.dev host, which cannot be
+              # enumerated in CORS_ORIGINS — without this, API calls from a
+              # preview fail CORS while production works fine. Anchor it to
+              # your own worker, e.g.
+              #   https://[a-z0-9-]+-pitch-deck\.puneeth-j-gowda2002\.workers\.dev
+              # A loose pattern would let any workers.dev site call this API.
               - key: CORS_ORIGIN_REGEX
                 sync: false
 
