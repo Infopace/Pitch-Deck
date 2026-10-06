@@ -35,6 +35,68 @@ export interface BrandingData {
   business_model?: string;
 }
 
+/** A single researched fact's provenance, as the backend's research pass tags it
+ * (see `_build_research_prompt` in `app/agents/master/master_agent.py`):
+ * HIGH = found via live search or the company's own site, MEDIUM = reasoned
+ * from the industry, LOW = a weak guess. */
+export type ResearchConfidence = "HIGH" | "MEDIUM" | "LOW";
+
+export interface ResearchFounder {
+  name: string;
+  title: string;
+  education?: string;
+  prior?: string;
+  credential?: string;
+  source?: string;
+  confidence?: ResearchConfidence;
+}
+
+export interface ResearchCompetitor {
+  name: string;
+  funding?: string;
+  weakness?: string;
+  confidence?: ResearchConfidence;
+}
+
+export interface ResearchMarket {
+  tam?: string;
+  tam_source?: string;
+  tam_description?: string;
+  sam?: string;
+  sam_description?: string;
+  som?: string;
+  som_description?: string;
+  cagr?: string;
+  cagr_source?: string;
+  cagr_period?: string;
+  growth_drivers?: string[];
+}
+
+export interface ResearchFunding {
+  total?: string;
+  rounds?: Array<{ stage: string; amount: string; date: string; investors: string[] }>;
+  valuation?: string;
+  status?: string;
+}
+
+/** The `projects.research_data` blob — what MasterDeckAgent's research pass
+ * found, with per-fact confidence and the source URLs it was grounded in. */
+export interface ResearchData {
+  confidence?: ResearchConfidence;
+  sources?: string[];
+  founders?: ResearchFounder[];
+  company_facts?: {
+    founded_year?: string;
+    headquarters?: string;
+    headcount?: string;
+    operations?: string;
+    milestones?: string[];
+  };
+  funding?: ResearchFunding;
+  competitors?: ResearchCompetitor[];
+  market?: ResearchMarket;
+}
+
 export interface DeckSlide {
   id: string;
   type?: string;
@@ -68,8 +130,8 @@ export interface Project {
   assets?: Record<string, unknown> | null;
   brandingData?: BrandingData;
   branding_data?: Record<string, unknown>;
-  researchData?: Record<string, unknown>;
-  research_data?: Record<string, unknown>;
+  researchData?: ResearchData;
+  research_data?: ResearchData;
   deckContent?: DeckContent;
   deck_content?: Record<string, unknown>;
   errorMessage?: string;

@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_api_key_2: str = ""
     gemini_model: str = ""
-    gemini_model_research: str = "gemini-1.5-flash"
+    gemini_model_research: str = ""
     gemini_max_tokens: int = 16384
     gemini_thinking_budget: int = 0
 
@@ -90,6 +90,18 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]
+
+    @property
+    def effective_research_model(self) -> str:
+        """The research-pass model, falling back to the generation model.
+
+        An unset GEMINI_MODEL_RESEARCH previously defaulted to a hardcoded
+        "gemini-1.5-flash" — already older than the model Google retired out
+        from under gemini_model (see commit 94db209). Falling back to
+        gemini_model instead means research can never silently regress to a
+        model staler than what the rest of the app is already running.
+        """
+        return self.gemini_model_research or self.gemini_model
 
     # ── Celery ───────────────────────────────────────────────────────────────
     celery_broker_url: str = "redis://localhost:6379/1"

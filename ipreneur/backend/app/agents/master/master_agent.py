@@ -1,12 +1,12 @@
 """
 MasterDeckAgent — Two-pass pitch deck generator.
 
-Pass 1 — Research (gemini-2.5-flash + thinking, Key 2):
+Pass 1 — Research (settings.effective_research_model + Google Search grounding, Key 2):
   Dedicated research call with step-by-step reasoning.
   Produces verified founders, competitors, market data, funding history.
 
-Pass 2 — Generation (gemini-2.0-flash, Key 1):
-  Formats the verified research into 12 slides.
+Pass 2 — Generation (settings.gemini_model, Key 1):
+  Formats the verified research into N slides (see app/decks/registry.py).
   No hallucination risk — research is already grounded before this call.
 """
 import asyncio
@@ -192,10 +192,10 @@ class MasterDeckAgent:
     """
     Two-pass pitch deck generator.
 
-    Pass 1 — Research (gemini-2.5-flash + thinking, Key 2):
+    Pass 1 — Research (settings.effective_research_model + Google Search grounding, Key 2):
       Deep research with step-by-step reasoning about founders, competitors, market.
-    Pass 2 — Generation (gemini-2.0-flash, Key 1):
-      Formats pre-researched data into 12 slides — fast, no hallucination risk.
+    Pass 2 — Generation (settings.gemini_model, Key 1):
+      Formats pre-researched data into slides — fast, no hallucination risk.
     """
 
     def __init__(self):
@@ -281,31 +281,54 @@ class MasterDeckAgent:
         raw = ""
         try:
             client = self._gen_client()
-            # Retry up to 4 times on transient errors (rate limit / 503 overload).
-            max_attempts = 4
-            for attempt in range(max_attempts):
-                try:
-                    response = client.models.generate_content(
-                        model=settings.gemini_model,
-                        contents=prompt,
-                    )
-                    raw = response.text
-                    _raise_if_truncated(response, settings.gemini_max_tokens)
-                    break
-                except Exception as re:
-                    # Truncation is deterministic — the same prompt will overflow
-                    # the same ceiling every time. It must never enter the retry
-                    # path: _is_transient matches bare substrings like "500", so a
-                    # budget such as 16500 would make this message look transient
-                    # and burn four full generations before surfacing.
-                    if isinstance(re, DeckTruncatedError):
-                        raise
-                    if _is_transient(re) and attempt < max_attempts - 1:
-                        wait = (attempt + 1) * 5  # 5s, 10s, 15s
-                        logger.warning(f"⚠️  Generation transient error (attempt {attempt+1}/{max_attempts}) — retrying in {wait}s | {re}")
-                        await asyncio.sleep(wait)
-                    else:
-                        raise
+
+            async def _attempt_generation(gen_prompt: str) -> str:
+                # Retry up to 4 times on transient errors (rate limit / 503 overload).
+                max_attempts = 4
+                attempt_raw = ""
+                for attempt in range(max_attempts):
+                    try:
+                        response = client.models.generate_content(
+                            model=settings.gemini_model,
+                            contents=gen_prompt,
+                        )
+                        attempt_raw = response.text
+                        _raise_if_truncated(response, settings.gemini_max_tokens)
+                        return attempt_raw
+                    except Exception as re:
+                        # Truncation is deterministic — the same prompt will overflow
+                        # the same ceiling every time. It must never enter the retry
+                        # path: _is_transient matches bare substrings like "500", so a
+                        # budget such as 16500 would make this message look transient
+                        # and burn four full generations before surfacing.
+                        if isinstance(re, DeckTruncatedError):
+                            raise
+                        if _is_transient(re) and attempt < max_attempts - 1:
+                            wait = (attempt + 1) * 5  # 5s, 10s, 15s
+                            logger.warning(f"⚠️  Generation transient error (attempt {attempt+1}/{max_attempts}) — retrying in {wait}s | {re}")
+                            await asyncio.sleep(wait)
+                        else:
+                            raise
+                return attempt_raw
+
+            try:
+                raw = await _attempt_generation(prompt)
+            except DeckTruncatedError as trunc_exc:
+                # One leaner retry: drop the instructional example blocks and
+                # shrink the embedded research JSON so the token ceiling has
+                # room to finish. A heuristic second chance, not a fix for
+                # decks that are structurally too long for gemini_max_tokens
+                # — those still raise, same as before.
+                logger.warning(f"⚠️  Deck truncated at full detail — retrying once with a leaner prompt | {trunc_exc}")
+                compact_prompt = self._build_generation_prompt(
+                    company_url, website_content,
+                    team_info or [], pricing_info or [],
+                    user_inputs, research_data,
+                    deck_type=dt.key, sections=sections, stage=stage, deck_format=deck_format,
+                    compact=True,
+                )
+                raw = await _attempt_generation(compact_prompt)
+
             data = _parse_json_lenient(raw)
             if not data.get("slides"):
                 raise RuntimeError("Parsed deck JSON has no slides")
@@ -417,9 +440,9 @@ class MasterDeckAgent:
             grounding: list = []
             # Live web search grounding — real founders/funding/competitors/market
             try:
-                logger.info(f"🔍 Research pass (web-grounded): {settings.gemini_model_research}")
+                logger.info(f"🔍 Research pass (web-grounded): {settings.effective_research_model}")
                 response = client.models.generate_content(
-                    model=settings.gemini_model_research,
+                    model=settings.effective_research_model,
                     contents=prompt,
                     use_search=True,
                 )
@@ -433,7 +456,7 @@ class MasterDeckAgent:
 
             if not raw:
                 response = client.models.generate_content(
-                    model=settings.gemini_model_research,
+                    model=settings.effective_research_model,
                     contents=prompt,
                 )
                 raw = response.text
@@ -521,7 +544,7 @@ If you genuinely cannot find anyone, return {{"founders": []}} — DO NOT invent
 }}"""
         try:
             resp = client.models.generate_content(
-                model=settings.gemini_model_research, contents=prompt, use_search=True,
+                model=settings.effective_research_model, contents=prompt, use_search=True,
             )
             out = _parse_json_lenient(resp.text)
             out["_grounding"] = resp.grounding
@@ -754,6 +777,7 @@ Return ONLY valid JSON:
         stage: Optional[str] = None,
         deck_format: str = DEFAULT_DECK_FORMAT,
         profile_block: str = "",
+        compact: bool = False,
     ) -> str:
         # The slide plan, per-section rules and both JSON skeletons are built
         # from the deck-type registry rather than written out here, so a deck's
@@ -832,7 +856,7 @@ Return ONLY valid JSON:
         # (e.g. founders truncated away entirely). Excluded from what the model sees.
         research_for_prompt = {k: v for k, v in research_data.items() if k != "sources"} if research_data else {}
         research_json_full = json.dumps(research_for_prompt, indent=2) if research_for_prompt else "{}"
-        research_json = research_json_full[:6000]
+        research_json = research_json_full[:3000 if compact else 6000]
         has_research = bool(research_data.get("founders") or research_data.get("competitors") or research_data.get("market"))
         website_line = company_url or "Not yet live — idea-stage company"
         has_website_content = bool(website_content.strip())
@@ -845,6 +869,26 @@ Return ONLY valid JSON:
             "(HIGH CONFIDENCE — use this directly)" if has_research
             else "(empty — no web research for this deck type; use the company description below only)"
         )
+
+        # Worked examples of the specificity rule, below. Purely instructional —
+        # no researched facts live here — so the compact retry (triggered when
+        # the full prompt truncated the model's output) drops them first to
+        # free output-token budget without losing any actual deck content.
+        specificity_examples = "" if compact else """
+BEFORE (generic — could be any company in this space):
+  "**AI-Powered:** We use artificial intelligence to help businesses make
+  better decisions faster."
+AFTER (specific — anchored to an actual mechanism/number):
+  "**Sub-200ms Scoring:** Every transaction is re-scored in <200ms using our
+  real-time risk model, vs. the 2-3 second batch checks legacy processors run."
+
+BEFORE (generic market claim):
+  "The industry is experiencing rapid digital transformation and growing
+  demand."
+AFTER (specific, sourced):
+  "India's quick-commerce GMV grew 3.2x from 2022-2024 (RedSeer) as 10-minute
+  delivery shifted from novelty to default expectation in metro grocery."
+"""
 
         return f"""You are the world's best pitch deck writer and slide designer.
 A research agent has already done the deep company and market research. Your ONLY job is to
@@ -919,21 +963,7 @@ mechanism, named data source, customer segment, or fact drawn from the
 research/website content above. Generic industry-truism sentences ("we
 leverage AI to drive efficiency", "the market is growing rapidly", "our
 platform is easy to use") are FORBIDDEN even as filler.
-
-BEFORE (generic — could be any company in this space):
-  "**AI-Powered:** We use artificial intelligence to help businesses make
-  better decisions faster."
-AFTER (specific — anchored to an actual mechanism/number):
-  "**Sub-200ms Scoring:** Every transaction is re-scored in <200ms using our
-  real-time risk model, vs. the 2-3 second batch checks legacy processors run."
-
-BEFORE (generic market claim):
-  "The industry is experiencing rapid digital transformation and growing
-  demand."
-AFTER (specific, sourced):
-  "India's quick-commerce GMV grew 3.2x from 2022-2024 (RedSeer) as 10-minute
-  delivery shifted from novelty to default expectation in metro grocery."
-
+{specificity_examples}
 Apply this with extra weight to any slide whose instructions above are thin on
 company-specific grounding — those are the easiest to fill with industry
 boilerplate by accident. Re-read this rule before writing them.

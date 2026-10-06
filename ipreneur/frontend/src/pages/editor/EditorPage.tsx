@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Check, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, Search, Undo2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { projectsApi } from "@/services/api/projects";
@@ -12,6 +12,7 @@ import type { EditPath } from "@/components/workspace/deckTemplates/editing/edit
 import { setByPath } from "@/components/workspace/deckTemplates/editing/setByPath";
 import { HourglassLoader } from "@/components/ui/HourglassLoader";
 import { Tv404 } from "@/components/ui/Tv404";
+import { hasResearchContent, ResearchSourcesPanel } from "@/components/workspace/ResearchSourcesPanel";
 
 const ep = {
   backLink: { display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0, font: "500 13px var(--font-body)", color: "var(--text-muted)", textDecoration: "none" } as React.CSSProperties,
@@ -33,6 +34,7 @@ export default function EditorPage() {
 
   const [draft, setDraft] = useState<TemplateDeckData | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [showResearch, setShowResearch] = useState(false);
   const originalRef = useRef<TemplateDeckData | null>(null);
   const seededRef = useRef(false);
 
@@ -167,47 +169,60 @@ export default function EditorPage() {
     );
   }
 
+  const research = project.researchData ?? project.research_data;
+  const canShowResearch = hasResearchContent(research);
+
   return (
-    <DeckWorkspace
-      data={draft}
-      deckType={(project.deckContent as any)?.deckType ?? project.deckType}
-      slideOrder={(project.deckContent as any)?.slideOrder}
-      initialKey={(project as any).templateKey}
-      assets={(project as any).assets}
-      onPersist={(key) => saveTemplate(key)}
-      fileName={project.name}
-      editable
-      onEdit={handleEdit}
-      lead={
-        <>
-          <Link to={`/projects/${projectId}`} onClick={handleBackClick} style={ep.backLink}>
-            <ArrowLeft size={15} style={{ flexShrink: 0 }} />
-            <span style={ep.projName}>{project.name}</span>
-          </Link>
-          {isDirty && (
-            <span style={ep.dirtyDot}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
-              Unsaved
-            </span>
-          )}
-        </>
-      }
-      actions={
-        <>
-          <Button variant="secondary" icon={<Undo2 size={15} />} disabled={!isDirty} onClick={handleDiscard}>
-            Discard
-          </Button>
-          <Button
-            variant="primary"
-            icon={<Check size={15} />}
-            disabled={!isDirty}
-            loading={saveMutation.isPending}
-            onClick={() => draft && saveMutation.mutate(draft)}
-          >
-            {saveMutation.isPending ? "Saving…" : "Save"}
-          </Button>
-        </>
-      }
-    />
+    <>
+      <DeckWorkspace
+        data={draft}
+        deckType={(project.deckContent as any)?.deckType ?? project.deckType}
+        slideOrder={(project.deckContent as any)?.slideOrder}
+        initialKey={(project as any).templateKey}
+        assets={(project as any).assets}
+        onPersist={(key) => saveTemplate(key)}
+        fileName={project.name}
+        editable
+        onEdit={handleEdit}
+        lead={
+          <>
+            <Link to={`/projects/${projectId}`} onClick={handleBackClick} style={ep.backLink}>
+              <ArrowLeft size={15} style={{ flexShrink: 0 }} />
+              <span style={ep.projName}>{project.name}</span>
+            </Link>
+            {isDirty && (
+              <span style={ep.dirtyDot}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor" }} />
+                Unsaved
+              </span>
+            )}
+          </>
+        }
+        actions={
+          <>
+            {canShowResearch && (
+              <Button variant="secondary" icon={<Search size={15} />} onClick={() => setShowResearch(true)}>
+                Sources
+              </Button>
+            )}
+            <Button variant="secondary" icon={<Undo2 size={15} />} disabled={!isDirty} onClick={handleDiscard}>
+              Discard
+            </Button>
+            <Button
+              variant="primary"
+              icon={<Check size={15} />}
+              disabled={!isDirty}
+              loading={saveMutation.isPending}
+              onClick={() => draft && saveMutation.mutate(draft)}
+            >
+              {saveMutation.isPending ? "Saving…" : "Save"}
+            </Button>
+          </>
+        }
+      />
+      {showResearch && canShowResearch && research && (
+        <ResearchSourcesPanel research={research} onClose={() => setShowResearch(false)} />
+      )}
+    </>
   );
 }
