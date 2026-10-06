@@ -71,10 +71,15 @@ projects:
                 value: "false"
               - key: APP_NAME
                 value: Mint
+              # gemini-2.5-flash was retired by Google for new API usage
+              # (confirmed live, 2026-10-06: "no longer available to new
+              # users... use models/gemini-3.8-flash"). Discovered only after
+              # fixing the per-loop DB engine bug, which had been masking every
+              # downstream failure including this one.
               - key: GEMINI_MODEL
-                value: gemini-2.5-flash
+                value: gemini-3.8-flash
               - key: GEMINI_MODEL_RESEARCH
-                value: gemini-2.5-flash
+                value: gemini-3.8-flash
               - key: GEMINI_MAX_TOKENS
                 value: "32768"
               - key: GEMINI_THINKING_BUDGET
