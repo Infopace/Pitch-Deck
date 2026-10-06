@@ -2,6 +2,8 @@
 Async database engine and session factory.
 Supports both PostgreSQL (asyncpg) and SQLite (aiosqlite) for local dev.
 """
+import asyncio
+import threading
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
@@ -10,6 +12,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import DeclarativeBase
 from loguru import logger
 
@@ -61,10 +64,94 @@ AsyncSessionFactory = async_sessionmaker(
 )
 
 
+# ─── Per-loop engines for background threads ──────────────────────────────────
+# An asyncpg connection belongs permanently to the event loop that opened it.
+# `engine` above is a QueuePool owned by uvicorn's loop, so a background thread
+# that runs `asyncio.new_event_loop()` and then borrows a pooled connection hits
+#
+#     RuntimeError: ... got Future ... attached to a different loop
+#
+# on its first query, followed by `InternalClientError: got result for unknown
+# protocol state N` — two loops driving one socket corrupts asyncpg's protocol
+# state, and the poisoned connection then goes back into the shared pool where
+# an ordinary request can pick it up.
+#
+# So each foreign loop gets its own engine, with NullPool: connections are
+# opened and closed per use and never outlive the loop that created them. That
+# costs a connect per query, which is irrelevant next to a minutes-long deck
+# generation, and it holds zero idle Supabase connections between queries.
+_loop_engines: "dict[int, tuple]" = {}
+_loop_engines_lock = threading.Lock()
+
+
+def _session_factory_for_current_loop() -> async_sessionmaker:
+    """Session factory bound to an engine owned by the running loop.
+
+    On uvicorn's own loop this returns the shared pooled factory unchanged, so
+    the request path keeps its connection pool and nothing about it changes.
+    """
+    running = asyncio.get_running_loop()
+    if running is _main_loop or _main_loop is None:
+        return AsyncSessionFactory
+
+    key = id(running)
+    with _loop_engines_lock:
+        existing = _loop_engines.get(key)
+        if existing is not None:
+            return existing[1]
+
+        loop_engine = create_async_engine(
+            _db_url,
+            poolclass=NullPool,
+            echo=settings.app_debug,
+            future=True,
+            **({} if "sqlite" in _db_url else {
+                "connect_args": {
+                    "prepared_statement_cache_size": 0,
+                    "statement_cache_size": 0,
+                },
+            }),
+        )
+        factory = async_sessionmaker(
+            bind=loop_engine,
+            class_=AsyncSession,
+            expire_on_commit=False,
+            autoflush=False,
+            autocommit=False,
+        )
+        _loop_engines[key] = (loop_engine, factory)
+        logger.info(f"🧵 Created a NullPool engine for background loop {key}")
+        return factory
+
+
+#: uvicorn's loop, recorded at startup by init_db(). Until then it is None and
+#: every caller gets the shared factory, which is correct: nothing runs in a
+#: background loop before the app has started.
+_main_loop: Optional[asyncio.AbstractEventLoop] = None
+
+
+async def dispose_loop_engine() -> None:
+    """Dispose the current loop's engine. Call before closing a worker loop."""
+    try:
+        key = id(asyncio.get_running_loop())
+    except RuntimeError:
+        return
+    with _loop_engines_lock:
+        entry = _loop_engines.pop(key, None)
+    if entry is not None:
+        await entry[0].dispose()
+        logger.info(f"🧵 Disposed background loop engine {key}")
+
+
 @asynccontextmanager
 async def get_db_context() -> AsyncGenerator[AsyncSession, None]:
-    """Context manager for non-request DB sessions (e.g. background tasks)."""
-    async with AsyncSessionFactory() as session:
+    """Context manager for non-request DB sessions (e.g. background tasks).
+
+    Picks the factory for whichever loop is running, so the same call works on
+    the request path and inside a background thread.
+    """
+    factory = _session_factory_for_current_loop()
+    async with factory() as session:
         try:
             yield session
             await session.commit()
@@ -90,6 +177,11 @@ async def init_db() -> None:
     Runs create_all to ensure all required tables exist (idempotent across both
     PostgreSQL and SQLite).
     """
+    # Record uvicorn's loop so _session_factory_for_current_loop() can tell the
+    # request path from a background thread's loop.
+    global _main_loop
+    _main_loop = asyncio.get_running_loop()
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

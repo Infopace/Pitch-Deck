@@ -56,9 +56,14 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
             await db.execute(update(Project).where(Project.id == project_id).values(**kwargs))
 
     logger.info(f"🚀 Pipeline starting | project={project_id} job={job_id}")
-    await update_job(status="running", started_at=datetime.now(timezone.utc))
 
     try:
+        # Inside the try: a background thread's event loop can make even this
+        # first write fail (see session.py's per-loop engine comment), and
+        # that failure must land in the except block below like any other, or
+        # the job is stuck "pending" forever with nothing to explain why.
+        await update_job(status="running", started_at=datetime.now(timezone.utc))
+
         # Load project data
         async with get_db_context() as db:
             _proj = await db.get(Project, project_id)
@@ -281,7 +286,13 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
 # ─── Wrapper for background task ──────────────────────────────────────────
 
 async def _run_analysis_safe(project_id: str, job_id: str) -> None:
-    """Safe wrapper for background analysis."""
+    """Thin wrapper around _run_analysis_inline, run inside the background
+    thread's own event loop (see run_in_thread). Despite the name this does
+    NOT swallow errors: _run_analysis_inline catches and records its own
+    failures on the job row, so letting an unexpected exception propagate here
+    is what makes run_in_thread's except block fire — the only path left for
+    logging a failure that couldn't even be written to the database.
+    """
     logger.info(f"🚀 Starting background analysis | project={project_id} job={job_id}")
     
     # Immediate database update to confirm thread is running
@@ -296,11 +307,13 @@ async def _run_analysis_safe(project_id: str, job_id: str) -> None:
     except Exception as e:
         logger.error(f"❌ Failed to update job immediately: {e}")
     
-    try:
-        await _run_analysis_inline(project_id, job_id)
-        logger.info(f"✅ Background analysis completed | project={project_id}")
-    except Exception as e:
-        logger.exception(f"❌ Background analysis failed | project={project_id} | error={e}")
+    # _run_analysis_inline already catches its own errors and records them on
+    # the job (status="failed", error=...). It only re-raises when even THAT
+    # failed — e.g. the per-loop DB engine itself could not be created — in
+    # which case there is no record in the database and the caller (run_in_thread)
+    # must be the one to log it, since nothing else will.
+    await _run_analysis_inline(project_id, job_id)
+    logger.info(f"✅ Background analysis completed | project={project_id}")
 
 
 def _schedule_background_task(project_id: str, job_id: str):
@@ -309,18 +322,28 @@ def _schedule_background_task(project_id: str, job_id: str):
     
     def run_in_thread():
         """Run analysis in a separate thread with its own event loop."""
+        logger.info(f"🚀 Background thread started | project={project_id} job={job_id}")
+        # Create a new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         try:
-            logger.info(f"🚀 Background thread started | project={project_id} job={job_id}")
-            # Create a new event loop for this thread
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                loop.run_until_complete(_run_analysis_safe(project_id, job_id))
-            finally:
-                loop.close()
+            loop.run_until_complete(_run_analysis_safe(project_id, job_id))
             logger.info(f"✅ Background thread completed | project={project_id}")
         except Exception as e:
-            logger.exception(f"❌ Background thread failed | project={project_id} | error={e}")
+            # _run_analysis_safe only re-raises when it could not even record
+            # the failure on the job (see its docstring) — the job is left
+            # stuck, so this has to be loud.
+            logger.exception(
+                f"❌ Background thread failed WITHOUT updating the job record "
+                f"| project={project_id} job={job_id} | error={e}"
+            )
+        finally:
+            from app.db.session import dispose_loop_engine
+            try:
+                loop.run_until_complete(dispose_loop_engine())
+            except Exception:
+                logger.exception(f"⚠️ Failed to dispose loop-local DB engine | project={project_id}")
+            loop.close()
     
     # Start thread as daemon so it doesn't prevent server shutdown
     thread = threading.Thread(target=run_in_thread, daemon=True)
