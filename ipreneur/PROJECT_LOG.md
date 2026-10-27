@@ -1291,3 +1291,84 @@ The thumbnail CSS used `transform: scale(calc(100cqw / 1280))`. `scale()` takes 
 
 `Files: frontend/src/components/ui/Tv404.tsx, frontend/src/pages/NotFoundPage.tsx, frontend/src/index.css, frontend/src/App.tsx, frontend/src/pages/workspace/WorkspacePage.tsx, frontend/src/pages/editor/EditorPage.tsx, frontend/index.html`
 
+---
+
+## Session: 2026-10-27
+
+### 56. Deep-research report: real-world pitch deck parameters vs. what iPreneur generates
+
+**Objective:** Establish what investors actually expect from a pitch deck — slide structure, per-slide content, metrics by funding stage and sector, design/credibility rules, India-specific norms, the competitive landscape — and compare it against the Investor deck iPreneur generates today.
+
+**Findings used to drive the rest of this session's work:**
+- Evidence does not support a flat 20–30-slide main deck: investors give a deck ~2.5–4 minutes and completion drops sharply past ~16 slides. Recommended shape is a core of ~12–18 slides plus a separate appendix (still reaches 20–30 total).
+- No money field in the product was currency-aware; Indian investors expect ₹ with lakh/crore, not USD (→ #58).
+- The New Deck intake form asked every deck type for every field (funding stage, ARR, CAC/LTV, ask amount…) regardless of whether that deck type uses it (→ #57).
+- The investor deck's go-to-market slide reuses the partnership deck's section by mistake; research confidence is overwritten to "HIGH CONFIDENCE" regardless of actual confidence; market figures have no source field.
+- No competitor (Gamma, Beautiful.ai, Slidebean, Canva, Copilot…) documents claim-level source-checking, stage/sector-aware structure, or India-native formats — the open competitive position.
+
+`Report: reports/Pitch deck parameters for iPreneur.md` · `Notes: research_notes/Pitch deck parameters for iPreneur/` (6 files)
+
+---
+
+### 57. New Deck form now asks only the fields each deck type actually uses
+
+**Problem:** The intake form (`NewProjectPage.tsx`) showed the same fixed set of inputs for all 14 deck types — an Investor Update was asked for a raise amount, a Sales deck for ARR — even though the backend's relevance table (`app/profile/relevance.py`, R/C/O/A/N per deck type) already knew which data each type actually consumes.
+
+**Fix:**
+1. **`app/decks/registry.py`:** added `INTAKE_FIELD_PARAMS` (maps each shared form field to a catalogue parameter), `NO_REVENUE_STAGES`/`REVENUE_INTAKE_FIELDS`, and `intake_fields_for(deck_type)`, which returns the shared fields that type uses (with per-stage hide flags for revenue fields at idea/pre-revenue). Exposed on the deck-type payload as `intake_fields`.
+2. **`NewProjectPage.tsx`:** added the `asks(name)` helper, gated every shared field (industry, problem/solution, traction, competitors, funding stage, business model, and all of `NUMBER_FIELDS`) behind it, and strips hidden answers from the payload on submit so a value typed under a previously-selected deck type never reaches the prompt. Gallery upload only shows for deck types with a gallery slide.
+3. **`test_deck_registry.py`:** added `test_intake_fields_map_to_real_parameters`, `test_form_never_hides_what_a_type_requires`, `test_intake_fields_follow_the_deck` — a field a type's `manual_required` demands is always shown, and the mapping can't point at a parameter that doesn't exist.
+
+`Files: backend/app/decks/registry.py, backend/test_deck_registry.py, frontend/src/pages/workspace/NewProjectPage.tsx, frontend/src/services/api/deckTypes.ts`
+
+---
+
+### 58. INR currency support — New Deck form defaults to ₹, with a USD toggle
+
+**Problem:** Every money field in the product (ARR, MRR, CAC, LTV, the ask) was hardcoded to USD, with no way to enter or generate figures in rupees, despite the product's prompts using Indian examples and billing running through Razorpay.
+
+**Fix:**
+1. **`app/core/money.py` (new):** single source of truth for money formatting. `currency_of(user_inputs)` reads the `currency` key from `branding_data` (defaults to `"USD"` for projects saved before this existed). `format_money()` renders `₹1,20,00,000 (₹1.2 Cr)` or `$1,200,000`. `CURRENCY_GUIDANCE` is the prompt sentence telling the model to use lakh/crore and never invent an exchange rate.
+2. **`master_agent.py`, `schemas/intake.py`, `profile/prompt.py`:** all three prompt-building paths (live generation, the legacy `CompanyIntake.to_prompt_section()`, and the profile-based prompt) now call into `money.py` instead of hardcoding `$`.
+3. **`claims_auditor.py`:** `parse_money()` now understands ₹, lakh and crore (not just $/K/M/B), so the claims auditor can still catch an invented number in either currency.
+4. **`NewProjectPage.tsx`:** added a ₹/$ segmented toggle (defaults to INR) in the "Numbers & branding" panel; every money field shows the matching currency icon and states its currency in the hint. Field labels and hints also now spell out abbreviations in full (e.g. "Annual Recurring Revenue (ARR)") with a one-line plain-English definition, so a founder who doesn't already know the term can still answer.
+
+`Files: backend/app/core/money.py (new), backend/app/agents/master/master_agent.py, backend/app/schemas/intake.py, backend/app/profile/prompt.py, backend/app/agents/audit/claims_auditor.py, frontend/src/pages/workspace/NewProjectPage.tsx, frontend/src/components/ui/Input.tsx`
+
+---
+
+### 59. Fixed Pro plan price text ($29 → ₹29 typo → ₹2,500)
+
+**Problem:** An edit meant to switch the billing page from USD to INR replaced `$29/mo` with `Rs 29/mo` — swapping only the currency symbol, not the amount — which would have told real customers the Pro plan costs ₹29/month.
+
+**Fix:** Set the correct price (`₹2,500/mo`, confirmed with the team) and switched both plan labels to the `₹` symbol for consistency with #58. Noted in-code that this text is display-only — the actual charge comes from the Razorpay plan behind `settings.razorpay_pro_plan_id`, which is not yet configured in production (`RAZORPAY_KEY_ID`/`RAZORPAY_PRO_PLAN_ID` are still empty on Cloud Run, so checkout is disabled until that plan is created in the Razorpay dashboard).
+
+`File: backend/app/api/v1/endpoints/billing.py`
+
+---
+
+### 60. Landing page preview now varies by theme, not just by colour
+
+**Problem:** Every theme swatch on the landing page rendered the same static `SAMPLE_DECK` with only its colour tokens swapped — clicking through themes didn't change the cover content.
+
+**Fix:** Replaced the static `SAMPLE_DECK` import with `sampleDeckVariant(previewDeckIndex)`, and set `previewDeckIndex` alongside `previewKey` when a theme swatch is clicked, so each theme shows a genuinely different cover variant.
+
+`File: frontend/src/pages/LandingPage.tsx`
+
+---
+
+### 61. Frontend auto-deploy: GitHub Actions → Firebase Hosting via Workload Identity Federation
+
+**Objective:** The backend already auto-deploys to Cloud Run on every push to `main` (a Cloud Build trigger watching `Infopace/Pitch-Deck`), but the frontend (migrated from Vercel to Firebase Hosting, `pitch-deck-e1d6c`, custom domain `pitchdeck.infopaceindia.com`) had no equivalent — every deploy was a manual `firebase deploy`.
+
+**What was tried and why it changed:** The first workflow used a service-account JSON key stored as a GitHub secret (`FirebaseExtended/action-hosting-deploy`), but the Infopace org enforces `iam.disableServiceAccountKeyCreation` — key creation is blocked outright. Rewritten to use Workload Identity Federation instead: no stored credential at all, GitHub exchanges a short-lived OIDC token for GCP access on each run.
+
+**Setup (one-time, in Google Cloud Console, project `pitch-deck-e1d6c`):**
+1. Service account `github-actions-hosting@pitch-deck-e1d6c.iam.gserviceaccount.com`, roles **Firebase Hosting Admin** + **Service Usage Viewer** (the second role was the actual fix for the first real failure — `firebase deploy`'s startup check calls `serviceusage.googleapis.com` to confirm the Hosting API is enabled, which Hosting Admin alone doesn't cover; without it the run failed with `403 Permission denied to get service [firebasehosting.googleapis.com]`).
+2. Workload Identity Pool `github-actions`, OIDC provider `github` (issuer `https://token.actions.githubusercontent.com`), attribute mapping `attribute.repository = assertion.repository`, condition `assertion.repository == 'Infopace/Pitch-Deck'` — scopes trust to this one repo.
+3. That provider granted impersonation of the service account, restricted to `repository == 'Infopace/Pitch-Deck'`.
+
+**Workflow (`.github/workflows/firebase-hosting-deploy.yml`):** triggers on push to `main` touching `ipreneur/frontend/**`, builds with Node 20, authenticates via `google-github-actions/auth@v2` (WIF), then `firebase deploy --only hosting --project pitch-deck-e1d6c --non-interactive`. Verified end to end: pushing a change deploys within ~1 minute and `pitch-deck-e1d6c.web.app`'s `Last-Modified` header matches the workflow run time.
+
+`Files: .github/workflows/firebase-hosting-deploy.yml (new)`
+
