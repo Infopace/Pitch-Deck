@@ -10,6 +10,7 @@ instead of being retyped per type.
 Everything these functions return is plain text destined for a single `{}` slot
 in the prompt's f-string, so the JSON braces inside need no escaping.
 """
+from datetime import date
 from typing import Optional, Sequence
 
 from app.decks.registry import (
@@ -24,6 +25,50 @@ from app.decks.sections import SECTION_SPECS
 _LEGACY_LAYOUTS = {"full_bleed", "big_number", "cards", "two_column", "market_sizing", "timeline", "title_bullets"}
 
 
+def upcoming_quarters(today: Optional[date] = None, n: int = 4) -> list[str]:
+    """`n` quarter labels starting with the quarter we are in, e.g. "Q4 2026".
+
+    The roadmap slides show these verbatim, so they have to come from the real
+    calendar. The model has no clock: left to itself it picks the year its
+    training data feels like "now", which put a 2026 roadmap on 2025 quarters.
+    """
+    today = today or date.today()
+    q = (today.month - 1) // 3          # 0-3
+    year = today.year
+    labels = []
+    for _ in range(n):
+        labels.append(f"Q{q + 1} {year}")
+        q += 1
+        if q == 4:
+            q, year = 0, year + 1
+    return labels
+
+
+def resolve_dates(text: str, today: Optional[date] = None) -> str:
+    """Fill the date markers used in section skeletons and rules.
+
+    @Q1@..@Q4@ become plain "Q1".."Q4": roadmap phases are labelled by quarter
+    only, with no year, so a label can never disagree with the calendar.
+    @YEAR@ is the current calendar year, for the few places that need one.
+    """
+    today = today or date.today()
+    out = text.replace("@YEAR@", str(today.year))
+    for n in range(1, 5):
+        out = out.replace(f"@Q{n}@", f"Q{n}")
+    return out
+
+
+def build_date_context(today: Optional[date] = None) -> str:
+    """One block telling the model what 'now' is, and how to date things."""
+    today = today or date.today()
+    return (
+        f"TODAY'S DATE: {today.strftime('%d %B %Y').lstrip('0')}.\n"
+        "DATING RULES: Roadmap and plan phases are labelled by quarter only — \"Q1\", \"Q2\",\n"
+        "\"Q3\", \"Q4\" — never with a year. Events that already happened (founding, launches,\n"
+        "funding, traction history) must be dated at or before today, never after."
+    )
+
+
 def build_type_header(
     deck_type: Optional[str],
     *,
@@ -33,6 +78,7 @@ def build_type_header(
     """Audience, goal, per-type guidance, plus stage and format modifiers."""
     dt: DeckType = get_deck_type(deck_type)
     parts = [
+        build_date_context(),
         f"DECK TYPE: {dt.label}",
         f"AUDIENCE: {dt.audience}",
         f"GOAL: {dt.goal}",
@@ -68,7 +114,7 @@ def build_section_rules(sections: Sequence[str]) -> str:
         if not spec or not spec.rules:
             continue
         blocks.append(f"  Slide {i} ({spec.label}) — template_data.{key}:\n" +
-                      "\n".join(f"    {line}" for line in spec.rules.splitlines()))
+                      "\n".join(f"    {line}" for line in resolve_dates(spec.rules).splitlines()))
     return "\n\n".join(blocks)
 
 
@@ -78,7 +124,7 @@ def build_template_skeleton(sections: Sequence[str]) -> str:
              '    "mark": "1-2 letter monogram",',
              '    "tagline": "one-line value proposition",',
              '    "eyebrow": "<the deck-type eyebrow given above>",',
-             '    "year": "2026",',
+             f'    "year": "{date.today().year}",',
              '    "round": "context line under the company name on the cover",',
              '    "theme_suggestion": "one of: meridian, onyx, abyss, nocturne, forest, verdant, indigo, editorial, terra, slate",']
     entries = []
@@ -86,7 +132,7 @@ def build_template_skeleton(sections: Sequence[str]) -> str:
         spec = SECTION_SPECS.get(key)
         if not spec or not spec.model or not spec.skeleton:
             continue
-        entries.append(f'    "{key}": {spec.skeleton}')
+        entries.append(f'    "{key}": {resolve_dates(spec.skeleton)}')
     return "{\n" + "\n".join(lines) + "\n" + ",\n".join(entries) + "\n  }"
 
 

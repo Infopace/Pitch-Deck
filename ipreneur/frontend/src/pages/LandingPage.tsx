@@ -19,7 +19,7 @@ import {
 
 import HeroSection from "@/components/landing/HeroSection";
 import { THEMES, getTheme, ensureDeckFonts } from "@/components/workspace/deckTemplates/themes";
-import { SAMPLE_DECK } from "@/components/workspace/deckTemplates/sampleDeck";
+import { SAMPLE_DECK, sampleDeckVariant } from "@/components/workspace/deckTemplates/sampleDeck";
 import { renderSlide } from "@/components/workspace/deckTemplates/TemplatedDeck";
 import { FitSlide } from "@/components/workspace/deckTemplates/FitSlide";
 import { VIEW_CTX } from "@/components/workspace/deckTemplates/editing/editableText";
@@ -75,28 +75,28 @@ const DECK_GROUPS: {
       blurb: "From a five-slide teaser to a full narrative for a partner meeting.",
       keys: ["investor", "demoday", "elevator", "update"],
       img: "/images/template_fintech.jpg",
-      alt: "A faceted green glass and brass sculpture on a travertine plinth",
+      alt: "A teal and amber glass sculpture balanced at an angle",
     },
     {
       group: "Selling and going to market",
       blurb: "Decks aimed at a buyer or a partner rather than an investor.",
       keys: ["sales", "gtm", "product", "partnership"],
       img: "/images/template_ai_saas.jpg",
-      alt: "A polished black iridescent knot suspended in a white gallery",
+      alt: "A white disc balanced on a small sage cube atop a pale plinth",
     },
     {
       group: "Explaining the company",
       blurb: "The longer documents — for a board, a bank, or a new hire.",
       keys: ["general", "business", "vision", "master"],
       img: "/images/template_enterprise.jpg",
-      alt: "A travertine and reeded-glass architectural installation",
+      alt: "A geodesic concrete pavilion with illuminated figure sculptures in a reflecting pool",
     },
     {
       group: "Deciding internally",
       blurb: "A written argument for a decision your team has to make.",
       keys: ["internal"],
       img: "/images/template_deeptech.jpg",
-      alt: "A swept white and carbon-fibre form against a concrete column",
+      alt: "A swept glossy white and graphite sculptural form",
     },
   ];
 
@@ -255,7 +255,7 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-8 flex gap-1.5 overflow-x-auto pb-2">
-            {THEMES.map((t) => (
+            {THEMES.map((t, i) => (
               <button
                 key={t.key}
                 onClick={() => setPreviewKey(t.key)}
@@ -267,7 +267,7 @@ export default function LandingPage() {
                   border: t.key === previewKey ? `2px solid ${t.accent}` : "2px solid rgba(0,0,0,.10)",
                 }}
               >
-                <FitSlide render={() => renderSlide(t, SAMPLE_DECK, 0, VIEW_CTX, ORDER)} />
+                <FitSlide render={() => renderSlide(t, sampleDeckVariant(i), 0, VIEW_CTX, ORDER)} />
               </button>
             ))}
           </div>
@@ -324,7 +324,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid gap-px bg-slate-200/70 md:grid-cols-2 lg:grid-cols-4">
-            {families.map(([fam, list]) => (
+            {families.map(([fam, list], famIdx) => (
               <div key={fam} className="l-panel p-7">
                 <div className="mb-3 flex items-baseline justify-between">
                   <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-900">{fam}</h3>
@@ -332,12 +332,12 @@ export default function LandingPage() {
                 </div>
                 <p className="l-body mb-5 text-[13px] leading-relaxed">{FAMILY_NOTES[fam]}</p>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {list.slice(0, 4).map((t) => (
+                  {list.slice(0, 4).map((t, i) => (
                     <span
                       key={t.key}
                       className="overflow-hidden rounded border border-slate-200"
                     >
-                      <FitSlide render={() => renderSlide(t, SAMPLE_DECK, 0, VIEW_CTX, ORDER)} />
+                      <FitSlide render={() => renderSlide(t, sampleDeckVariant(famIdx * 4 + i), 0, VIEW_CTX, ORDER)} />
                     </span>
                   ))}
                 </div>

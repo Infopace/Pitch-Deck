@@ -20,7 +20,7 @@ import {
 } from "@/components/workspace/deckTemplates/themes";
 import type { DeckTemplate } from "@/components/workspace/deckTemplates/themes";
 import { slideOrder } from "@/components/workspace/deckTemplates/deckTypes";
-import { SAMPLE_DECK as SAMPLE } from "@/components/workspace/deckTemplates/sampleDeck";
+import { SAMPLE_DECK as SAMPLE, sampleDeckVariant } from "@/components/workspace/deckTemplates/sampleDeck";
 import type { TemplateDeckData } from "@/components/workspace/deckTemplates/types";
 
 /** A short, realistic deck so every template renders with plausible content
@@ -63,7 +63,7 @@ function useFitScale() {
   return { ref, scale };
 }
 
-function Thumb({ t, index = 0 }: { t: DeckTemplate; index?: number }) {
+function Thumb({ t, index = 0, data = SAMPLE }: { t: DeckTemplate; index?: number; data?: TemplateDeckData }) {
   const { ref, scale } = useFitScale();
   return (
     <div
@@ -82,7 +82,7 @@ function Thumb({ t, index = 0 }: { t: DeckTemplate; index?: number }) {
             transformOrigin: "top left",
           }}
         >
-          {renderSlide(t, SAMPLE, index, undefined, ORDER)}
+          {renderSlide(t, data, index, undefined, ORDER)}
         </div>
       )}
     </div>
@@ -174,35 +174,42 @@ export default function TemplatesPage() {
         </div>
       )}
 
-      {groups.map((f) => (
-        <section key={f.id} className="mb-10">
-          <div className="mb-3 flex items-baseline gap-3">
-            <h2 className="text-[15px] font-bold text-slate-900">{f.label}</h2>
-            <span className="text-[13px] text-slate-400">{f.note}</span>
-          </div>
+      {(() => {
+        let runningIndex = 0;
+        return groups.map((f) => {
+          const startIdx = runningIndex;
+          runningIndex += f.items.length;
+          return (
+            <section key={f.id} className="mb-10">
+              <div className="mb-3 flex items-baseline gap-3">
+                <h2 className="text-[15px] font-bold text-slate-900">{f.label}</h2>
+                <span className="text-[13px] text-slate-400">{f.note}</span>
+              </div>
 
-          <div className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(248px,1fr))]">
-            {f.items.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setPreview(t)}
-                className="group text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 rounded-xl"
-              >
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:border-slate-300">
-                  <Thumb t={t} />
-                </div>
-                <div className="mt-2.5 px-0.5">
-                  <div className="text-[14px] font-semibold text-slate-900">{t.name}</div>
-                  <div className="text-[12.5px] text-slate-500">
-                    {t.mood} · {t.mode === "dark" ? "Dark" : "Light"}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      ))}
+              <div className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(248px,1fr))]">
+                {f.items.map((t, i) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setPreview(t)}
+                    className="group text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 rounded-xl"
+                  >
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:border-slate-300">
+                      <Thumb t={t} data={sampleDeckVariant(startIdx + i)} />
+                    </div>
+                    <div className="mt-2.5 px-0.5">
+                      <div className="text-[14px] font-semibold text-slate-900">{t.name}</div>
+                      <div className="text-[12.5px] text-slate-500">
+                        {t.mood} · {t.mode === "dark" ? "Dark" : "Light"}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          );
+        });
+      })()}
 
       {/* Preview */}
       {preview && (

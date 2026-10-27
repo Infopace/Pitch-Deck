@@ -4,6 +4,11 @@
 !.env.example
 *.key
 *.pem
+env.cloudrun.yaml
+*.cloudrun.yaml
+_gen_cloudrun_env.py
+.firebase/
+stitch_modern_interface_redesign.zip
 
 # ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
@@ -32,6 +37,9 @@ dist/
 
 # ─── Crawl / generated artifacts ──────────────────────────────────────────────
 crawl_output.json
+
+# ─── Local design references (not part of the shipped app) ───────────────────
+/design-reference/
 
 # ─── OS / editor ──────────────────────────────────────────────────────────────
 .DS_Store

@@ -112,10 +112,12 @@ class Settings(BaseSettings):
     log_level: str = "DEBUG"
 
     # ── Billing ──────────────────────────────────────────────────────────────
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
-    stripe_pro_price_id: str = ""
-    stripe_enterprise_price_id: str = ""
+    #: Razorpay. Empty key id/secret leaves checkout disabled (503).
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+    razorpay_webhook_secret: str = ""
+    #: Id of the monthly Pro plan created in the Razorpay dashboard (plan_xxx).
+    razorpay_pro_plan_id: str = ""
 
     # ── Crawler ──────────────────────────────────────────────────────────────
     playwright_headless: bool = True

@@ -275,7 +275,7 @@ In the legacy slides[] entry for this slide (layout market_sizing), also fill:
     card the founder gave no data for, and omit cards entirely if none was given.
   bullet_points -- exactly 3 yearly projections computed from the founder's MRR/ARR and
     growth rate (Year N MRR = X * (1+G)^(12N)), each written as
-    '**FY2026:** $X ARR - N customers - milestone'."""
+    '**FY@YEAR@:** $X ARR - N customers - milestone', starting with the current year."""
 
 
 # Skeletons are copied verbatim from the original hand-written prompt so the
@@ -354,8 +354,8 @@ SECTION_SPECS: dict[str, SectionSpec] = {
         renderer="roadmap", layout="timeline", label="Roadmap",
         prompt="4 dated future milestones",
         model=RoadmapSection, caps={"items": 4},
-        skeleton='{"headline": "...", "sub": "...", "items": [{"q": "Q1 2026", "t": "...", "d": "..."}, {"q": "Q2 2026", "t": "...", "d": "..."}, {"q": "Q3 2026", "t": "...", "d": "..."}, {"q": "Q4 2026", "t": "...", "d": "..."}]}',
-        rules="roadmap.items = 4 real future milestones with quarter labels.",
+        skeleton='{"headline": "...", "sub": "...", "items": [{"q": "@Q1@", "t": "...", "d": "..."}, {"q": "@Q2@", "t": "...", "d": "..."}, {"q": "@Q3@", "t": "...", "d": "..."}, {"q": "@Q4@", "t": "...", "d": "..."}]}',
+        rules="roadmap.items = 4 real future milestones with quarter labels, labelled exactly 'Q1', 'Q2', 'Q3', 'Q4' with no year.",
     ),
 
     "galleryS": SectionSpec(
@@ -466,7 +466,7 @@ SECTION_SPECS: dict[str, SectionSpec] = {
         renderer="roadmap", layout="timeline", label="Go-to-Market Together",
         prompt="the joint launch plan in 4 dated phases",
         model=RoadmapSection, caps={"items": 4},
-        skeleton='{"headline": "...", "sub": "...", "items": [{"q": "Phase 1 · Q1 2026", "t": "Pilot", "d": "..."}, {"q": "Phase 2 · Q2 2026", "t": "...", "d": "..."}, {"q": "Phase 3 · Q3 2026", "t": "...", "d": "..."}, {"q": "Phase 4 · Q4 2026", "t": "...", "d": "..."}]}',
+        skeleton='{"headline": "...", "sub": "...", "items": [{"q": "Phase 1 · @Q1@", "t": "Pilot", "d": "..."}, {"q": "Phase 2 · @Q2@", "t": "...", "d": "..."}, {"q": "Phase 3 · @Q3@", "t": "...", "d": "..."}, {"q": "Phase 4 · @Q4@", "t": "...", "d": "..."}]}',
         rules="Each phase names the joint activity and which side owns it.",
     ),
 
@@ -475,7 +475,7 @@ SECTION_SPECS: dict[str, SectionSpec] = {
         renderer="summary", layout="big_number", label="Recommendation",
         prompt="lead with the decision being asked for, then the 4 numbers that justify it",
         model=SummarySection, caps={"highlights": 4},
-        skeleton='{"headline": "the recommendation as a single imperative sentence — \'Approve X to achieve Y\'", "lead": "2 sentences on what this unlocks and what it costs", "highlights": [{"k": "$420K", "l": "Investment"}, {"k": "14 mo", "l": "Payback"}, {"k": "+18%", "l": "Retention lift"}, {"k": "Q3 2026", "l": "Live by"}]}',
+        skeleton='{"headline": "the recommendation as a single imperative sentence — \'Approve X to achieve Y\'", "lead": "2 sentences on what this unlocks and what it costs", "highlights": [{"k": "$420K", "l": "Investment"}, {"k": "14 mo", "l": "Payback"}, {"k": "+18%", "l": "Retention lift"}, {"k": "@Q3@", "l": "Live by"}]}',
         rules=(
             "This is an internal decision memo opening — answer first, evidence second.\n"
             "The headline must state the actual decision requested, not describe a topic."
@@ -654,7 +654,7 @@ SECTION_SPECS: dict[str, SectionSpec] = {
         renderer="roadmap", layout="timeline", label="Scale Plan",
         prompt="how distribution scales over 4 dated phases — geography, hiring, channels",
         model=RoadmapSection, caps={"items": 4},
-        skeleton='{"headline": "...", "sub": "...", "items": [{"q": "Q1 2026", "t": "Phase", "d": "what expands, and the hire or channel it depends on"}, {"q": "Q2 2026", "t": "...", "d": "..."}, {"q": "Q3 2026", "t": "...", "d": "..."}, {"q": "Q4 2026", "t": "...", "d": "..."}]}',
+        skeleton='{"headline": "...", "sub": "...", "items": [{"q": "@Q1@", "t": "Phase", "d": "what expands, and the hire or channel it depends on"}, {"q": "@Q2@", "t": "...", "d": "..."}, {"q": "@Q3@", "t": "...", "d": "..."}, {"q": "@Q4@", "t": "...", "d": "..."}]}',
         rules="Each phase names the constraint it removes, not just the activity.",
     ),
 
@@ -753,6 +753,115 @@ SECTION_SPECS: dict[str, SectionSpec] = {
         ),
     ),
 }
+
+
+# ─── Appendix evidence sections ───────────────────────────────────────────────
+#
+# The spec defines the Appendix as "the evidence layer for your entire system":
+# the main deck says "TAM is $5B", the appendix shows the methodology, the
+# assumptions, the source and the calculation. Each evidence section below is a
+# *view onto an existing section's renderer* (so no new React or PPTX code) with
+# a different job: show the workings, not the headline.
+#
+# `EVIDENCE_SECTIONS` is ordered — it is the A1..A20 order from the spec — and
+# names the profile groups whose data justifies including the slide. A slide
+# whose groups are all empty is dropped rather than rendered as filler; that is
+# what "dynamically generated from the company's available data" means.
+
+_EVIDENCE_RULES = (
+    "APPENDIX OVERRIDE — where this conflicts with anything above (e.g. an instruction to\n"
+    "estimate or to always fill a field), this wins.\n"
+    "This is an APPENDIX slide: its job is to let a diligence reader check a claim made\n"
+    "elsewhere in the deck. Show the workings — inputs, method, assumptions — not a pitch.\n"
+    "State the source and the period for every figure in sub or the labels (e.g. \"Source:\n"
+    "company ledger, FY25\"). Mark anything estimated or unverified as such. Use ONLY figures\n"
+    "present in the provided company data or research; where the data does not support a\n"
+    "field, leave it empty rather than estimating — an appendix with a gap is credible, an\n"
+    "appendix with an invented number is a diligence failure."
+)
+
+# key → (base section to borrow model/renderer/skeleton from, label, prompt, profile groups)
+EVIDENCE_SECTIONS: dict[str, tuple[str, str, str, tuple[str, ...]]] = {
+    "evMarket": ("market", "A1 · Market Sizing Workings",
+                 "TAM/SAM/SOM with the calculation: customer count × average spend, plus sources",
+                 ("market_opportunity", "market_research")),
+    "evCustomer": ("persona", "A2 · Customer Research",
+                   "interviews, surveys and personas behind the customer claims, with sample sizes",
+                   ("customer_research", "customer_icp")),
+    "evCompetitive": ("competition", "A3 · Competitive Analysis",
+                      "the detailed competitor matrix — named competitors, capabilities, pricing",
+                      ("competition",)),
+    "evProduct": ("product", "A4 · Product Details",
+                  "the feature breakdown and core workflows, as built today",
+                  ("product",)),
+    "evArchitecture": ("techIp", "A5 · Technical Architecture",
+                       "architecture, infrastructure and the AI/ML stack where relevant",
+                       ("product_architecture", "technology_and_ip", "ai_ml_conditional")),
+    "evSecurity": ("security", "A6 · Security & Compliance",
+                   "security framework and certifications, each with its true status",
+                   ("security_and_compliance", "compliance")),
+    "evTraction": ("traction", "A7 · Traction Details",
+                   "the revenue, customer and usage metrics behind the traction headline",
+                   ("traction_and_validation", "customer_breakdown")),
+    "evCohort": ("traction", "A8 · Cohorts & Retention",
+                 "cohort retention and expansion data",
+                 ("cohort_and_retention_data", "customer_retention_and_expansion")),
+    "evUnitEconomics": ("unitEconomics", "A9 · Unit Economics",
+                        "the CAC, LTV, payback and margin calculations, with inputs shown",
+                        ("unit_economics",)),
+    "evFunnel": ("funnel", "A10 · Sales Funnel",
+                 "funnel stages, conversion rates and pipeline",
+                 ("sales_funnel", "sales_process", "sales")),
+    "evChannels": ("channels", "A11 · GTM Performance",
+                   "channel-level acquisition data — spend, volume, cost per acquisition",
+                   ("marketing_channels", "acquisition_strategy", "go_to_market")),
+    "evFinancials": ("financials", "A12 · Financial Statements",
+                     "P&L, balance sheet and cash-flow headline figures, with the reporting period",
+                     ("financial_statements", "financials")),
+    "evForecast": ("financials", "A13 · Financial Forecast",
+                   "the forecast and the assumptions it rests on — projections labelled as such",
+                   ("financial_forecast",)),
+    "evFundraising": ("ask", "A14 · Fundraising",
+                      "financing history and the current round",
+                      ("fundraising",)),
+    "evCapTable": ("capTable", "A15 · Cap Table",
+                   "ownership and dilution",
+                   ("cap_table_and_ownership",)),
+    "evLegal": ("security", "A16 · Legal & IP",
+                "corporate structure, IP and material contracts, each with its status",
+                ("legal_and_corporate",)),
+    "evCustomerProof": ("proof", "A17 · Customer Proof",
+                        "testimonials and case studies that can be verified",
+                        ("evidence_and_diligence",)),
+    "evPartnerships": ("partnerships", "A18 · Partnerships",
+                       "partner details and the true status of each relationship",
+                       ("partnerships_and_ecosystem",)),
+    "evRoadmap": ("roadmap", "A19 · Detailed Roadmap",
+                  "the detailed roadmap and milestone dependencies",
+                  ("roadmap_and_milestones",)),
+    "evSources": ("product", "A20 · Sources & Evidence",
+                  "the register of sources, documents and verification status behind the deck's claims",
+                  ("evidence_metadata", "evidence_and_diligence")),
+}
+
+#: Shown when the company has no profile to judge "available data" from. Every
+#: company can account for these, so the Appendix is never an empty shell.
+DEFAULT_EVIDENCE_SECTIONS: tuple[str, ...] = (
+    "evMarket", "evCompetitive", "evProduct", "evTraction", "evRoadmap", "evSources",
+)
+
+
+def _register_evidence_sections() -> None:
+    from dataclasses import replace
+    for key, (base, label, prompt, _groups) in EVIDENCE_SECTIONS.items():
+        b = SECTION_SPECS[base]
+        SECTION_SPECS[key] = replace(
+            b, label=label, prompt=prompt,
+            rules=(b.rules + "\n" if b.rules else "") + _EVIDENCE_RULES,
+        )
+
+
+_register_evidence_sections()
 
 
 # Top-level identity keys, passed through validation untouched.

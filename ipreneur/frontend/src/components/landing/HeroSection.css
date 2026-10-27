@@ -318,14 +318,16 @@
 /* Fanout Cards Common Styles */
 .fanout-card {
   position: relative;
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.82);
+  -webkit-backdrop-filter: saturate(150%) blur(14px);
+  backdrop-filter: saturate(150%) blur(14px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.03);
+  box-shadow: inset 0 1px 0 #ffffff, 0 24px 50px -24px rgba(15, 23, 42, 0.35);
   text-align: left;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease;
   overflow: hidden;
 }
 
@@ -334,16 +336,18 @@
   width: 320px;
   height: 290px;
   z-index: 10;
-  transform: rotateY(16deg) rotateZ(-3deg) translateX(40px) scale(0.92);
-  opacity: 0.92;
+  margin-right: -90px;
+  transform: rotateY(14deg) rotateZ(-4deg) translateY(26px);
+  opacity: 1;
 }
 
 .fanout-card.card-left:hover,
 .fanout-card.card-left.is-focused {
-  transform: rotateY(6deg) rotateZ(-1deg) translateX(15px) scale(0.98);
-  opacity: 1;
+  /* Straightens, lifts and comes in front of the stack. translateZ is
+     needed because preserve-3d sorts by depth, not z-index. */
+  transform: translateZ(80px) translateY(-14px) scale(1.04);
   z-index: 25;
-  box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(16, 185, 129, 0.25);
+  box-shadow: inset 0 1px 0 #ffffff, 0 0 0 1px rgba(37, 99, 235, 0.35), 0 34px 60px -24px rgba(37, 99, 235, 0.45);
 }
 
 /* Center Card (Hero) */
@@ -351,16 +355,17 @@
   width: 440px;
   height: 320px;
   z-index: 20;
-  transform: translateZ(40px) scale(1);
-  border-color: rgba(37, 99, 235, 0.25);
-  box-shadow: 0 25px 65px -15px rgba(37, 99, 235, 0.16), 0 10px 30px -8px rgba(15, 23, 42, 0.12);
+  transform: translateZ(40px) translateY(-6px);
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: inset 0 1px 0 #ffffff, 0 0 0 1px rgba(37, 99, 235, 0.18), 0 34px 60px -24px rgba(37, 99, 235, 0.45);
 }
 
 .fanout-card.card-center:hover,
 .fanout-card.card-center.is-focused {
-  transform: translateZ(60px) translateY(-4px) scale(1.02);
+  transform: translateZ(80px) translateY(-14px) scale(1.04);
+  z-index: 25;
   border-color: rgba(37, 99, 235, 0.45);
-  box-shadow: 0 35px 80px -15px rgba(37, 99, 235, 0.22), 0 12px 35px -8px rgba(15, 23, 42, 0.15);
+  box-shadow: inset 0 1px 0 #ffffff, 0 0 0 1px rgba(37, 99, 235, 0.35), 0 40px 70px -24px rgba(37, 99, 235, 0.55);
 }
 
 /* Right Card */
@@ -368,16 +373,16 @@
   width: 320px;
   height: 290px;
   z-index: 10;
-  transform: rotateY(-16deg) rotateZ(3deg) translateX(-40px) scale(0.92);
-  opacity: 0.92;
+  margin-left: -90px;
+  transform: rotateY(-14deg) rotateZ(4deg) translateY(26px);
+  opacity: 1;
 }
 
 .fanout-card.card-right:hover,
 .fanout-card.card-right.is-focused {
-  transform: rotateY(-6deg) rotateZ(1deg) translateX(-15px) scale(0.98);
-  opacity: 1;
+  transform: translateZ(80px) translateY(-14px) scale(1.04);
   z-index: 25;
-  box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(99, 102, 241, 0.25);
+  box-shadow: inset 0 1px 0 #ffffff, 0 0 0 1px rgba(37, 99, 235, 0.35), 0 34px 60px -24px rgba(37, 99, 235, 0.45);
 }
 
 /* Card Chrome Topbar */
@@ -485,12 +490,69 @@
 .bar-fill {
   width: 100%;
   border-radius: 4px 4px 0 0;
-  background: #cbd5e1;
-  transition: background 0.2s ease;
+  background: linear-gradient(180deg, #2563eb 0%, #93c5fd 100%);
+  opacity: 0.85;
+  transform-origin: bottom;
+  animation: bar-grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: opacity 0.2s ease;
 }
 
 .bar-col.highlight .bar-fill {
-  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  background: linear-gradient(180deg, #1d4ed8 0%, #60a5fa 100%);
+  opacity: 1;
+}
+
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+}
+
+/* Same motion under a second name: switching animation-name on focus
+   restarts it, so the bars replay each time a card comes forward. */
+@keyframes bar-grow-replay {
+  from { transform: scaleY(0); }
+}
+
+.bar-col:nth-child(1) .bar-fill { animation-delay: 0ms; }
+.bar-col:nth-child(2) .bar-fill { animation-delay: 80ms; }
+.bar-col:nth-child(3) .bar-fill { animation-delay: 160ms; }
+.bar-col:nth-child(4) .bar-fill { animation-delay: 240ms; }
+.bar-col:nth-child(5) .bar-fill { animation-delay: 320ms; }
+
+.fanout-card.is-focused .bar-fill {
+  animation-name: bar-grow-replay;
+}
+
+/* Cards fly out of the stack on load, centre card first. Uses the
+   independent `translate` property so it never fights the tilt transforms. */
+@keyframes card-enter {
+  from { opacity: 0; translate: 0 48px; }
+}
+
+.fanout-card.card-center { animation: card-enter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.fanout-card.card-left   { animation: card-enter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s backwards; }
+.fanout-card.card-right  { animation: card-enter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s backwards; }
+
+/* Revenue curve draws itself, then each time the centre card is focused. */
+.growth-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: line-draw 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s backwards;
+}
+
+.fanout-card.is-focused .growth-line {
+  animation-name: line-draw-replay;
+  animation-delay: 0s;
+}
+
+@keyframes line-draw { from { stroke-dashoffset: 1; } }
+@keyframes line-draw-replay { from { stroke-dashoffset: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-fill,
+  .growth-line,
+  .fanout-card.card-left,
+  .fanout-card.card-center,
+  .fanout-card.card-right { animation: none !important; }
 }
 
 .bar-year {
@@ -733,6 +795,7 @@
     width: 100%;
     max-width: 480px;
     height: auto;
+    margin: 0;
     transform: none !important;
     opacity: 1 !important;
   }

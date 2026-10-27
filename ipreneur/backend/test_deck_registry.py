@@ -19,7 +19,12 @@ from app.decks.prompt import (
     build_slides_skeleton,
     build_template_skeleton,
 )
-from app.decks.registry import DEFAULT_DECK_TYPE, serialize_deck_types
+from app.decks.registry import (
+    DEFAULT_DECK_TYPE,
+    INTAKE_FIELD_PARAMS,
+    intake_fields_for,
+    serialize_deck_types,
+)
 
 # Renderer ids implemented in
 # frontend/src/components/workspace/deckTemplates/TemplatedDeck.tsx.
@@ -210,6 +215,33 @@ def test_serialize_deck_types_covers_every_type():
         # The form validates against this list, so it must match the registry.
         assert entry["manual_required"] == list(DECK_TYPES[entry["key"]].manual_required)
     assert by_key["investor"]["manual_required"]
+
+
+def test_intake_fields_map_to_real_parameters():
+    from app.profile.parameters import PARAMETERS
+    for name, param in INTAKE_FIELD_PARAMS.items():
+        assert param in PARAMETERS, f"intake field '{name}' maps to unknown parameter '{param}'"
+
+
+@pytest.mark.parametrize("dt", DECK_TYPES.values(), ids=lambda d: d.key)
+def test_form_never_hides_what_a_type_requires(dt):
+    """A required field the form hides is a project that can never be created."""
+    asked = {f["name"] for f in intake_fields_for(dt.key)}
+    for name in dt.manual_required:
+        if name in INTAKE_FIELD_PARAMS:
+            assert name in asked, f"{dt.key}: requires '{name}' but the form hides it"
+    if dt.stage_overrides:
+        assert "funding_stage" in asked, f"{dt.key}: slide list depends on a stage it never asks for"
+
+
+def test_intake_fields_follow_the_deck():
+    asked = {d["key"]: {f["name"] for f in d["intake_fields"]} for d in serialize_deck_types()}
+    # The investor deck uses every number the form collects…
+    assert asked["investor"] == set(INTAKE_FIELD_PARAMS)
+    # …but an update to existing investors has no raise, and a sales deck no ARR.
+    assert "ask_amount_usd" not in asked["update"]
+    assert "funding_stage" not in asked["update"]
+    assert "arr_usd" not in asked["sales"]
 
 
 # ─── Prompt assembly produces usable text for every type ──────────────────────

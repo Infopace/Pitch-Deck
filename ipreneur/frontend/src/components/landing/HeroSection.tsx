@@ -112,8 +112,11 @@ export default function HeroSection() {
 
         {/* ── 3D FAN-OUT PRESENTATION SHOWCASE ── */}
         <div className="hero-c1-showcase-stage">
-          <div className="hero-c1-fanout-deck">
-            
+          <div
+            className="hero-c1-fanout-deck"
+            onMouseLeave={() => setActiveCard(1)}
+          >
+
             {/* ── SLIDE 1: Market Size (TAM) (Left angled card) ── */}
             <div
               className={`fanout-card card-left ${activeCard === 0 ? "is-focused" : ""}`}
@@ -129,12 +132,12 @@ export default function HeroSection() {
 
               <div className="card-body">
                 <h4 className="card-title">Total Addressable Market (TAM)</h4>
-                <p className="card-caption">Global cloud presentation & automated reporting</p>
+                <p className="card-caption">Global clinical trial recruitment software</p>
 
                 <div className="tam-hero-stat">
                   <span className="tam-label">Global Target</span>
-                  <div className="tam-number">$4.5T</div>
-                  <span className="tam-growth">+28% YoY CAGR</span>
+                  <div className="tam-number">$3.8B</div>
+                  <span className="tam-growth">+22% YoY CAGR</span>
                 </div>
 
                 {/* Bar chart graphic */}
@@ -162,7 +165,7 @@ export default function HeroSection() {
                 </div>
 
                 <div className="card-footer-metric">
-                  <span className="metric-chip">Serviceable Market: $840B</span>
+                  <span className="metric-chip">Serviceable Market: $960M</span>
                 </div>
               </div>
             </div>
@@ -184,7 +187,7 @@ export default function HeroSection() {
                 <div className="center-header-row">
                   <div>
                     <h4 className="card-title">Projected Revenue Growth</h4>
-                    <p className="card-caption">Multi-year ARR scaling model with enterprise tier</p>
+                    <p className="card-caption">Multi-year ARR scaling model, site to enterprise tier</p>
                   </div>
                   <div className="center-live-pill">
                     <span className="live-dot" />
@@ -196,17 +199,17 @@ export default function HeroSection() {
                 <div className="financial-kpi-row">
                   <div className="kpi-box">
                     <span className="kpi-label">Projected ARR</span>
-                    <div className="kpi-val">$8.4M</div>
-                    <span className="kpi-badge text-emerald-600">3.8x Growth</span>
+                    <div className="kpi-val">$17M</div>
+                    <span className="kpi-badge text-emerald-600">6.1x Growth</span>
                   </div>
                   <div className="kpi-box">
                     <span className="kpi-label">Target Margin</span>
-                    <div className="kpi-val">84%</div>
+                    <div className="kpi-val">80%</div>
                     <span className="kpi-badge text-blue-600">SaaS Benchmark</span>
                   </div>
                   <div className="kpi-box">
                     <span className="kpi-label">Net Retention</span>
-                    <div className="kpi-val">138%</div>
+                    <div className="kpi-val">121%</div>
                     <span className="kpi-badge text-emerald-600">Expansion</span>
                   </div>
                 </div>
@@ -230,6 +233,8 @@ export default function HeroSection() {
                       fill="url(#chartGrad)"
                     />
                     <path
+                      className="growth-line"
+                      pathLength={1}
                       d="M 10 75 Q 90 70, 160 50 T 330 14"
                       stroke="url(#strokeGrad)"
                       strokeWidth="3.5"
@@ -269,25 +274,25 @@ export default function HeroSection() {
 
               <div className="card-body">
                 <h4 className="card-title">Founders & Leadership</h4>
-                <p className="card-caption">Proven track record with prior exits in enterprise AI</p>
+                <p className="card-caption">Operators who lived the enrollment bottleneck firsthand</p>
 
                 {/* Team member cards */}
                 <div className="team-members-list">
                   <div className="team-member-card">
-                    <div className="team-avatar avatar-1">SC</div>
+                    <div className="team-avatar avatar-1">NM</div>
                     <div className="team-meta">
-                      <span className="team-name">Sarah Chen</span>
+                      <span className="team-name">Nina Markovic</span>
                       <span className="team-role">CEO & Co-Founder</span>
-                      <span className="team-prev">Ex-Stripe • MIT CS</span>
+                      <span className="team-prev">Ex-IQVIA • Trial Ops</span>
                     </div>
                   </div>
 
                   <div className="team-member-card">
-                    <div className="team-avatar avatar-2">AL</div>
+                    <div className="team-avatar avatar-2">JT</div>
                     <div className="team-meta">
-                      <span className="team-name">Alex Lee</span>
+                      <span className="team-name">Jonah Teller</span>
                       <span className="team-role">CTO & Co-Founder</span>
-                      <span className="team-prev">Ex-Google Brain • Stanford PhD</span>
+                      <span className="team-prev">Ex-Epic • EHR Integrations</span>
                     </div>
                   </div>
                 </div>
@@ -295,34 +300,12 @@ export default function HeroSection() {
                 <div className="card-team-trust">
                   <div className="trust-pill">
                     <Zap size={11} className="text-amber-500" />
-                    <span>Backed by top tier angels & accelerators</span>
+                    <span>Advised by former ops chiefs at IQVIA & Flatiron Health</span>
                   </div>
                 </div>
               </div>
             </div>
 
-          </div>
-        </div>
-      </div>
-
-      {/* ── REAL PRODUCT NUMBERS STATUS RIBBON ── */}
-      <div className="hero-c1-ribbon">
-        <div className="c1-ribbon-grid">
-          <div className="c1-ribbon-col">
-            <span className="c1-ribbon-num">13</span>
-            <span className="c1-ribbon-text">Deck Types (Investor, Demo Day, Sales...)</span>
-          </div>
-          <div className="c1-ribbon-col">
-            <span className="c1-ribbon-num">40</span>
-            <span className="c1-ribbon-text">Themes Switchable with 1-Click</span>
-          </div>
-          <div className="c1-ribbon-col">
-            <span className="c1-ribbon-num">&lt; 60s</span>
-            <span className="c1-ribbon-text">Full Presentation Generation</span>
-          </div>
-          <div className="c1-ribbon-col">
-            <span className="c1-ribbon-num">.pptx</span>
-            <span className="c1-ribbon-text">Native Vector Shapes & Charts</span>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel, field_validator
 
+from app.core.money import CURRENCY_GUIDANCE, Currency, format_money
 from app.decks.registry import DEFAULT_DECK_FORMAT, DEFAULT_DECK_TYPE, get_deck_type
 
 
@@ -69,6 +70,12 @@ class CompanyIntake(BaseModel):
     ask_amount_usd: Optional[float] = None  # How much they're raising
     round_type: Optional[str] = None        # "Seed", "Series A", etc.
 
+    # ── Currency ─────────────────────────────────────────────────────────────
+    # Every *_usd field above is in this currency — the suffix predates the
+    # setting. Defaults to USD so a project saved before this existed, which
+    # was always entered in dollars, keeps rendering the way it always did.
+    currency: Currency = "USD"
+
     @field_validator("website_url")
     @classmethod
     def ensure_scheme(cls, v: str) -> str:
@@ -95,9 +102,12 @@ class CompanyIntake(BaseModel):
             lines.append(f"  Team Size: {self.team_size}")
 
         if self.arr_usd is not None:
-            lines.append(f"  ARR: ${self.arr_usd:,.0f}")
+            lines.append(f"  ARR: {format_money(self.arr_usd, self.currency)}")
         elif self.mrr_usd is not None:
-            lines.append(f"  MRR: ${self.mrr_usd:,.0f}  (implied ARR ~${self.mrr_usd * 12:,.0f})")
+            lines.append(
+                f"  MRR: {format_money(self.mrr_usd, self.currency)}  "
+                f"(implied ARR ~{format_money(self.mrr_usd * 12, self.currency)})"
+            )
 
         if self.total_customers is not None:
             lines.append(f"  Total Customers: {self.total_customers:,}")
@@ -107,9 +117,9 @@ class CompanyIntake(BaseModel):
             lines.append(f"  MoM Growth: {self.growth_rate_mom_pct:.1f}%")
 
         if self.cac_usd is not None:
-            lines.append(f"  CAC: ${self.cac_usd:,.0f}")
+            lines.append(f"  CAC: {format_money(self.cac_usd, self.currency)}")
         if self.ltv_usd is not None:
-            lines.append(f"  LTV: ${self.ltv_usd:,.0f}")
+            lines.append(f"  LTV: {format_money(self.ltv_usd, self.currency)}")
         if self.cac_usd and self.ltv_usd and self.cac_usd > 0:
             lines.append(f"  LTV:CAC: {self.ltv_usd / self.cac_usd:.1f}x")
         if self.churn_rate_pct is not None:
@@ -119,7 +129,7 @@ class CompanyIntake(BaseModel):
 
         if self.ask_amount_usd is not None:
             round_label = self.round_type or "unspecified round"
-            lines.append(f"  Raising: ${self.ask_amount_usd:,.0f} ({round_label})")
+            lines.append(f"  Raising: {format_money(self.ask_amount_usd, self.currency)} ({round_label})")
 
         # The deck type's own questions — for types with no web research these
         # are the only authoritative input the prompt gets.
@@ -138,6 +148,7 @@ class CompanyIntake(BaseModel):
         if lines:
             out.append("FOUNDER-PROVIDED METRICS (treat as ground truth — override inferred data):")
             out.extend(lines)
+            out.append(f"  {CURRENCY_GUIDANCE[self.currency]}")
         if brief_lines:
             if out:
                 out.append("")

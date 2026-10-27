@@ -13,12 +13,14 @@ import asyncio
 import json
 import re
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Optional, Sequence
 
 from loguru import logger
 
 from app.core.config import settings
 from app.core.genai_client import GeminiClientWrapper, make_genai_client
+from app.core.money import CURRENCY_GUIDANCE, currency_of, format_money
 from app.decks.prompt import build_generation_sections
 from app.decks.registry import (
     DEFAULT_DECK_FORMAT,
@@ -224,10 +226,13 @@ class MasterDeckAgent:
         stage: Optional[str] = None,
         deck_format: str = DEFAULT_DECK_FORMAT,
         profile_block: str = "",
+        sections: Optional[Sequence[str]] = None,
     ) -> MasterDeckResult:
         company_name = user_inputs.get("company_name", "")
         dt = get_deck_type(deck_type)
-        sections = resolve_sections(dt.key, stage=stage)
+        # A caller that already resolved the sequence (the dynamic Appendix needs the
+        # company profile to do so) passes it in; otherwise derive it from the registry.
+        sections = tuple(sections) if sections else resolve_sections(dt.key, stage=stage)
         logger.info(
             f"🤖 MasterDeckAgent | url={company_url} | company={company_name or 'auto-detect'} | "
             f"type={dt.key} | slides={len(sections)} | research={dt.research} | pages={pages_crawled}"
@@ -267,7 +272,7 @@ class MasterDeckAgent:
             company_url, website_content,
             team_info or [], pricing_info or [],
             user_inputs, research_data,
-            deck_type=dt.key, sections=sections, stage=stage, deck_format=deck_format,
+            deck_type=dt.key, sections=sections, stage=stage, deck_format=deck_format, profile_block=profile_block,
         )
 
         def _is_transient(e: Exception) -> bool:
@@ -324,7 +329,7 @@ class MasterDeckAgent:
                     company_url, website_content,
                     team_info or [], pricing_info or [],
                     user_inputs, research_data,
-                    deck_type=dt.key, sections=sections, stage=stage, deck_format=deck_format,
+                    deck_type=dt.key, sections=sections, stage=stage, deck_format=deck_format, profile_block=profile_block,
                     compact=True,
                 )
                 raw = await _attempt_generation(compact_prompt)
@@ -375,14 +380,25 @@ class MasterDeckAgent:
                 template_data.setdefault("mark", (branding.company_name or "?")[:1].upper())
                 template_data.setdefault("tagline", branding.tagline)
                 template_data.setdefault("eyebrow", dt.eyebrow)
-                template_data.setdefault("year", "2026")
+                template_data.setdefault("year", str(date.today().year))
+
+            # Second line of defence against invented or inconsistent numbers. Advisory
+            # only - and wrapped so an auditor bug can never cost the founder their deck.
+            audit: dict = {}
+            try:
+                from app.agents.audit.claims_auditor import audit_deck
+                audit = audit_deck(template_data, sections, user_inputs=user_inputs, stage=stage)
+                if audit["counts"]["error"]:
+                    logger.warning(f"claims audit: {audit['counts']} score={audit['score']}")
+            except Exception as audit_exc:
+                logger.warning(f"claims audit skipped: {audit_exc}")
 
             result = MasterDeckResult(
                 branding=branding,
                 slides=slides,
                 deck_title=data.get("deck_title", f"{branding.company_name} — {dt.label}"),
                 deck_subtitle=data.get("deck_subtitle", f"Confidential | {branding.industry}"),
-                research_summary={**research_data, **data.get("research_summary", {})},
+                research_summary={**research_data, **data.get("research_summary", {}), **({"audit": audit} if audit else {})},
                 template_data=template_data,
                 deck_type=dt.key,
                 slide_order=list(sections),
@@ -785,18 +801,19 @@ Return ONLY valid JSON:
         sections = tuple(sections or resolve_sections(deck_type, stage=stage))
         B = build_generation_sections(deck_type, sections, stage=stage, deck_format=deck_format)
 
-        # Format user-provided financials
+        # Format user-provided financials, in the currency the founder entered them in
+        currency = currency_of(u)
         financials = []
         if u.get("arr_usd"):
-            financials.append(f"ARR: ${u['arr_usd']:,.0f}")
+            financials.append(f"ARR: {format_money(u['arr_usd'], currency)}")
         if u.get("mrr_usd"):
-            financials.append(f"MRR: ${u['mrr_usd']:,.0f}")
+            financials.append(f"MRR: {format_money(u['mrr_usd'], currency)}")
         if u.get("total_customers"):
             financials.append(f"Total Customers: {u['total_customers']:,}")
         if u.get("monthly_active_users"):
             financials.append(f"Monthly Active Users: {u['monthly_active_users']:,}")
         if u.get("ask_amount_usd"):
-            financials.append(f"Raising: ${u['ask_amount_usd']:,.0f}")
+            financials.append(f"Raising: {format_money(u['ask_amount_usd'], currency)}")
         if u.get("funding_stage"):
             financials.append(f"Funding Stage: {u['funding_stage']}")
         if u.get("growth_rate_mom_pct"):
@@ -823,9 +840,9 @@ Return ONLY valid JSON:
 
         cac, ltv = _num("cac_usd"), _num("ltv_usd")
         if cac is not None:
-            financials.append(f"CAC: ${cac:,.0f}")
+            financials.append(f"CAC: {format_money(cac, currency)}")
         if ltv is not None:
-            financials.append(f"LTV: ${ltv:,.0f}")
+            financials.append(f"LTV: {format_money(ltv, currency)}")
         if cac and ltv:
             financials.append(f"LTV:CAC: {ltv / cac:.1f}x")
 
@@ -913,6 +930,7 @@ Industry: {industry or "→ extract from website content"}
 
 Founder-provided financials (ground truth — use exactly):
 {financials_block}
+{CURRENCY_GUIDANCE[currency]}
 {brief_block}{profile_section}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 {content_header}

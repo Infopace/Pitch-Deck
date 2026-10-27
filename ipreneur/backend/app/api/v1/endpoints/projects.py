@@ -78,6 +78,7 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
         # company, selected from per deck. Projects with no profile fall back to
         # the flat branding_data path unchanged.
         _profile_block = ""
+        _group_fill = None          # profile group -> filled count; drives the dynamic Appendix
         if _profile_id:
             try:
                 from app.models.models import CompanyProfile
@@ -86,10 +87,15 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
                 async with get_db_context() as db:
                     _profile = await db.get(CompanyProfile, _profile_id)
                 if _profile is not None:
+                    _pv = ProfileValues.load(_profile.values)
+                    from app.decks.registry import profile_group_fill
+                    _group_fill = profile_group_fill(_pv)
+                    from app.core.money import currency_of
                     _profile_block = render_profile_for_deck(
-                        ProfileValues.load(_profile.values),
+                        _pv,
                         _deck_type,
                         stage=(_user_input.get("funding_stage") or None),
+                        currency=currency_of(_user_input),
                     )
             except Exception as exc:
                 # A profile problem must never cost the founder their deck.
@@ -99,7 +105,7 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
         # in branding_data with the rest of the founder's answers.
         _stage = _user_input.get("funding_stage") or None
         _deck_format = _user_input.get("deck_format") or DEFAULT_DECK_FORMAT
-        _sections = resolve_sections(_deck_type, stage=_stage)
+        _sections = resolve_sections(_deck_type, stage=_stage, group_fill=_group_fill)
 
         has_website = bool(_company_url)
 
@@ -146,6 +152,7 @@ async def _run_analysis_inline(project_id: str, job_id: str) -> None:
                 stage=_stage,
                 deck_format=_deck_format,
                 profile_block=_profile_block,
+                sections=_sections,
             )
             logger.info(f"✓ Master agent generated {len(master_result.slides)} slides | type={_deck_type}")
             

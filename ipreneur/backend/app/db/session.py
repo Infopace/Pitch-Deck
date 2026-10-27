@@ -198,6 +198,13 @@ async def init_db() -> None:
                 if col not in cols:
                     await conn.exec_driver_sql(f"ALTER TABLE projects ADD COLUMN {col} {ddl}")
 
+            rows = await conn.exec_driver_sql("PRAGMA table_info('subscriptions')")
+            sub_cols = {r[1] for r in rows.fetchall()}
+            if sub_cols and "razorpay_subscription_id" not in sub_cols:
+                await conn.exec_driver_sql(
+                    "ALTER TABLE subscriptions ADD COLUMN razorpay_subscription_id VARCHAR(255)"
+                )
+
     await check_schema_drift()
 
 

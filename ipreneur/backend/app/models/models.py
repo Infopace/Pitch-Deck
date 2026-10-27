@@ -288,6 +288,7 @@ class Subscription(Base):
         String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True
     )
     stripe_subscription_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
+    razorpay_subscription_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
     plan: Mapped[str] = mapped_column(
         String(20),
         default="free",

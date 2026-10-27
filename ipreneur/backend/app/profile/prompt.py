@@ -13,6 +13,7 @@ Two things it does that the old block could not:
 """
 from typing import Optional, Sequence
 
+from app.core.money import Currency, format_money
 from app.profile.parameters import PARAMETER_GROUPS, PARAMETERS
 from app.profile.relevance import param_relevance, relevance_for
 from app.profile.values import ProfileValues, derive
@@ -26,7 +27,7 @@ _SOURCE_NOTE = {
 }
 
 
-def _fmt(name: str, pv) -> str:
+def _fmt(name: str, pv, currency: Currency = "USD") -> str:
     p = PARAMETERS.get(name)
     label = p.label if p else name.replace("_", " ").title()
     val = pv.value
@@ -39,9 +40,9 @@ def _fmt(name: str, pv) -> str:
     if not val:
         return ""
 
-    if p and p.type == "currency" and not val.startswith("$"):
+    if p and p.type == "currency" and not val.startswith(("$", "₹")):
         try:
-            val = f"${float(str(val).replace(',', '')):,.0f}"
+            val = format_money(float(str(val).replace(",", "")), currency)
         except (TypeError, ValueError):
             pass
     elif p and p.type == "percent" and not val.endswith("%"):
@@ -68,6 +69,7 @@ def render_profile_for_deck(
     deck_type: Optional[str],
     *,
     stage: Optional[str] = None,
+    currency: Currency = "USD",
     include: Sequence[str] = ("R", "C", "O"),
     max_chars: int = 14000,
 ) -> str:
@@ -93,7 +95,7 @@ def render_profile_for_deck(
                 continue
             if param_relevance(deck_type, p.name, stage=stage) == "N":
                 continue
-            line = _fmt(p.name, pv)
+            line = _fmt(p.name, pv, currency)
             if line:
                 lines.append(line)
         if lines:

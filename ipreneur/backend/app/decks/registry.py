@@ -15,9 +15,9 @@ the validator, the PPTX renderer and the frontend all derive from it.
 PPTX renderer uses, and the frontend's render order — is computed from it.
 """
 from dataclasses import dataclass, field
-from typing import Literal, Optional, Sequence
+from typing import Literal, Mapping, Optional, Sequence
 
-from app.decks.sections import SECTION_SPECS
+from app.decks.sections import DEFAULT_EVIDENCE_SECTIONS, EVIDENCE_SECTIONS, SECTION_SPECS
 
 ResearchProfile = Literal["full", "light", "none"]
 
@@ -421,6 +421,29 @@ DECK_TYPES: dict[str, DeckType] = {
             "Because it will be read rather than presented, each slide must stand alone."
         ),
     ),
+
+    "appendix": DeckType(
+        key="appendix",
+        label="Appendix / Evidence",
+        description="The evidence behind every claim. Workings, sources and supporting data.",
+        audience="a diligence reader checking the claims made in the main deck",
+        goal="make every important claim traceable to its source, method and period",
+        eyebrow="Appendix",
+        # Bookends only — the A-slides between them are resolved from the
+        # company's available data (see `resolve_appendix_sections`).
+        sections=("cover", "closing"),
+        research="light",
+        dynamic_sections=True,
+        guidance=(
+            "The Appendix is the evidence layer for the whole deck: where the main deck\n"
+            "states a result, this shows how it was reached. Lead each slide with the\n"
+            "claim it supports, then the method, inputs, source and period.\n"
+            "Every figure carries its provenance. Estimates and unverified data are\n"
+            "labelled as such, and a field the data cannot support is left empty —\n"
+            "never filled. Completeness is not the goal; traceability is."
+        ),
+        manual_required=("company_name",),
+    ),
 }
 
 
@@ -440,7 +463,8 @@ STAGE_EMPHASIS: dict[str, str] = {
     ),
     "seed": (
         "STAGE — SEED: show early product-market-fit evidence — retention, usage depth, "
-        "and the first repeatable acquisition channel."
+        "and the first repeatable acquisition channel. Retention is the single most "
+        "diagnostic metric here; show it only if the founder supplied it."
     ),
     "series_a": (
         "STAGE — SERIES A: the case rests on repeatability. Weight unit economics, "
@@ -484,7 +508,53 @@ def get_deck_type(key: Optional[str]) -> DeckType:
     return DECK_TYPES.get(key or DEFAULT_DECK_TYPE, DECK_TYPES[DEFAULT_DECK_TYPE])
 
 
-def resolve_sections(deck_type: Optional[str], *, stage: Optional[str] = None) -> tuple[str, ...]:
+#: Hard ceiling on a generated Appendix — beyond this the output no longer fits
+#: the model's token budget, and the A20+ "additional evidence" tail is a
+#: reference register rather than slides anyone reads.
+MAX_APPENDIX_SLIDES = 24
+
+
+def resolve_appendix_sections(group_fill: Optional[Mapping[str, int]] = None) -> tuple[str, ...]:
+    """The Appendix slide sequence, built from what the company has told us.
+
+    `group_fill` maps profile group → number of parameters filled. A slide is
+    included when any of its groups has data; with no profile at all (`None`),
+    the default evidence set is used so the deck is never an empty shell.
+    Order follows the spec's A1..A20 order, not fill order.
+    """
+    if group_fill is None:
+        picked = [k for k in EVIDENCE_SECTIONS if k in DEFAULT_EVIDENCE_SECTIONS]
+    else:
+        picked = [
+            k for k, (_b, _l, _p, groups) in EVIDENCE_SECTIONS.items()
+            if any(group_fill.get(g, 0) > 0 for g in groups)
+        ]
+        # The sources register is only meaningful alongside other evidence.
+        if "evSources" in picked and len(picked) == 1:
+            picked = []
+        if not picked:
+            picked = [k for k in EVIDENCE_SECTIONS if k in DEFAULT_EVIDENCE_SECTIONS]
+    picked = picked[: MAX_APPENDIX_SLIDES - 2]
+    return ("cover", *picked, "closing")
+
+
+def profile_group_fill(values) -> dict[str, int]:
+    """Count filled parameters per profile group, for `resolve_appendix_sections`."""
+    from app.profile.parameters import PARAMETERS
+    out: dict[str, int] = {}
+    for name in values:
+        p = PARAMETERS.get(name)
+        if p is not None:
+            out[p.group] = out.get(p.group, 0) + 1
+    return out
+
+
+def resolve_sections(
+    deck_type: Optional[str],
+    *,
+    stage: Optional[str] = None,
+    group_fill: Optional[Mapping[str, int]] = None,
+) -> tuple[str, ...]:
     """The ordered section list for this deck, after any stage override.
 
     This is THE slide sequence — the prompt, the validator, the PPTX renderer
@@ -493,6 +563,8 @@ def resolve_sections(deck_type: Optional[str], *, stage: Optional[str] = None) -
     original order even if this registry later changes.
     """
     dt = get_deck_type(deck_type)
+    if dt.dynamic_sections:
+        return resolve_appendix_sections(group_fill)
     if stage and stage in dt.stage_overrides:
         return dt.stage_overrides[stage]
     return dt.sections
@@ -552,6 +624,75 @@ def required_manual_fields(deck_type: Optional[str]) -> tuple[str, ...]:
     return get_deck_type(deck_type).manual_required
 
 
+#: The shared intake form's fields, each mapped to the catalogue parameter it
+#: feeds. The form shows a field only when that parameter is relevant to the
+#: chosen deck type, so an Investor Update is never asked for a raise amount and
+#: a Sales deck is never asked for ARR. Founders are not listed: the form gates
+#: them on the deck having a team slide, which is the stricter rule.
+INTAKE_FIELD_PARAMS: dict[str, str] = {
+    # The no-website story
+    "industry": "industry",
+    "problem_statement": "problem_statement",
+    "solution_description": "solution_statement",
+    "target_customer": "ideal_customer_profile",
+    "traction_notes": "pilots",
+    "competitor_notes": "direct_competitors",
+    # Framing
+    "funding_stage": "funding_stage",
+    "business_model": "business_model",
+    # Numbers
+    "arr_usd": "arr",
+    "mrr_usd": "mrr",
+    "total_customers": "customers",
+    "monthly_active_users": "active_users",
+    "ask_amount_usd": "amount_raising",
+    "round_type": "amount_raising",
+    "founded_year": "founded_year",
+    "team_size": "team_size",
+    "growth_rate_mom_pct": "revenue_growth",
+    "churn_rate_pct": "churn",
+    "cac_usd": "cac",
+    "ltv_usd": "ltv",
+    "nrr_pct": "nrr",
+}
+
+#: Revenue figures a company at these stages does not have yet. The form hides
+#: them rather than inviting an invented ARR — the same stages whose investor
+#: deck swaps the traction slide for the vision slide.
+NO_REVENUE_STAGES = ("idea", "pre_revenue")
+REVENUE_INTAKE_FIELDS = frozenset({
+    "arr_usd", "mrr_usd", "growth_rate_mom_pct", "churn_rate_pct",
+    "cac_usd", "ltv_usd", "nrr_pct",
+})
+
+
+def intake_fields_for(deck_type: Optional[str]) -> list[dict]:
+    """The shared intake fields this deck type asks for, with their relevance.
+
+    Driven by the relevance table, with two overrides it cannot see: a field the
+    type cannot be created without is always asked, and so is the stage on a
+    type whose slide list changes with it.
+    """
+    from app.profile.relevance import param_relevance
+
+    dt = get_deck_type(deck_type)
+    out = []
+    for name, param in INTAKE_FIELD_PARAMS.items():
+        rel = param_relevance(dt.key, param)
+        if name in dt.manual_required:
+            rel = "R"
+        elif name == "funding_stage" and dt.stage_overrides and rel == "N":
+            rel = "C"
+        if rel == "N":
+            continue
+        out.append({
+            "name": name,
+            "relevance": rel,
+            "hidden_at_stages": list(NO_REVENUE_STAGES) if name in REVENUE_INTAKE_FIELDS else [],
+        })
+    return out
+
+
 def parameter_groups_for(deck_type: Optional[str], *, stage: Optional[str] = None) -> list[dict]:
     """Which profile groups this deck consumes, with their relevance.
 
@@ -581,7 +722,7 @@ def serialize_deck_types() -> list[dict]:
             "label": dt.label,
             "description": dt.description,
             "eyebrow": dt.eyebrow,
-            "slide_count": len(dt.sections),
+            "slide_count": len(resolve_appendix_sections(None)) if dt.dynamic_sections else len(dt.sections),
             "research": dt.research,
             "supports_stages": bool(dt.stage_overrides) or dt.key == "investor",
             # What a no-website project must supply instead of a crawl. The
@@ -590,6 +731,9 @@ def serialize_deck_types() -> list[dict]:
             "manual_required": list(dt.manual_required),
             "dynamic_sections": dt.dynamic_sections,
             "parameter_groups": parameter_groups_for(dt.key),
+            # Which of the shared form's fields this type uses — the form hides
+            # the rest instead of asking every deck for every number.
+            "intake_fields": intake_fields_for(dt.key),
             "brief_fields": [
                 {
                     "name": f.name,

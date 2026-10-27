@@ -94,7 +94,31 @@ const SECTIONS: Record<string, { renderer: RendererId; eyebrow: string }> = {
   security: { renderer: "product", eyebrow: "Security & Compliance" },
   moat: { renderer: "probsol", eyebrow: "Moat & Defensibility" },
   capTable: { renderer: "ask", eyebrow: "Cap Table" },
-  partnerships: { renderer: "product", eyebrow: "Partnerships" },};
+  partnerships: { renderer: "product", eyebrow: "Partnerships" },
+  // ── Appendix evidence sections ─────────────────────────────────────
+  // Views onto existing renderers; which of these a deck contains is decided
+  // at generation time from the company's data and persisted as slide_order.
+  evMarket: { renderer: "market", eyebrow: "Market Sizing Workings" },
+  evCustomer: { renderer: "persona", eyebrow: "Customer Research" },
+  evCompetitive: { renderer: "competition", eyebrow: "Competitive Analysis" },
+  evProduct: { renderer: "product", eyebrow: "Product Details" },
+  evArchitecture: { renderer: "product", eyebrow: "Technical Architecture" },
+  evSecurity: { renderer: "product", eyebrow: "Security & Compliance" },
+  evTraction: { renderer: "traction", eyebrow: "Traction Details" },
+  evCohort: { renderer: "traction", eyebrow: "Cohorts & Retention" },
+  evUnitEconomics: { renderer: "traction", eyebrow: "Unit Economics" },
+  evFunnel: { renderer: "roadmap", eyebrow: "Sales Funnel" },
+  evChannels: { renderer: "competition", eyebrow: "GTM Performance" },
+  evFinancials: { renderer: "traction", eyebrow: "Financial Statements" },
+  evForecast: { renderer: "traction", eyebrow: "Financial Forecast" },
+  evFundraising: { renderer: "ask", eyebrow: "Fundraising" },
+  evCapTable: { renderer: "ask", eyebrow: "Cap Table" },
+  evLegal: { renderer: "product", eyebrow: "Legal & IP" },
+  evCustomerProof: { renderer: "proof", eyebrow: "Customer Proof" },
+  evPartnerships: { renderer: "product", eyebrow: "Partnerships" },
+  evRoadmap: { renderer: "roadmap", eyebrow: "Detailed Roadmap" },
+  evSources: { renderer: "product", eyebrow: "Sources & Evidence" },
+};
 
 export interface DeckTypeSpec {
   key: string;
@@ -182,7 +206,7 @@ export const DECK_TYPES: Record<string, DeckTypeSpec> = {
   },
   elevator: {
     key: "elevator",
-    label: "Elevator / Five Slides",
+    label: "Elevator Pitch",
     description: "Five slides. Hook, problem, product, proof, ask — nothing else.",
     sections: [
       "cover", "probsol", "product", "traction", "closing",
@@ -229,6 +253,14 @@ export const DECK_TYPES: Record<string, DeckTypeSpec> = {
       "partnerships", "competition", "moat", "financials", "ask", "capTable", "roadmap",
       "risks", "team", "closing",
     ],
+  },
+  appendix: {
+    key: "appendix",
+    label: "Appendix / Evidence",
+    description: "The evidence behind every claim. Workings, sources and supporting data.",
+    // Bookends only: the evidence slides between them are resolved per company at
+    // generation time, and the deck's persisted slide_order carries the real list.
+    sections: ["cover", "closing"],
   },
 };
 

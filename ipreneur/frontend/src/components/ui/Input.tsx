@@ -54,6 +54,8 @@ export const Input = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, In
     useInjectStyle("ipr-input-css", CSS);
     const autoId = React.useId();
     const fieldId = id || autoId;
+    // The line under the field (error or hint) is read out with the input.
+    const noteId = error || hint ? `${fieldId}-note` : undefined;
     const inputCls = ["ipr-input", icon ? "ipr-input--icon" : "", error ? "ipr-input--err" : "", className].filter(Boolean).join(" ");
 
     return (
@@ -62,12 +64,12 @@ export const Input = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, In
         <div className="ipr-input-wrap">
           {icon && !multiline ? <span className="ipr-input-wrap__icon" aria-hidden="true">{icon}</span> : null}
           {multiline ? (
-            <textarea id={fieldId} ref={ref as React.Ref<HTMLTextAreaElement>} className={inputCls} rows={rows} {...(props as any)} />
+            <textarea id={fieldId} ref={ref as React.Ref<HTMLTextAreaElement>} className={inputCls} rows={rows} aria-describedby={noteId} {...(props as any)} />
           ) : (
-            <input id={fieldId} ref={ref as React.Ref<HTMLInputElement>} className={inputCls} {...props} />
+            <input id={fieldId} ref={ref as React.Ref<HTMLInputElement>} className={inputCls} aria-describedby={noteId} {...props} />
           )}
         </div>
-        {error ? <span className="ipr-field__err">{error}</span> : hint ? <span className="ipr-field__hint">{hint}</span> : null}
+        {error ? <span id={noteId} className="ipr-field__err">{error}</span> : hint ? <span id={noteId} className="ipr-field__hint">{hint}</span> : null}
       </div>
     );
   }

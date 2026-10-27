@@ -10,6 +10,14 @@ export interface BriefField {
   required: boolean;
 }
 
+/** One shared intake field a deck type uses, by its backend name. */
+export interface IntakeField {
+  name: string;
+  relevance: "R" | "C" | "O";
+  /** Funding stages at which this field is hidden (revenue the company can't have yet). */
+  hiddenAtStages: string[];
+}
+
 export interface DeckTypeOption {
   key: string;
   label: string;
@@ -20,6 +28,8 @@ export interface DeckTypeOption {
   supportsStages: boolean;
   /** Shared form fields this type needs when there is no website to crawl. */
   manualRequired: string[];
+  /** Which shared form fields this type asks for; the form hides the rest. */
+  intakeFields: IntakeField[];
   briefFields: BriefField[];
 }
 

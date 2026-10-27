@@ -36,6 +36,7 @@ const founderSchema = z.object({
 const baseSchema = z.object({
   deckType: z.string().default("investor"),
   deckFormat: z.enum(["presenter", "standalone"]).default("presenter"),
+  currency: z.enum(["INR", "USD"]).default("INR"),
   /* Answers to the selected deck type's own questions, keyed by the
    * backend BriefField.name. Validated at submit against the fetched
    * registry rather than in zod, which cannot see server-driven fields. */
@@ -137,9 +138,66 @@ const SHARED_FIELD_FORM_NAMES: Record<string, string> = {
   traction_notes: "tractionNotes",
   competitor_notes: "competitorNotes",
   founders: "founders",
+  business_model: "businessModel",
+  funding_stage: "fundingStage",
 };
 
 type FormData = z.infer<typeof schema>;
+
+/** The two currencies the form collects money in, and how each is shown. */
+const CURRENCIES: Record<"INR" | "USD", { symbol: string; name: string }> = {
+  INR: { symbol: "₹", name: "Indian Rupees — written as lakh/crore on the slides" },
+  USD: { symbol: "$", name: "US Dollars" },
+};
+type CurrencyCode = keyof typeof CURRENCIES;
+
+/**
+ * The shared numbers, in display order, keyed by backend intake name. Which of
+ * them a deck asks for comes from the registry (`intakeFields`), so an investor
+ * update is never asked for a raise and a sales deck never for ARR.
+ *
+ * Labels spell the abbreviation out and every field carries a one-line
+ * definition: founders who don't already know what NRR is can't answer it.
+ * `money: true` fields are entered in whatever currency is selected above —
+ * their hint and placeholder adjust to match.
+ */
+const NUMBER_FIELDS: { name: string; form: keyof FormData; label: string; placeholder: string; hint: string; text?: boolean; money?: boolean }[] = [
+  { name: "arr_usd", form: "arrUsd", label: "Annual Recurring Revenue (ARR)", placeholder: "e.g. 12000000", money: true,
+    hint: "Subscription revenue that repeats every year, usually MRR × 12." },
+  { name: "mrr_usd", form: "mrrUsd", label: "Monthly Recurring Revenue (MRR)", placeholder: "e.g. 1000000", money: true,
+    hint: "Subscription revenue you collect every month, not counting one-off fees." },
+  { name: "total_customers", form: "totalCustomers", label: "Total customers", placeholder: "e.g. 2500",
+    hint: "Paying customers (people or companies) you have today." },
+  { name: "monthly_active_users", form: "monthlyActiveUsers", label: "Monthly Active Users (MAU)", placeholder: "e.g. 120000",
+    hint: "People who used the product at least once in the last 30 days." },
+  { name: "ask_amount_usd", form: "askAmountUsd", label: "Amount you're raising (the ask)", placeholder: "e.g. 15000000", money: true,
+    hint: "The total investment you want from this round." },
+  { name: "round_type", form: "roundType", label: "Round", placeholder: "e.g. Seed, Series A", text: true,
+    hint: "The name of this funding round: Pre-seed, Seed, Series A and so on." },
+  { name: "founded_year", form: "foundedYear", label: "Founded year", placeholder: "e.g. 2023",
+    hint: "The year the company started or was incorporated." },
+  { name: "team_size", form: "teamSize", label: "Team size", placeholder: "e.g. 12",
+    hint: "Full-time people working on the company today, founders included." },
+  { name: "growth_rate_mom_pct", form: "growthRateMomPct", label: "Month-over-Month growth (MoM %)", placeholder: "e.g. 15",
+    hint: "How much revenue grew from last month to this month, as a percentage." },
+  { name: "churn_rate_pct", form: "churnRatePct", label: "Monthly churn (%)", placeholder: "e.g. 2.5",
+    hint: "The share of customers who cancel or stop paying each month." },
+  { name: "cac_usd", form: "cacUsd", label: "Customer Acquisition Cost (CAC)", placeholder: "e.g. 9000", money: true,
+    hint: "Average spend to win one paying customer." },
+  { name: "ltv_usd", form: "ltvUsd", label: "Customer Lifetime Value (LTV)", placeholder: "e.g. 54000", money: true,
+    hint: "Total profit you expect from one customer before they leave. We compare it with CAC." },
+  { name: "nrr_pct", form: "nrrPct", label: "Net Revenue Retention (NRR %)", placeholder: "e.g. 118",
+    hint: "Revenue kept from last year's customers after upgrades, downgrades and cancellations. Above 100% means they spend more over time." },
+];
+
+/**
+ * Every shared field whose visibility the deck type decides: backend name →
+ * form name. Company name is always asked; founders follow the team slide.
+ */
+const GATED_FIELDS: [string, string][] = [
+  ...Object.entries(SHARED_FIELD_FORM_NAMES).filter(([, form]) => form !== "founders" && form !== "companyName"),
+  ...NUMBER_FIELDS.map((f): [string, string] => [f.name, f.form]),
+];
 
 const EXAMPLES = ["stripe.com", "notion.so", "figma.com", "ramp.com"];
 
@@ -160,6 +218,32 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
   master: Library,
 };
 
+/** Icon-tile tint per deck type (Tailwind 50 / 600 pairs from the redesign). */
+const TYPE_TINTS: Record<string, { bg: string; fg: string }> = {
+  investor: { bg: "#ECFDF5", fg: "#059669" },
+  sales: { bg: "#EFF6FF", fg: "#2563EB" },
+  product: { bg: "#EEF2FF", fg: "#4F46E5" },
+  partnership: { bg: "#FAF5FF", fg: "#9333EA" },
+  internal: { bg: "#FFFBEB", fg: "#D97706" },
+  update: { bg: "#ECFEFF", fg: "#0891B2" },
+  vision: { bg: "#F0FDFA", fg: "#0D9488" },
+  general: { bg: "#F0F9FF", fg: "#0284C7" },
+  elevator: { bg: "#FFF7ED", fg: "#EA580C" },
+  demoday: { bg: "#FFF1F2", fg: "#E11D48" },
+  gtm: { bg: "#F7FEE7", fg: "#65A30D" },
+  business: { bg: "#F5F5F4", fg: "#57534E" },
+  master: { bg: "#F5F3FF", fg: "#7C3AED" },
+};
+
+/** Filter tabs for the deck-type picker. A type belongs to exactly one. */
+const CATEGORIES: { key: string; label: string; types: string[] }[] = [
+  { key: "fundraising", label: "Fundraising", types: ["investor", "update", "demoday", "elevator"] },
+  { key: "sales", label: "Sales & Clients", types: ["sales", "partnership"] },
+  { key: "product", label: "Product", types: ["product"] },
+  { key: "internal", label: "Internal", types: ["internal", "vision"] },
+  { key: "strategy", label: "Strategy", types: ["general", "gtm", "business", "master"] },
+];
+
 /**
  * Readable slide names for the running-order preview.
  *
@@ -177,7 +261,8 @@ const ndS = {
   back: { display: "inline-flex", alignItems: "center", gap: 6, border: 0, background: "none", cursor: "pointer", font: "500 13px var(--font-body)", color: "var(--text-muted)", marginBottom: 22, padding: 0, textDecoration: "none" } as React.CSSProperties,
 
   // ── Step indicator ──────────────────────────────────────────────────────
-  steps: { display: "flex", alignItems: "center", gap: 12, marginBottom: 30 } as React.CSSProperties,
+  topbar: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, paddingBottom: 16, marginBottom: 28, borderBottom: "1px solid var(--border-subtle)" } as React.CSSProperties,
+  steps: { display: "flex", alignItems: "center", gap: 12 } as React.CSSProperties,
   stepBtn: { display: "flex", alignItems: "center", gap: 11, border: 0, background: "none", padding: 0, cursor: "pointer", textAlign: "left" } as React.CSSProperties,
   stepNum: { width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", font: "600 12px var(--font-body)", flexShrink: 0 } as React.CSSProperties,
   stepNumOn: { background: "var(--clay-500)", color: "var(--text-on-brand)", boxShadow: "var(--clay-raise-sm)" } as React.CSSProperties,
@@ -194,27 +279,44 @@ const ndS = {
   // ── Deck type picker ────────────────────────────────────────────────────
   typeGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 } as React.CSSProperties,
   typeCard: { position: "relative", textAlign: "left", padding: "20px 22px 18px", borderRadius: "var(--radius-xl)", border: "1.5px solid var(--glass-edge)", background: "var(--glass-2)", backdropFilter: "var(--glass-blur)", WebkitBackdropFilter: "var(--glass-blur)", boxShadow: "var(--glass-rim), var(--shadow-sm)", cursor: "pointer", transition: "border-color var(--dur-base), background var(--dur-base), box-shadow var(--dur-base)", display: "flex", flexDirection: "column", gap: 10 } as React.CSSProperties,
-  typeCardOn: { borderColor: "var(--border-brand)", background: "var(--brand-subtle)", boxShadow: "var(--glass-rim), 0 8px 22px -6px rgba(255,122,89,.35)" } as React.CSSProperties,
+  typeCardOn: { borderColor: "#10B981", background: "rgba(16,185,129,.06)", boxShadow: "var(--glass-rim), 0 8px 22px -8px rgba(16,185,129,.35)" } as React.CSSProperties,
   typeCardWide: { gridColumn: "1 / -1" } as React.CSSProperties,
   typeTop: { display: "flex", alignItems: "flex-start", gap: 12 } as React.CSSProperties,
-  typeIcon: { width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "var(--clay-500)", color: "var(--text-on-brand)", boxShadow: "var(--clay-raise-sm)" } as React.CSSProperties,
-  typeIconOff: { background: "var(--clay-50)", color: "var(--clay-700)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.95)" } as React.CSSProperties,
+  // Selected / "chosen" tile: slate with an emerald glyph. Unselected tiles take a
+  // per-type tint (TYPE_TINTS) so the nine types read apart at a glance.
+  typeIcon: { width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "#0F172A", color: "#34D399", boxShadow: "var(--clay-raise-sm)" } as React.CSSProperties,
+  typeIconOff: { boxShadow: "none" } as React.CSSProperties,
   typeName: { font: "700 15px var(--font-display)", letterSpacing: "-0.01em", color: "var(--text-strong)" } as React.CSSProperties,
   typeDesc: { marginTop: 4, font: "400 12.5px var(--font-body)", color: "var(--text-muted)", lineHeight: 1.45 } as React.CSSProperties,
   typeCount: { font: "500 11.5px var(--font-body)", color: "var(--text-faint)", whiteSpace: "nowrap", flexShrink: 0, marginLeft: "auto" } as React.CSSProperties,
-  marks: { display: "flex", gap: 3, alignItems: "center" } as React.CSSProperties,
-  mark: { width: 7, height: 3, borderRadius: 2, background: "var(--neutral-400)" } as React.CSSProperties,
-  markOn: { background: "var(--clay-400)" } as React.CSSProperties,
-  tick: { position: "absolute", top: 14, right: 16, width: 18, height: 18, borderRadius: "50%", background: "var(--clay-500)", color: "var(--text-on-brand)", boxShadow: "var(--clay-raise-sm)", display: "flex", alignItems: "center", justifyContent: "center" } as React.CSSProperties,
+  tick: { position: "absolute", top: 14, right: 16, width: 18, height: 18, borderRadius: "50%", background: "#059669", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" } as React.CSSProperties,
 
-  // ── Running order preview ───────────────────────────────────────────────
-  order: { marginTop: 18, padding: "16px 18px", background: "var(--surface-sunken)", borderRadius: "var(--radius-lg)" } as React.CSSProperties,
-  orderHead: { display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 12 } as React.CSSProperties,
-  orderTitle: { font: "600 12.5px var(--font-body)", color: "var(--text-strong)" } as React.CSSProperties,
-  orderMeta: { font: "400 11.5px var(--font-body)", color: "var(--text-faint)" } as React.CSSProperties,
-  chips: { display: "flex", flexWrap: "wrap", gap: 7 } as React.CSSProperties,
-  chip: { font: "500 11.5px var(--font-body)", color: "var(--text-body)", background: "var(--surface-card)", border: "1px solid var(--border-subtle)", borderRadius: 999, padding: "5px 11px" } as React.CSSProperties,
-  chipNum: { color: "var(--text-faint)", marginRight: 5 } as React.CSSProperties,
+  // ── Running order: a side panel beside the picker ───────────────────────
+  // Flex-wrap rather than a media query (these are inline styles): the panel
+  // sits to the right while there is room and drops below the grid when not.
+  split: { display: "flex", flexWrap: "wrap", gap: 20, alignItems: "flex-start" } as React.CSSProperties,
+  splitMain: { flex: "1 1 520px", minWidth: 0 } as React.CSSProperties,
+  order: { flex: "0 0 300px", position: "sticky", top: 24, maxHeight: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: "var(--surface-card)", borderRadius: "var(--radius-xl)", border: "1px solid var(--border-subtle)", boxShadow: "var(--shadow-sm)", overflow: "hidden" } as React.CSSProperties,
+  orderHead: { padding: "16px 18px 14px", borderBottom: "1px solid var(--border-subtle)" } as React.CSSProperties,
+  orderTitleRow: { display: "flex", alignItems: "center", gap: 8 } as React.CSSProperties,
+  orderTitle: { font: "700 11.5px var(--font-body)", letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-strong)" } as React.CSSProperties,
+  orderMeta: { font: "600 11px var(--font-body)", color: "var(--text-muted)", background: "var(--surface-sunken)", borderRadius: 999, padding: "2px 8px", fontVariantNumeric: "tabular-nums" } as React.CSSProperties,
+  orderPreset: { marginTop: 4, font: "400 11.5px var(--font-body)", color: "var(--text-faint)" } as React.CSSProperties,
+  orderList: { listStyle: "none", margin: 0, padding: 0, overflowY: "auto", flex: 1, minHeight: 0 } as React.CSSProperties,
+  // Fixed-width number column so every label starts on the same line.
+  orderRow: { display: "grid", gridTemplateColumns: "26px 1fr", alignItems: "center", columnGap: 12, height: 38, padding: "0 18px", borderTop: "1px solid var(--border-subtle)" } as React.CSSProperties,
+  orderNum: { textAlign: "right", font: "500 11px var(--font-mono, ui-monospace, monospace)", color: "var(--text-faint)", fontVariantNumeric: "tabular-nums" } as React.CSSProperties,
+  orderLabel: { font: "500 12.5px var(--font-body)", color: "var(--text-strong)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } as React.CSSProperties,
+  orderFoot: { padding: 14, borderTop: "1px solid var(--border-subtle)", background: "var(--surface-sunken)" } as React.CSSProperties,
+
+  // ── Category filter ─────────────────────────────────────────────────────
+  filterRow: { display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 } as React.CSSProperties,
+  seg: { display: "inline-flex", flexWrap: "wrap", gap: 2, padding: 3, borderRadius: 12, background: "var(--surface-sunken)", border: "1px solid var(--border-subtle)" } as React.CSSProperties,
+  segBtn: { border: 0, background: "none", cursor: "pointer", padding: "5px 12px", borderRadius: 9, font: "500 12.5px var(--font-body)", color: "var(--text-muted)", transition: "background var(--dur-base), color var(--dur-base)" } as React.CSSProperties,
+  segOn: { background: "var(--surface-card)", color: "var(--text-strong)", fontWeight: 600, boxShadow: "var(--shadow-sm)" } as React.CSSProperties,
+  filterCount: { font: "500 12px var(--font-body)", color: "var(--text-faint)" } as React.CSSProperties,
+  popular: { marginLeft: 8, padding: "2px 8px", borderRadius: 999, font: "600 10px var(--font-body)", letterSpacing: "0.03em", background: "#D1FAE5", color: "#065F46", verticalAlign: "middle" } as React.CSSProperties,
+  countPill: { font: "600 11.5px var(--font-body)", color: "#047857", background: "rgba(209,250,229,.7)", borderRadius: 6, padding: "2px 8px", whiteSpace: "nowrap", flexShrink: 0, marginLeft: "auto", marginRight: 26 } as React.CSSProperties,
 
   // ── Step 2 ──────────────────────────────────────────────────────────────
   chosen: { display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: "var(--radius-lg)", border: "1px solid var(--glass-edge)", background: "var(--glass-2)", backdropFilter: "var(--glass-blur)", WebkitBackdropFilter: "var(--glass-blur)", boxShadow: "var(--glass-rim), var(--shadow-sm)", marginBottom: 18 } as React.CSSProperties,
@@ -285,6 +387,7 @@ export default function NewProjectPage() {
   // rather than as an unexplained swap. 1 = onward, -1 = returning.
   const [dir, setDir] = useState<1 | -1>(1);
   const reduceMotion = useReducedMotion();
+  const [category, setCategory] = useState<string>("all");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [startNow, setStartNow] = useState(true);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -305,6 +408,7 @@ export default function NewProjectPage() {
     defaultValues: {
       deckType: "investor",
       deckFormat: "presenter",
+      currency: "INR",
       brief: {},
       hasWebsite: true,
       companyUrl: "",
@@ -324,15 +428,45 @@ export default function NewProjectPage() {
 
   const deckType = watch("deckType");
   const deckFormat = watch("deckFormat");
+  const currency = watch("currency");
   const selectedType: DeckTypeOption | undefined = useMemo(
     () => deckTypes?.find((d) => d.key === deckType),
     [deckTypes, deckType]
   );
   const runningOrder = useMemo(() => slideLabels(deckType), [deckType]);
-  // Only investor decks vary their slide list by funding stage.
-  const showsStage = !selectedType || selectedType.supportsStages;
+
+  // The selection is kept when it is filtered out of view: the side panel
+  // still describes it, and clearing it would silently change what gets built.
+  const visibleTypes = useMemo(() => {
+    const all = deckTypes ?? [];
+    if (category === "all") return all;
+    const keys = CATEGORIES.find((c) => c.key === category)?.types ?? [];
+    return all.filter((t) => keys.includes(t.key));
+  }, [deckTypes, category]);
+  const fundingStage = watch("fundingStage");
+  /**
+   * Whether this deck type asks for a shared field (by backend name). The
+   * registry decides per type; revenue fields also drop out at stages that
+   * have no revenue yet. Until the catalogue loads, every field shows.
+   */
+  const asks = useMemo<(name: string) => boolean>(() => {
+    if (!selectedType?.intakeFields) return () => true;
+    const byName = new Map(selectedType.intakeFields.map((f) => [f.name, f]));
+    // A stage picked under a type that asked for one no longer applies here.
+    const stage = byName.has("funding_stage") ? fundingStage : undefined;
+    return (name) => {
+      const f = byName.get(name);
+      return !!f && !(stage && f.hiddenAtStages.includes(stage));
+    };
+  }, [selectedType, fundingStage]);
+  const numberFields = NUMBER_FIELDS.filter((f) => asks(f.name));
+  // Declared by the type but hidden anyway — only the stage does that.
+  const declared = new Set(selectedType?.intakeFields?.map((f) => f.name));
+  const stageHidesRevenue = NUMBER_FIELDS.some((f) => declared.has(f.name) && !asks(f.name));
+  const deckSections = DECK_TYPE_SECTIONS[deckType]?.sections ?? [];
   // A deck with no team slide has no reason to demand founder bios.
-  const needsFounders = (DECK_TYPE_SECTIONS[deckType]?.sections ?? []).includes("team");
+  const needsFounders = deckSections.includes("team");
+  const hasGallery = deckSections.includes("galleryS");
 
   // Switching type clears stale per-type answers and their errors.
   useEffect(() => {
@@ -366,6 +500,9 @@ export default function NewProjectPage() {
             Object.entries(data.brief || {}).filter(([, v]) => String(v ?? "").trim())
           ),
           deck_format: data.deckFormat,
+          // Every *_usd figure below is actually in this currency — the key
+          // names predate the setting (see app/core/money.py on the backend).
+          currency: data.currency,
           company_name: data.companyName,
           industry: data.industry,
           business_model: data.businessModel,
@@ -398,9 +535,10 @@ export default function NewProjectPage() {
     onSuccess: async (project) => {
       // Upload logo/photos to the new project (render-time assets — safe to run
       // alongside generation). Don't block navigation if the upload fails.
-      if (logoFile || galleryFiles.length) {
+      const gallery = hasGallery ? galleryFiles : [];
+      if (logoFile || gallery.length) {
         try {
-          await projectsApi.uploadAssets(project.id, { logo: logoFile, gallery: galleryFiles });
+          await projectsApi.uploadAssets(project.id, { logo: logoFile, gallery });
         } catch (e: any) {
           toast.error(e?.response?.data?.detail || "Images couldn't be uploaded");
         }
@@ -473,6 +611,12 @@ export default function NewProjectPage() {
 
   const onSubmit = (data: FormData) => {
     data.startImmediately = startNow;
+    // Drop answers to fields this deck doesn't ask for — typed under another
+    // type, or hidden by the stage — so they never reach the prompt.
+    const values = data as unknown as Record<string, unknown>;
+    for (const [name, form] of GATED_FIELDS) {
+      if (!asks(name)) values[form] = undefined;
+    }
     if (!validateForDeckType(data)) return;
     createProject(data);
   };
@@ -501,15 +645,19 @@ export default function NewProjectPage() {
 
   return (
     <div style={{ background: "transparent", minHeight: "100vh" }}>
-      <div style={ndS.page}>
-        <Link to="/dashboard" style={ndS.back}>
-          <ArrowLeft size={15} /> Dashboard
-        </Link>
-
-        <div style={ndS.steps}>
-          {stepMarker(1, "Deck type", "Audience & structure")}
-          <span style={ndS.stepBar} />
-          {stepMarker(2, "Details", "Company & context")}
+      {/* Step 1 is wider to make room for the running-order panel. */}
+      <div style={step === 1 ? { ...ndS.page, maxWidth: 1180 } : ndS.page}>
+        {/* Back on the left, the two steps centred: one bar, as in the redesign. */}
+        <div style={ndS.topbar}>
+          <Link to="/dashboard" style={{ ...ndS.back, marginBottom: 0 }}>
+            <ArrowLeft size={15} /> Dashboard
+          </Link>
+          <div style={ndS.steps}>
+            {stepMarker(1, "Deck type", "Audience & structure")}
+            <span style={{ ...ndS.stepBar, flex: "0 0 36px" }} />
+            {stepMarker(2, "Details", "Company & context")}
+          </div>
+          <span style={{ width: 90 }} aria-hidden="true" />
         </div>
 
         {/* One motion moment in the whole flow: moving between steps. The
@@ -542,8 +690,30 @@ export default function NewProjectPage() {
               </p>
             </div>
 
+            <div style={ndS.split}>
+            <div style={ndS.splitMain}>
+            <div style={ndS.filterRow}>
+              <div style={ndS.seg} role="tablist" aria-label="Deck categories">
+                {[{ key: "all", label: "All" }, ...CATEGORIES].map((c) => (
+                  <button
+                    key={c.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={category === c.key}
+                    onClick={() => setCategory(c.key)}
+                    style={{ ...ndS.segBtn, ...(category === c.key ? ndS.segOn : null) }}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+              <span style={ndS.filterCount}>
+                {visibleTypes.length} {visibleTypes.length === 1 ? "deck type" : "deck types"}
+              </span>
+            </div>
+
             <div style={ndS.typeGrid}>
-              {(deckTypes ?? []).map((t) => {
+              {visibleTypes.map((t) => {
                 const on = t.key === deckType;
                 const Icon = TYPE_ICONS[t.key] ?? Layers;
                 // Investor is the most common choice, so it leads the grid at
@@ -559,52 +729,60 @@ export default function NewProjectPage() {
                   >
                     {on && <span style={ndS.tick}><Check size={12} /></span>}
                     <div style={ndS.typeTop}>
-                      <span style={{ ...ndS.typeIcon, ...(on ? null : ndS.typeIconOff) }}>
+                      <span
+                        style={{
+                          ...ndS.typeIcon,
+                          ...(on
+                            ? null
+                            : { ...ndS.typeIconOff, background: TYPE_TINTS[t.key]?.bg ?? "#F8FAFC", color: TYPE_TINTS[t.key]?.fg ?? "#475569" }),
+                        }}
+                      >
                         <Icon size={17} />
                       </span>
                       <span style={{ minWidth: 0 }}>
-                        <div style={ndS.typeName}>{t.label}</div>
+                        <div style={ndS.typeName}>
+                          {t.label}
+                          {wide && <span style={ndS.popular}>Popular</span>}
+                        </div>
                         <div style={ndS.typeDesc}>{t.description}</div>
                       </span>
-                      {!on && <span style={ndS.typeCount}>{t.slideCount} slides</span>}
-                    </div>
-                    {/* Slide count as marks, so 8 vs 13 compares at a glance. */}
-                    <div style={ndS.marks} aria-label={`${t.slideCount} slides`}>
-                      {Array.from({ length: t.slideCount }, (_, i) => (
-                        <span key={i} style={{ ...ndS.mark, ...(on ? ndS.markOn : null) }} />
-                      ))}
+                      <span style={on ? ndS.countPill : ndS.typeCount}>{t.slideCount} slides</span>
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {selectedType && (
-              <div style={ndS.order}>
-                <div style={ndS.orderHead}>
+            {visibleTypes.length === 0 && (
+              <p style={ndS.filterCount}>No deck types in this category yet.</p>
+            )}
+            </div>
+
+            {/* Inspector: the sequence for the chosen type, with the way
+                forward kept beside it so the choice and the action share a view. */}
+            <aside style={ndS.order} aria-label="Slide running order">
+              <div style={ndS.orderHead}>
+                <div style={ndS.orderTitleRow}>
                   <span style={ndS.orderTitle}>Slide running order</span>
                   <span style={ndS.orderMeta}>{runningOrder.length} slides</span>
                 </div>
-                <div style={ndS.chips}>
-                  {runningOrder.map((label, i) => (
-                    <span key={label + i} style={ndS.chip}>
-                      <span style={ndS.chipNum}>{i + 1}</span>{label}
-                    </span>
-                  ))}
-                </div>
+                {selectedType && <div style={ndS.orderPreset}>Preset for {selectedType.label}</div>}
               </div>
-            )}
-
-            <div style={ndS.actions}>
-              <Button
-                type="button"
-                variant="primary"
-                size="lg"
-                onClick={() => { setDir(1); setStep(2); }}
-                iconRight={<ArrowRight size={16} />}
-              >
-                Continue to details
-              </Button>
+              <ol style={ndS.orderList}>
+                {runningOrder.map((label, i) => (
+                  <li key={label + i} style={ndS.orderRow}>
+                    <span style={ndS.orderNum}>{String(i + 1).padStart(2, "0")}</span>
+                    <span style={ndS.orderLabel} title={label}>{label}</span>
+                  </li>
+                ))}
+              </ol>
+              <div style={ndS.orderFoot}>
+                <style>{`.np-go{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;padding:11px 16px;border-radius:12px;background:#059669;color:#fff;font:600 13px var(--font-body);box-shadow:0 4px 12px -4px rgba(5,150,105,.5);transition:background .2s}.np-go:hover{background:#047857}.np-go:active{background:#065F46}.np-go:focus-visible{outline:2px solid #059669;outline-offset:2px}`}</style>
+                <button type="button" className="np-go" onClick={() => { setDir(1); setStep(2); }}>
+                  Continue to details <ArrowRight size={15} />
+                </button>
+              </div>
+            </aside>
             </div>
           </>
         ) : (
@@ -669,28 +847,36 @@ export default function NewProjectPage() {
                   <div style={ndS.sunken}>
                     <div style={ndS.twoCol}>
                       <Input label="Company name" {...register("companyName")} placeholder="e.g. Zomato" error={errors.companyName?.message} />
-                      <Input label="Industry" {...register("industry")} placeholder="e.g. Fintech, SaaS" error={errors.industry?.message} />
+                      {asks("industry") && (
+                        <Input label="Industry" {...register("industry")} placeholder="e.g. Fintech, SaaS" error={errors.industry?.message} />
+                      )}
                     </div>
-                    <Input
-                      label="What problem are you solving?"
-                      multiline rows={3}
-                      {...register("problemStatement")}
-                      placeholder="Who has this pain, and what does it cost them today?"
-                      error={errors.problemStatement?.message}
-                    />
-                    <Input
-                      label="What are you building?"
-                      multiline rows={3}
-                      {...register("solutionDescription")}
-                      placeholder="Your product/solution and what makes it different"
-                      error={errors.solutionDescription?.message}
-                    />
-                    <Input
-                      label="Target customer"
-                      hint="optional"
-                      {...register("targetCustomer")}
-                      placeholder="e.g. Mid-market logistics companies in India"
-                    />
+                    {asks("problem_statement") && (
+                      <Input
+                        label="What problem are you solving?"
+                        multiline rows={3}
+                        {...register("problemStatement")}
+                        placeholder="Who has this pain, and what does it cost them today?"
+                        error={errors.problemStatement?.message}
+                      />
+                    )}
+                    {asks("solution_description") && (
+                      <Input
+                        label="What are you building?"
+                        multiline rows={3}
+                        {...register("solutionDescription")}
+                        placeholder="Your product/solution and what makes it different"
+                        error={errors.solutionDescription?.message}
+                      />
+                    )}
+                    {asks("target_customer") && (
+                      <Input
+                        label="Target customer"
+                        hint="optional"
+                        {...register("targetCustomer")}
+                        placeholder="e.g. Mid-market logistics companies in India"
+                      />
+                    )}
 
                     {needsFounders && (
                       <div>
@@ -721,19 +907,23 @@ export default function NewProjectPage() {
                       </div>
                     )}
 
-                    <Input
-                      label="Early validation / traction"
-                      hint="optional — e.g. waitlist signups, LOIs, pilot users"
-                      multiline rows={2}
-                      {...register("tractionNotes")}
-                      placeholder="Leave blank if pre-launch — we won't invent traction"
-                    />
-                    <Input
-                      label="Known competitors"
-                      hint="optional, comma-separated"
-                      {...register("competitorNotes")}
-                      placeholder="e.g. Acme Inc, Beta Corp"
-                    />
+                    {asks("traction_notes") && (
+                      <Input
+                        label="Early validation / traction"
+                        hint="optional — e.g. waitlist signups, LOIs, pilot users"
+                        multiline rows={2}
+                        {...register("tractionNotes")}
+                        placeholder="Leave blank if pre-launch — we won't invent traction"
+                      />
+                    )}
+                    {asks("competitor_notes") && (
+                      <Input
+                        label="Known competitors"
+                        hint="optional, comma-separated"
+                        {...register("competitorNotes")}
+                        placeholder="e.g. Acme Inc, Beta Corp"
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -772,8 +962,9 @@ export default function NewProjectPage() {
                   </div>
                 ))}
 
+                {(asks("funding_stage") || asks("business_model")) && (
                 <div style={ndS.twoCol}>
-                  {showsStage && (
+                  {asks("funding_stage") && (
                     <Select
                       label="Funding stage"
                       {...register("fundingStage")}
@@ -790,22 +981,25 @@ export default function NewProjectPage() {
                       ]}
                     />
                   )}
-                  <Select
-                    label="Business model"
-                    hint="AI will detect"
-                    {...register("businessModel")}
-                    options={[
-                      { value: "", label: "Select model" },
-                      { value: "saas", label: "SaaS" },
-                      { value: "marketplace", label: "Marketplace" },
-                      { value: "services", label: "Services" },
-                      { value: "ecommerce", label: "Ecommerce" },
-                      { value: "fintech", label: "Fintech" },
-                      { value: "hardware", label: "Hardware" },
-                      { value: "other", label: "Other" },
-                    ]}
-                  />
+                  {asks("business_model") && (
+                    <Select
+                      label="Business model"
+                      hint="AI will detect"
+                      {...register("businessModel")}
+                      options={[
+                        { value: "", label: "Select model" },
+                        { value: "saas", label: "SaaS (software subscription)" },
+                        { value: "marketplace", label: "Marketplace" },
+                        { value: "services", label: "Services" },
+                        { value: "ecommerce", label: "Ecommerce" },
+                        { value: "fintech", label: "Fintech" },
+                        { value: "hardware", label: "Hardware" },
+                        { value: "other", label: "Other" },
+                      ]}
+                    />
+                  )}
                 </div>
+                )}
 
                 <div style={ndS.toggleRow}>
                   <div>
@@ -827,13 +1021,38 @@ export default function NewProjectPage() {
               <div style={ndS.panel}>
                 <div style={ndS.sectionRow}>
                   <div>
-                    <div style={ndS.panelHead}>Numbers & branding</div>
-                    <div style={ndS.panelSub}>Optional. Anything you give us is used exactly as entered.</div>
+                    <div style={ndS.panelHead}>{numberFields.length ? "Numbers & branding" : "Branding"}</div>
+                    <div style={ndS.panelSub}>
+                      {numberFields.length
+                        ? "Optional. Only the figures this deck uses — anything you give us is used exactly as entered."
+                        : "Optional. Your logo and photos for the slides."}
+                    </div>
                   </div>
                   <button type="button" style={ndS.advToggle} onClick={() => setShowAdvanced((v) => !v)}>
                     {showAdvanced ? "Hide" : "Add details"}
                   </button>
                 </div>
+
+                {numberFields.length > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ font: "600 12.5px var(--font-body)", color: "var(--text-strong)" }}>Currency</span>
+                    <div style={ndS.seg} role="tablist" aria-label="Currency">
+                      {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          role="tab"
+                          aria-selected={currency === c}
+                          onClick={() => setValue("currency", c, { shouldValidate: true })}
+                          style={{ ...ndS.segBtn, ...(currency === c ? ndS.segOn : null) }}
+                        >
+                          {CURRENCIES[c].symbol} {c}
+                        </button>
+                      ))}
+                    </div>
+                    <span style={ndS.filterCount}>All the figures below are entered in {CURRENCIES[currency].name}.</span>
+                  </div>
+                )}
 
                 {showAdvanced && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -843,31 +1062,26 @@ export default function NewProjectPage() {
                         <Input label="Industry" hint="AI will detect" {...register("industry")} placeholder="e.g. Fintech, SaaS" />
                       </div>
                     )}
-                    <div style={ndS.twoCol}>
-                      <Input label="ARR (USD)" {...register("arrUsd")} type="number" placeholder="e.g. 1200000" />
-                      <Input label="MRR (USD)" {...register("mrrUsd")} type="number" placeholder="e.g. 100000" />
-                    </div>
-                    <div style={ndS.twoCol}>
-                      <Input label="Total customers" {...register("totalCustomers")} type="number" placeholder="e.g. 2500" />
-                      <Input label="Monthly active users" {...register("monthlyActiveUsers")} type="number" placeholder="e.g. 120000" />
-                    </div>
-                    <div style={ndS.twoCol}>
-                      <Input label="Ask amount (USD)" {...register("askAmountUsd")} type="number" placeholder="e.g. 1500000" />
-                      <Input label="Round" hint="optional" {...register("roundType")} placeholder="e.g. Seed, Series A" />
-                    </div>
-                    <div style={ndS.twoCol}>
-                      <Input label="Founded year" {...register("foundedYear")} type="number" placeholder="e.g. 2023" />
-                      <Input label="Team size" {...register("teamSize")} type="number" placeholder="e.g. 12" />
-                    </div>
-                    <div style={ndS.twoCol}>
-                      <Input label="MoM growth (%)" {...register("growthRateMomPct")} type="number" placeholder="e.g. 15" />
-                      <Input label="Monthly churn (%)" {...register("churnRatePct")} type="number" placeholder="e.g. 2.5" />
-                    </div>
-                    <div style={ndS.twoCol}>
-                      <Input label="CAC (USD)" hint="we derive LTV:CAC" {...register("cacUsd")} type="number" placeholder="e.g. 900" />
-                      <Input label="LTV (USD)" {...register("ltvUsd")} type="number" placeholder="e.g. 5400" />
-                    </div>
-                    <Input label="Net revenue retention (%)" {...register("nrrPct")} type="number" placeholder="e.g. 118" />
+                    {numberFields.length > 0 && (
+                      <div style={ndS.twoCol}>
+                        {numberFields.map((f) => (
+                          <Input
+                            key={f.name}
+                            label={f.label}
+                            hint={f.money ? `${f.hint} In ${CURRENCIES[currency].symbol} (${currency}).` : f.hint}
+                            icon={f.money ? <span aria-hidden="true">{CURRENCIES[currency].symbol}</span> : undefined}
+                            {...register(f.form)}
+                            type={f.text ? "text" : "number"}
+                            placeholder={f.placeholder}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {stageHidesRevenue && (
+                      <div style={ndS.briefHint}>
+                        Revenue metrics are hidden at this stage — we won't ask for numbers you don't have yet.
+                      </div>
+                    )}
 
                     <div>
                       <div style={ndS.uploadLabel}>Company logo <span style={ndS.uploadHint}>· shown on every slide</span></div>
@@ -886,6 +1100,7 @@ export default function NewProjectPage() {
                       )}
                     </div>
 
+                    {hasGallery && (
                     <div>
                       <div style={ndS.uploadLabel}>Gallery photos <span style={ndS.uploadHint}>· up to 5, shown on the Gallery slide</span></div>
                       {galleryFiles.length > 0 && (
@@ -911,6 +1126,7 @@ export default function NewProjectPage() {
                         </label>
                       )}
                     </div>
+                    )}
                   </div>
                 )}
               </div>
