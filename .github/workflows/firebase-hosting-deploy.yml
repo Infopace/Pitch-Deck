@@ -1,14 +1,31 @@
 name: Deploy frontend to Firebase Hosting
 
-# Mirrors the backend's Cloud Build trigger: fires on every push to main,
-# but only when something under the frontend actually changed, so a
-# backend-only commit doesn't burn a build here for nothing.
+# Mirrors the backend's existing Cloud Build auto-deploy: fires on every push
+# to main, but only when the frontend actually changed.
+#
+# Authenticates via Workload Identity Federation, not a stored JSON key — the
+# Infopace org's organization policy (iam.disableServiceAccountKeyCreation)
+# blocks service-account keys outright, so this is the only option, and it's
+# the better one anyway: GitHub exchanges a short-lived OIDC token for GCP
+# access on each run, and no credential ever sits in a repo secret.
+#
+# Needs a one-time setup in Google Cloud Console (no values here are secret —
+# they identify WHERE to authenticate, not a credential):
+#   - a Workload Identity Pool + GitHub OIDC provider, scoped to this repo
+#   - the github-actions-hosting service account granted
+#     roles/firebaseHosting.admin and allowed to be impersonated by that
+#     provider
+# See the setup walkthrough given alongside this file.
 on:
   push:
     branches: [main]
     paths:
       - "ipreneur/frontend/**"
       - ".github/workflows/firebase-hosting-deploy.yml"
+
+permissions:
+  contents: read
+  id-token: write   # required for Workload Identity Federation
 
 jobs:
   deploy:
@@ -28,10 +45,11 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - id: auth
+        uses: google-github-actions/auth@v2
         with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
-          projectId: pitch-deck-e1d6c
-          channelId: live
-          entryPoint: ipreneur/frontend
+          project_id: pitch-deck-e1d6c
+          workload_identity_provider: projects/554290694181/locations/global/workloadIdentityPools/github-actions/providers/github
+          service_account: github-actions-hosting@pitch-deck-e1d6c.iam.gserviceaccount.com
+
+      - run: npx firebase-tools@latest deploy --only hosting --project pitch-deck-e1d6c --non-interactive
