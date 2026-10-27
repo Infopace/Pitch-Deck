@@ -791,7 +791,15 @@ class PPTRenderer:
         td = td or {}
         self._slide_header(slide, s, p)
 
-        metrics = (s.data_points or [])[:4]
+        # SlideContent.data_points is typed list[dict], but it's built straight
+        # from the model's JSON with no per-item validation — a bare string has
+        # shown up here in production. Coerce rather than drop it, so a crash
+        # doesn't throw away otherwise-fine content (e.g. "23% CAGR"), and every
+        # .get() below this point can trust it has a dict.
+        metrics = [
+            dp if isinstance(dp, dict) else {"value": str(dp)}
+            for dp in (s.data_points or [])[:4]
+        ]
         labels = ["TAM", "SAM", "SOM"]
         ring_colors = [p["accent1"], p["accent2"], p["accent3"]]
 
@@ -872,6 +880,13 @@ class PPTRenderer:
 
         cats, vals, display = [], [], []
         for label, point in zip(("TAM", "SAM", "SOM"), points):
+            # `points` is usually template_data.market's {value, sublabel} dicts,
+            # but on a sparse deck it falls back to SlideContent.data_points,
+            # whose entries aren't guaranteed to be dicts shaped this way (the
+            # model's JSON output isn't validated per-item) — one bad entry here
+            # must not crash the whole render.
+            if not isinstance(point, dict):
+                continue
             parsed = _parse_money_to_millions(point.get("value"))
             if parsed is None:
                 continue

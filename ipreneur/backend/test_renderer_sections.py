@@ -191,3 +191,31 @@ def test_gallery_still_renders_with_no_photos():
     text = "\n".join(sh.text_frame.text for s in prs.slides
                      for sh in s.shapes if sh.has_text_frame)
     assert "Dashboard screenshot" in text
+
+
+def test_market_chart_survives_a_non_dict_data_point():
+    """Production regression (2026-10-27): a sparse idea-stage deck had no
+    template_data.market, so _market_sizing fell back to SlideContent.data_points
+    — whose entries the model's JSON output does not guarantee are dicts. One
+    plain string among them crashed the whole render with
+    AttributeError: 'str' object has no attribute 'get', failing deck
+    generation entirely rather than just degrading that one chart."""
+    deck_type = "investor"
+    sections = resolve_sections(deck_type)
+    slides = [
+        SlideContent(slide_number=i, slide_type=key,
+                     layout=SECTION_SPECS[key].layout, title=SECTION_SPECS[key].label,
+                     data_points=(
+                         # No template_data.market -> falls back to exactly this list.
+                         [{"l": "TAM", "v": "$47B"}, "23% CAGR", {"l": "SOM", "v": "$1.2B"}]
+                         if key == "market" else []
+                     ))
+        for i, key in enumerate(sections, start=1)
+    ]
+    deck = DeckContent(slides=slides, deck_title="Acme", deck_subtitle="")
+    data = asyncio.run(
+        PPTRenderer().render(deck, BrandingData(company_name="Acme"),
+                              template_data={}, sections=sections)
+    )
+    prs = Presentation(io.BytesIO(data))
+    assert len(prs.slides) == len(sections)
