@@ -87,12 +87,15 @@ async def list_plans():
     return [
         PlanSummary(
             name="Free",
-            price="$0/mo",
+            price="₹0/mo",
             features=["3 pitch decks/month", "Basic templates", "PPTX export"],
         ),
         PlanSummary(
             name="Pro",
-            price="$29/mo",
+            # Must match the amount on the Razorpay plan behind
+            # settings.razorpay_pro_plan_id — this text never charges anyone,
+            # it only advertises what that plan actually bills.
+            price="₹2,500/mo",
             features=["50 pitch decks/month", "Premium templates", "PPTX + PDF export", "Priority AI processing"],
         ),
         PlanSummary(
