@@ -44,6 +44,13 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        env:
+          # Vite reads this at BUILD time, not runtime — it has to be set here,
+          # not just in the (gitignored, local-only) .env.production, or every
+          # API call falls back to calling the static Hosting origin itself,
+          # which has no backend behind it. Not a secret: it's the public
+          # Cloud Run URL, already visible in the shipped JS bundle.
+          VITE_API_URL: https://pitch-deck-backend-868264766280.asia-northeast1.run.app/api/v1
 
       - id: auth
         uses: google-github-actions/auth@v2
