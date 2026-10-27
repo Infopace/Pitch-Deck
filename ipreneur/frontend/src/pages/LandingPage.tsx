@@ -19,7 +19,7 @@ import {
 
 import HeroSection from "@/components/landing/HeroSection";
 import { THEMES, getTheme, ensureDeckFonts } from "@/components/workspace/deckTemplates/themes";
-import { SAMPLE_DECK, sampleDeckVariant } from "@/components/workspace/deckTemplates/sampleDeck";
+import { sampleDeckVariant } from "@/components/workspace/deckTemplates/sampleDeck";
 import { renderSlide } from "@/components/workspace/deckTemplates/TemplatedDeck";
 import { FitSlide } from "@/components/workspace/deckTemplates/FitSlide";
 import { VIEW_CTX } from "@/components/workspace/deckTemplates/editing/editableText";
@@ -154,6 +154,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [previewKey, setPreviewKey] = useState(THEMES[0].key);
+  const [previewDeckIndex, setPreviewDeckIndex] = useState(0);
   const [slideIdx, setSlideIdx] = useState(0);
 
   useMemo(() => { ensureDeckFonts(); return null; }, []);
@@ -231,7 +232,7 @@ export default function LandingPage() {
           </div>
 
           <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_18px_50px_rgba(0,0,0,.10)]">
-            <FitSlide render={() => renderSlide(theme, SAMPLE_DECK, slideIdx, VIEW_CTX, ORDER)} />
+            <FitSlide render={() => renderSlide(theme, sampleDeckVariant(previewDeckIndex), slideIdx, VIEW_CTX, ORDER)} />
           </div>
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -258,7 +259,7 @@ export default function LandingPage() {
             {THEMES.map((t, i) => (
               <button
                 key={t.key}
-                onClick={() => setPreviewKey(t.key)}
+                onClick={() => { setPreviewKey(t.key); setPreviewDeckIndex(i); }}
                 title={`${t.name} — ${t.mood}`}
                 aria-label={`Preview the ${t.name} design`}
                 className="shrink-0 overflow-hidden rounded-md transition"
