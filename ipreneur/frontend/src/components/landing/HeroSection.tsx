@@ -66,8 +66,8 @@ export default function HeroSection() {
 
         {/* Subtitle */}
         <p className="hero-c1-subtitle">
-          Paste your company's website. Mint researches your market and writes a complete,
-          <br className="hidden sm:inline" /> editable pitch deck — no blank page, no formatting from scratch.
+          Mint reads your company's website, researches your market, and writes a
+          complete, editable pitch deck — no blank page, no starting from scratch.
         </p>
 
         {/* Search / URL Intake Pill Bar */}
