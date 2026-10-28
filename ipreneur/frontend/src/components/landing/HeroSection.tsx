@@ -125,11 +125,11 @@ export default function HeroSection() {
 
               <div className="card-body">
                 <h4 className="card-title">Total Addressable Market (TAM)</h4>
-                <p className="card-caption">Example — researched from your website and public data</p>
+                <p className="card-caption">Example slide — researched from your website and public data</p>
 
                 <div className="tam-hero-stat">
-                  <span className="tam-label">Illustrative example</span>
-                  <div className="tam-number">$X.XB</div>
+                  <span className="tam-label">Example figure</span>
+                  <div className="tam-number">$2.4B</div>
                   <span className="tam-growth">Sourced, not guessed</span>
                 </div>
 
@@ -158,7 +158,7 @@ export default function HeroSection() {
                 </div>
 
                 <div className="card-footer-metric">
-                  <span className="metric-chip">TAM / SAM / SOM, worked out from research</span>
+                  <span className="metric-chip">TAM, SAM and SOM calculated from research</span>
                 </div>
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function HeroSection() {
                 <div className="center-header-row">
                   <div>
                     <h4 className="card-title">Financial Projections</h4>
-                    <p className="card-caption">Built from your numbers, not invented</p>
+                    <p className="card-caption">Calculated from the numbers you provide</p>
                   </div>
                   <div className="center-live-pill">
                     <span className="live-dot" />
@@ -192,18 +192,18 @@ export default function HeroSection() {
                 <div className="financial-kpi-row">
                   <div className="kpi-box">
                     <span className="kpi-label">ARR</span>
-                    <div className="kpi-val">$X.XM</div>
-                    <span className="kpi-badge text-emerald-600">Your figures</span>
+                    <div className="kpi-val">$3.1M</div>
+                    <span className="kpi-badge text-emerald-600">Example</span>
                   </div>
                   <div className="kpi-box">
                     <span className="kpi-label">Gross Margin</span>
-                    <div className="kpi-val">XX%</div>
-                    <span className="kpi-badge text-blue-600">Your figures</span>
+                    <div className="kpi-val">72%</div>
+                    <span className="kpi-badge text-blue-600">Example</span>
                   </div>
                   <div className="kpi-box">
                     <span className="kpi-label">Net Retention</span>
-                    <div className="kpi-val">XX%</div>
-                    <span className="kpi-badge text-emerald-600">Your figures</span>
+                    <div className="kpi-val">118%</div>
+                    <span className="kpi-badge text-emerald-600">Example</span>
                   </div>
                 </div>
 
@@ -267,25 +267,25 @@ export default function HeroSection() {
 
               <div className="card-body">
                 <h4 className="card-title">Founders & Leadership</h4>
-                <p className="card-caption">Pulled from your site and confirmed by you</p>
+                <p className="card-caption">Read from your site, example shown</p>
 
                 {/* Team member cards */}
                 <div className="team-members-list">
                   <div className="team-member-card">
                     <div className="team-avatar avatar-1">A</div>
                     <div className="team-meta">
-                      <span className="team-name">Founder name</span>
+                      <span className="team-name">Alex Rivera</span>
                       <span className="team-role">CEO & Co-Founder</span>
-                      <span className="team-prev">Background, from your site</span>
+                      <span className="team-prev">Background, read from your site</span>
                     </div>
                   </div>
 
                   <div className="team-member-card">
                     <div className="team-avatar avatar-2">B</div>
                     <div className="team-meta">
-                      <span className="team-name">Founder name</span>
+                      <span className="team-name">Jordan Lee</span>
                       <span className="team-role">CTO & Co-Founder</span>
-                      <span className="team-prev">Background, from your site</span>
+                      <span className="team-prev">Background, read from your site</span>
                     </div>
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function HeroSection() {
                 <div className="card-team-trust">
                   <div className="trust-pill">
                     <Zap size={11} className="text-amber-500" />
-                    <span>Never invented — left blank if we can't find it</span>
+                    <span>A founder we can't verify is left blank, not invented</span>
                   </div>
                 </div>
               </div>

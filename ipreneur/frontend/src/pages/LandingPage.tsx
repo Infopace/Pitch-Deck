@@ -60,13 +60,13 @@ const CAPABILITIES = [
 const INTRO_CARDS = [
   {
     step: "01",
-    title: "Skip the blank page",
-    body: "Start from your website, not an empty slide. Mint reads what you've already written about your company before it writes anything new.",
+    title: "Start from what you've already written",
+    body: "Mint reads your website and the public material around it before it writes anything new, so you begin with a draft to correct rather than an empty slide.",
   },
   {
     step: "02",
-    title: "Let research do the work",
-    body: "Market size, competitors and comparable companies arrive with the reasoning attached — not a model's best guess dressed up as a fact.",
+    title: "Grounded in real research",
+    body: "Market size, competitors and comparable companies arrive with the reasoning attached — not a model's best guess presented as a fact.",
   },
   {
     step: "03",
@@ -81,12 +81,12 @@ const INTRO_CARDS = [
 const TRUST_POINTS = [
   {
     icon: Search,
-    title: "Research, not recall",
+    title: "Live research, not recall",
     body: "The first pass runs live web search for your market, competitors and comparable companies, rather than relying on what the model happened to learn in training.",
   },
   {
     icon: FileSearch,
-    title: "Confidence, not confidence tricks",
+    title: "Confidence scores on every fact",
     body: "Each researched fact carries how sure the model is about it, so a shaky figure is never presented with the same weight as a well-sourced one.",
   },
   {
@@ -101,7 +101,7 @@ const WHY_MINT = [
   "Structure your story: every deck type follows the sequence that room actually expects — a sales deck doesn't borrow an investor deck's order.",
   "Create with confidence: research arrives sourced, and a second pass checks the output before you see it.",
   "Adapt to your audience: the same company facts read differently in a sales deck, an investor deck and an internal memo.",
-  "Switch your mind freely: 40 designs apply to a deck you've already written, so changing one never means starting over.",
+  "Change your mind anytime: 40 designs apply to a deck you've already written, so changing one never means starting over.",
 ];
 
 const STEPS = [
@@ -289,7 +289,7 @@ export default function LandingPage() {
       {/* ── How it works ─────────────────────────────────────────────── */}
       <section id="how-it-works" className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-12 max-w-[46rem]">
-          <h2 className="l-title mb-4">A website goes in. A deck comes out.</h2>
+          <h2 className="l-title mb-4">Start with a website. Leave with a deck.</h2>
           <p className="l-lede">
             Three steps, and you can stop at any of them. Most of the work is
             correcting what it got wrong, not writing from nothing.
@@ -318,7 +318,7 @@ export default function LandingPage() {
       <section id="showcase" className="l-panel border-y border-slate-200/80">
         <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
           <div className="mb-10 max-w-[46rem]">
-            <h2 className="l-title mb-4">This is the actual output</h2>
+            <h2 className="l-title mb-4">What you actually get</h2>
             <p className="l-lede">
               Rendered live by the same code that draws your deck in the editor —
               not a screenshot. Change the design and watch the same content
@@ -405,7 +405,7 @@ export default function LandingPage() {
           in the registry rather than a second, invented persona list. ──── */}
       <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-12 max-w-[46rem]">
-          <h2 className="l-title mb-4">One platform, whatever the room.</h2>
+          <h2 className="l-title mb-4">One platform for every room.</h2>
           <p className="l-lede">
             A demo-day teaser is not a shortened investor deck, and a sales deck
             is not a pitch with the price added. Each of the {Object.keys(DECK_TYPES).length}{" "}
@@ -644,7 +644,7 @@ export default function LandingPage() {
           Your next deck starts with a website, not a blank page.
         </h2>
         <p className="l-lede mx-auto mb-9 max-w-[46ch]">
-          Three decks on the free plan. No card, and nothing to install.
+          Three decks on the free plan. No credit card, and nothing to install.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
