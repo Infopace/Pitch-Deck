@@ -75,9 +75,13 @@ def resolve_dates(text: str, today: Optional[date] = None) -> str:
     @Q1@..@Q4@ become plain "Q1".."Q4": roadmap phases are labelled by quarter
     only, with no year, so a label can never disagree with the calendar.
     @YEAR@ is the current calendar year, for the few places that need one.
+    @YEAR1@..@YEAR5@ are a 5-year run starting this year, for multi-year
+    revenue projections — so a forecast slide never shows years already past.
     """
     today = today or date.today()
     out = text.replace("@YEAR@", str(today.year))
+    for n in range(1, 6):
+        out = out.replace(f"@YEAR{n}@", str(today.year + n - 1))
     for n in range(1, 5):
         out = out.replace(f"@Q{n}@", f"Q{n}")
     return out

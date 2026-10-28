@@ -668,13 +668,16 @@ SECTION_SPECS: dict[str, SectionSpec] = {
 
     "financials": SectionSpec(
         renderer="traction", layout="big_number", label="Financials",
-        prompt="the financial shape — a revenue curve plus 4 headline figures",
+        prompt="the financial shape — a 5-year revenue curve plus 4 headline figures",
         model=TractionSection, caps={"series": 8, "kpis": 4},
-        skeleton='{"headline": "...", "sub": "Revenue ($M)", "series": [{"y": "FY24", "v": 0.4}, {"y": "FY25", "v": 1.2}, {"y": "FY26", "v": 3.1}, {"y": "FY27", "v": 7.4}], "kpis": [{"k": "$3.1M", "l": "FY26 revenue"}, {"k": "72%", "l": "Gross margin"}, {"k": "$180K", "l": "Monthly burn"}, {"k": "14 mo", "l": "Runway"}]}',
+        skeleton='{"headline": "...", "sub": "Revenue ($M)", "series": [{"y": "FY@YEAR1@", "v": 1.0}, {"y": "FY@YEAR2@", "v": 1.16}, {"y": "FY@YEAR3@", "v": 1.35}, {"y": "FY@YEAR4@", "v": 1.57}, {"y": "FY@YEAR5@", "v": 1.82}], "kpis": [{"k": "$1.8M", "l": "FY@YEAR5@ revenue"}, {"k": "72%", "l": "Gross margin"}, {"k": "$180K", "l": "Monthly burn"}, {"k": "14 mo", "l": "Runway"}]}',
         rules=(
-            "Forecast years must follow from the founder's actual figures and stated\n"
-            "growth rate — state the assumption in sub. Never present a projection as\n"
-            "though it were history; label future periods clearly."
+            "series[] covers 5 fiscal years (FY@YEAR1@..FY@YEAR5@), starting with the\n"
+            "current year. Forecast figures follow from the founder's actual figures and\n"
+            "stated growth rate — state the assumption in sub — UNLESS this deck type's\n"
+            "guidance fixes a specific growth rate, in which case use that instead and\n"
+            "still state it explicitly in sub. Never present a projection as though it\n"
+            "were history; label future periods clearly."
         ),
     ),
 

@@ -138,7 +138,8 @@ RELEVANCE: dict[str, DeckRelevance] = {
     ),
     "business": DeckRelevance(
         required=_NARRATIVE + _COMMERCIAL + ("sales", "go_to_market",
-                                             "operations", "founder_and_team"),
+                                             "operations", "founder_and_team",
+                                             "fundraising"),
         conditional=("sales_funnel", "sales_process", "financials",
                      "partnerships_and_ecosystem", "strategy_and_objectives",
                      "roadmap_and_milestones", "risks_and_mitigation"),

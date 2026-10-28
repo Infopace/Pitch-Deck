@@ -20,6 +20,8 @@ import json
 import re
 import urllib.parse
 from dataclasses import dataclass, field
+from datetime import date
+from typing import Optional
 
 import httpx
 from bs4 import BeautifulSoup
@@ -126,6 +128,13 @@ class ResearchAgent:
     ) -> ResearchData:
         logger.info(f"🔍 Research | company={company_name} | industry={industry} [Key 2]")
 
+        # Anchor every "recent" search to the real current year — hardcoding a
+        # literal year here silently goes stale the moment that year ends, and
+        # keeps steering both DuckDuckGo and Gemini toward old data forever.
+        this_year = date.today().year
+        recent_years = f"{this_year - 1} {this_year}"
+        forecast_years = f"{this_year} {this_year + 1} {this_year + 5}"
+
         # Prepare company knowledge query to run in parallel
         company_knowledge_coro = asyncio.to_thread(
             self._company_knowledge_query, company_name, company_url, industry, description
@@ -133,14 +142,14 @@ class ResearchAgent:
 
         # 8 parallel web searches — trimmed to save quota
         search_queries = [
-            (f"{industry} market size TAM CAGR forecast 2024 2025 2030", "market_size"),
-            (f"{industry} market growth trends disruption AI 2024 2025", "market_growth"),
+            (f"{industry} market size TAM CAGR forecast {forecast_years}", "market_size"),
+            (f"{industry} market growth trends disruption AI {recent_years}", "market_growth"),
             (f"{company_name} competitors alternatives {industry} top companies", "competitors"),
-            (f"{industry} customer pain points problems challenges 2024", "pain_points"),
+            (f"{industry} customer pain points problems challenges {recent_years}", "pain_points"),
             (f"{company_name} funding valuation investors crunchbase founded", "funding_rounds"),
             (f"{company_name} founders CEO background wikipedia", "founders"),
-            (f"{company_name} revenue ARR customers growth traction 2024", "company_traction"),
-            (f"{company_name} employees cities operations expansion news 2024", "company_profile"),
+            (f"{company_name} revenue ARR customers growth traction {recent_years}", "company_traction"),
+            (f"{company_name} employees cities operations expansion news {recent_years}", "company_profile"),
         ]
 
         search_results: dict[str, str] = {}
@@ -200,7 +209,10 @@ class ResearchAgent:
 
         # Synthesize with Gemini Key 2
         try:
-            prompt = self._synthesis_prompt(company_name, company_url, industry, description, search_results, company_knowledge)
+            prompt = self._synthesis_prompt(
+                company_name, company_url, industry, description, search_results,
+                company_knowledge, this_year=this_year,
+            )
             response = self._call_gemini(prompt)
 
             json_str = self._extract_json(response)
@@ -298,6 +310,9 @@ Please research and provide EVERYTHING you know about {company_name}:
    - Market size and growth rate for {industry}
 
 Be as specific and factual as possible. If you don't know something, say "Unknown" — do NOT make up numbers.
+Note the year/period any figure (funding, revenue, headcount) is from — your training data has a cutoff,
+so a number you recall may now be out of date; the web search results run alongside you cover more recent
+periods and should take priority over your recollection wherever they disagree.
 Write in plain paragraphs — no JSON needed, just detailed facts."""
 
         try:
@@ -433,7 +448,10 @@ Write in plain paragraphs — no JSON needed, just detailed facts."""
         description: str,
         sr: dict,
         company_knowledge: str = "",
+        *,
+        this_year: Optional[int] = None,
     ) -> str:
+        this_year = this_year or date.today().year
         knowledge_block = f"""
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 GEMINI DIRECT RESEARCH (primary source — use this first)
@@ -466,7 +484,7 @@ WEB SEARCH DATA (supplementary — use to fill gaps or verify):
 [Industry Market Leaders — top companies in the {industry} space]
 {sr.get('industry_competitors', 'No data')[:1500]}
 
-[Industry Trends 2024-2025]
+[Industry Trends {this_year - 1}-{this_year}]
 {sr.get('industry_trends', 'No data')[:1500]}
 
 [Customer Pain Points]
@@ -498,9 +516,15 @@ WEB SEARCH DATA (supplementary — use to fill gaps or verify):
 
 INSTRUCTIONS:
 
+TODAY IS {this_year}. Treat anything dated before {this_year - 2} as potentially stale —
+prefer the most recent figure available and say what year it is from. Never silently
+reuse an old TAM/CAGR/headcount number when a newer one is available in the sources above.
+
 PRIORITY ORDER for all facts:
-  1. GEMINI DIRECT RESEARCH block above — this is the most complete and reliable source
-  2. Web Search Data — use to verify, supplement, or update with more recent information
+  1. Web Search Data — this reflects the live web and is the more current source; prefer it
+     whenever it conflicts with the Gemini knowledge block or is simply more recent
+  2. GEMINI DIRECT RESEARCH block above — reliable but frozen at the model's training cutoff,
+     so treat it as a fallback for facts the web search did not surface
   3. If neither source has a fact, return "" or [] — NEVER invent or make up data
 
 COMPANY PROFILE (founders, funding, valuation, headcount, cities, description):
@@ -510,8 +534,9 @@ COMPANY PROFILE (founders, funding, valuation, headcount, cities, description):
   - company_description: 1-2 precise sentences — what they do AND how (the mechanism)
 
 MARKET DATA:
-  - Use real numbers with source context (e.g. "Grand View Research 2024")
-  - CAGR must include timeframe (e.g. "18% CAGR 2024–2030")
+  - Use real numbers with source context and the year they were published
+    (e.g. "Grand View Research {this_year}") — prefer the most recently published figure
+  - CAGR must include timeframe (e.g. "18% CAGR {this_year}–{this_year + 6}")
 
 COMPETITORS — CRITICAL, never use generic labels:
   - You MUST return 3-4 real named companies (e.g. "Blinkit", "Jira", "Uniswap", "PancakeSwap")
@@ -527,15 +552,15 @@ Return ONLY valid JSON (no markdown, no commentary):
     {{"name": "Full Name", "title": "Co-founder & CTO", "background": "..."}}
   ],
   "founded_year": "YYYY or ''",
-  "company_valuation": "e.g. '$5B (2024)' or ''",
+  "company_valuation": "e.g. '$5B ({this_year})' or ''",
   "total_funding": "e.g. '$1.4B raised to date' or ''",
   "funding_rounds": [
-    {{"round": "Series D", "amount": "$665M", "date": "2024", "investors": ["Nexus Venture Partners", "Glade Brook Capital"]}}
+    {{"round": "Series D", "amount": "$665M", "date": "{this_year}", "investors": ["Nexus Venture Partners", "Glade Brook Capital"]}}
   ],
   "company_headcount": "e.g. '5,000+ employees' or ''",
   "operational_presence": "e.g. '10+ cities across India including Mumbai, Delhi, Bangalore' or ''",
-  "market_size": "Total addressable market with year — e.g. '$47.3B global {industry} market (2024, Grand View Research)'",
-  "market_growth": "CAGR with timeframe — e.g. '14.2% CAGR 2024–2030'",
+  "market_size": "Total addressable market with year — e.g. '$47.3B global {industry} market ({this_year}, Grand View Research)'",
+  "market_growth": "CAGR with timeframe — e.g. '14.2% CAGR {this_year}–{this_year + 6}'",
   "target_market": "Serviceable segment with size",
   "competitors": [
     {{"name": "Competitor 1", "description": "What they do and market position", "strength": "Their main advantage", "weakness": "Where they fall short"}},

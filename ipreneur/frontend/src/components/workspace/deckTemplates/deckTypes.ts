@@ -239,7 +239,7 @@ export const DECK_TYPES: Record<string, DeckTypeSpec> = {
     sections: [
       "cover", "summary", "probsol", "persona", "product", "model", "segmentation",
       "positioning", "salesMotion", "gtm", "funnel", "channels", "traction", "proof",
-      "unitEconomics", "financials", "operations", "partnerships", "competition", "team",
+      "unitEconomics", "financials", "ask", "operations", "partnerships", "competition", "team",
       "roadmap", "risks", "scalePlan", "closing",
     ],
   },

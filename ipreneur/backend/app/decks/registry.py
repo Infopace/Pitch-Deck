@@ -387,7 +387,7 @@ DECK_TYPES: dict[str, DeckType] = {
         sections=(
             "cover", "summary", "probsol", "persona", "product", "model", "segmentation",
             "positioning", "salesMotion", "gtm", "funnel", "channels", "traction", "proof",
-            "unitEconomics", "financials", "operations", "partnerships", "competition",
+            "unitEconomics", "financials", "ask", "operations", "partnerships", "competition",
             "team", "roadmap", "risks", "scalePlan", "closing",
         ),
         research="full",
@@ -396,7 +396,30 @@ DECK_TYPES: dict[str, DeckType] = {
             "the business deck asks 'how does this company work, grow, operate and\n"
             "scale?'. Weight the operating system — model, pricing, sales process,\n"
             "funnel, operations, partnerships — and go light on cap table, financing\n"
-            "history and investment thesis."
+            "history and investment thesis.\n\n"
+            "Executive Summary: open from the founder's stated business purpose (in the\n"
+            "deck brief below) — the headline or lead must say why this business exists,\n"
+            "not only what it sells.\n\n"
+            "Financials: project exactly 5 fiscal years of revenue in series[], using a\n"
+            "fixed 15-17% year-on-year growth rate applied to the most recent real figure\n"
+            "(or a reasonable estimated base if pre-revenue) — pick one specific rate in\n"
+            "that band and state it in sub, e.g. 'Revenue, ₹ Cr — projected at 16% YoY\n"
+            "growth'. Use this fixed band regardless of any founder-reported month-on-month\n"
+            "growth figure; that number may still appear on the traction slide, but must\n"
+            "not change this slide's growth assumption.\n\n"
+            "The Ask here is an operating-capital requirement, not an investor pitch: state\n"
+            "the amount the business needs and break it down into a use-of-funds split\n"
+            "totalling 100%, built from the founder's own allocation notes in the deck\n"
+            "brief when given, framed as 'what the business needs to run and grow', never\n"
+            "as 'what we are raising from investors'."
+        ),
+        brief_fields=(
+            BriefField("business_purpose", "What's the core purpose of this business?", "textarea",
+                       "The deeper why behind it, beyond making money", required=True,
+                       help="Anchors the Executive Summary — why this business exists, not just what it sells."),
+            BriefField("fund_use_notes", "How will you use the funds this plan calls for?", "textarea",
+                       "e.g. ₹2 Cr total — 40% product, 30% hiring, 20% marketing, 10% working capital",
+                       help="Drives the funding ask slide's amount and allocation breakdown."),
         ),
     ),
 
