@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Globe, ArrowRight, ArrowLeft, Upload, X, Image as ImageIcon, Plus,
   TrendingUp, Target, Layers, Handshake, ClipboardCheck, Activity, Compass, Check,
@@ -388,6 +388,7 @@ const stepVariants = {
 
 export default function NewProjectPage() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   // A template chosen on /templates arrives as ?template=<key>. Validate it
   // against the registry so a stale or hand-typed key is ignored rather than
   // written to the project.
@@ -679,6 +680,7 @@ export default function NewProjectPage() {
       } catch {
         /* already unavailable */
       }
+      qc.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project created!");
       navigate(`/projects/${project.id}`);
     },

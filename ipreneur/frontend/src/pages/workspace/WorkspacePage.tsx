@@ -74,6 +74,7 @@ export default function WorkspacePage() {
     onSuccess: () => {
       toast.success("Analysis started — this takes about 2 minutes");
       qc.invalidateQueries({ queryKey: ["project", projectId] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: (err: any) => {
       toast.error(err?.response?.data?.detail || "Failed to start analysis");
@@ -82,7 +83,10 @@ export default function WorkspacePage() {
 
   const { mutate: saveTemplate } = useMutation({
     mutationFn: (templateKey: string) => projectsApi.update(projectId!, { templateKey }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["project", projectId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["project", projectId] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+    },
     onError: () => toast.error("Couldn't save template choice"),
   });
 

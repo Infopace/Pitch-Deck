@@ -68,13 +68,17 @@ export default function EditorPage() {
       setIsDirty(false);
       toast.success("Changes saved");
       qc.invalidateQueries({ queryKey: ["project", projectId] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
     },
     onError: () => toast.error("Couldn't save your edits — please try again"),
   });
 
   const { mutate: saveTemplate } = useMutation({
     mutationFn: (templateKey: string) => projectsApi.update(projectId!, { templateKey }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["project", projectId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["project", projectId] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+    },
     onError: () => toast.error("Couldn't save template choice"),
   });
 
