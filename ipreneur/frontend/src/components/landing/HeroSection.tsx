@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Globe,
   ArrowRight,
-  Sparkles,
   TrendingUp,
   BarChart3,
   Users,
@@ -60,12 +59,6 @@ export default function HeroSection() {
 
       {/* ── CENTER HERO HERO CONTENT ── */}
       <div className="hero-c1-content">
-        {/* Eyebrow Badge */}
-        <div className="hero-c1-badge">
-          <Sparkles size={13} className="text-blue-600" />
-          <span>AI-Powered Pitch Deck Generation</span>
-        </div>
-
         {/* Main Headline */}
         <h1 className="hero-c1-title">
           Turn Your Website Into <span className="hero-c1-gradient">A Deck That's Ready to Send</span>
@@ -98,7 +91,7 @@ export default function HeroSection() {
         {/* Quick architecture filter chips */}
         <div className="hero-c1-chips">
           <span className="chips-hint">Presets:</span>
-          {["⚡ Investor Pitch", "🚀 Demo Day", "💼 Enterprise Sales", "📈 Series A"].map((preset) => (
+          {["Investor Pitch", "Demo Day", "Enterprise Sales", "Series A"].map((preset) => (
             <button
               key={preset}
               type="button"

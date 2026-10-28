@@ -336,7 +336,7 @@
   width: 320px;
   height: 290px;
   z-index: 10;
-  margin-right: -90px;
+  margin-right: -8px;
   transform: rotateY(14deg) rotateZ(-4deg) translateY(26px);
   opacity: 1;
 }
@@ -373,7 +373,7 @@
   width: 320px;
   height: 290px;
   z-index: 10;
-  margin-left: -90px;
+  margin-left: -8px;
   transform: rotateY(-14deg) rotateZ(4deg) translateY(26px);
   opacity: 1;
 }
@@ -549,10 +549,19 @@
 
 @media (prefers-reduced-motion: reduce) {
   .bar-fill,
-  .growth-line,
+  .growth-line { animation: none !important; }
+
+  /* The entrance animation is these cards' only source of opacity: 1 and
+     translate: 0 (card-center sets neither as a static fallback). Removing
+     just the animation here left them permanently stuck at the keyframe's
+     `from` state — invisible — for anyone with reduced motion on. */
   .fanout-card.card-left,
   .fanout-card.card-center,
-  .fanout-card.card-right { animation: none !important; }
+  .fanout-card.card-right {
+    animation: none !important;
+    opacity: 1 !important;
+    translate: 0 !important;
+  }
 }
 
 .bar-year {
