@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, Play, Download, Edit3, RefreshCw, Loader2, AlertCircle, KeyRound, ExternalLink } from "lucide-react";
+import { ArrowLeft, Play, Download, Edit3, RefreshCw, Loader2, KeyRound, ExternalLink } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { projectsApi } from "@/services/api/projects";
@@ -255,12 +255,12 @@ export default function WorkspacePage() {
                 </motion.div>
               ) : (
                 <motion.div key="error" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ border: "1px solid var(--danger-border, rgba(220,38,38,.25))", background: "var(--danger-surface)", borderRadius: "var(--radius-lg)", padding: 28 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                    <AlertCircle size={18} style={{ color: "var(--red-600)" }} />
-                    <h2 style={{ font: "600 15px var(--font-display)", color: "var(--text-strong)" }}>Project generation failed</h2>
+                  style={{ border: "1px solid var(--danger-border, rgba(220,38,38,.25))", background: "var(--danger-surface)", borderRadius: "var(--radius-lg)", padding: "28px 28px 32px", textAlign: "center" }}>
+                  <div style={{ marginBottom: 4 }}>
+                    <Tv404 screenText="FAILED" scale={0.85} watermark={false} />
                   </div>
-                  <p style={{ font: "400 13px var(--font-body)", color: "var(--text-muted)", marginBottom: 16 }}>
+                  <h2 style={{ font: "600 16px var(--font-display)", color: "var(--text-strong)", marginTop: 8 }}>Project generation failed</h2>
+                  <p style={{ font: "400 13px var(--font-body)", color: "var(--text-muted)", margin: "6px auto 16px", maxWidth: 440 }}>
                     {errMsg || "An unknown error occurred during analysis."}
                   </p>
                   <Button variant="secondary" onClick={() => triggerAnalysis()} loading={isTriggering} icon={<RefreshCw size={14} />}>Retry Analysis</Button>
