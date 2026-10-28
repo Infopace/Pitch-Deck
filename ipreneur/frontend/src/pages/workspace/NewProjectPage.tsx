@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -144,6 +144,20 @@ const SHARED_FIELD_FORM_NAMES: Record<string, string> = {
 
 type FormData = z.infer<typeof schema>;
 
+// A deck can take a while to fill in — losing it all to an accidental back
+// or reload was the single biggest complaint we got about this form. The
+// draft lives only on this device (no server round-trip, nothing to clean
+// up on our end) and only covers text fields: a File object can't survive
+// JSON.stringify, so a chosen logo/gallery image still has to be re-picked.
+const DRAFT_KEY = "mint:new-project-draft:v1";
+const DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+interface ProjectDraft {
+  values: FormData;
+  step: 1 | 2;
+  category: string;
+  savedAt: number;
+}
+
 /** The two currencies the form collects money in, and how each is shown. */
 const CURRENCIES: Record<"INR" | "USD", { symbol: string; name: string }> = {
   INR: { symbol: "₹", name: "Indian Rupees — written as lakh/crore on the slides" },
@@ -262,6 +276,9 @@ const ndS = {
 
   // ── Step indicator ──────────────────────────────────────────────────────
   topbar: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, paddingBottom: 16, marginBottom: 28, borderBottom: "1px solid var(--border-subtle)" } as React.CSSProperties,
+
+  draftBanner: { display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, padding: "10px 16px", marginBottom: 20, borderRadius: "var(--radius-md)", background: "rgba(16,185,129,.08)", border: "1px solid rgba(16,185,129,.25)", font: "500 13px var(--font-body)", color: "#047857" } as React.CSSProperties,
+  draftBannerBtn: { border: 0, background: "none", padding: 0, font: "600 13px var(--font-body)", color: "#047857", textDecoration: "underline", cursor: "pointer", flexShrink: 0 } as React.CSSProperties,
   steps: { display: "flex", alignItems: "center", gap: 12 } as React.CSSProperties,
   stepBtn: { display: "flex", alignItems: "center", gap: 11, border: 0, background: "none", padding: 0, cursor: "pointer", textAlign: "left" } as React.CSSProperties,
   stepNum: { width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", font: "600 12px var(--font-body)", flexShrink: 0 } as React.CSSProperties,
@@ -392,6 +409,11 @@ export default function NewProjectPage() {
   const [startNow, setStartNow] = useState(true);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [restoredDraft, setRestoredDraft] = useState(false);
+  // Guards the autosave effect against firing before the restore pass has
+  // had a chance to run — otherwise the very first render's blank defaults
+  // would overwrite a draft before it's read back.
+  const draftReadyRef = useRef(false);
 
   const {
     register,
@@ -400,6 +422,8 @@ export default function NewProjectPage() {
     setError,
     clearErrors,
     watch,
+    getValues,
+    reset,
     control,
     formState: { errors },
   } = useForm<FormData>({
@@ -468,8 +492,15 @@ export default function NewProjectPage() {
   const needsFounders = deckSections.includes("team");
   const hasGallery = deckSections.includes("galleryS");
 
-  // Switching type clears stale per-type answers and their errors.
+  // Switching type clears stale per-type answers and their errors — but not
+  // on the render where a restored draft first applies its own deckType,
+  // which would otherwise wipe the brief answers it just brought back.
+  const skipNextDeckTypeClear = useRef(true);
   useEffect(() => {
+    if (skipNextDeckTypeClear.current) {
+      skipNextDeckTypeClear.current = false;
+      return;
+    }
     setValue("brief", {});
     clearErrors();
   }, [deckType, setValue, clearErrors]);
@@ -478,6 +509,97 @@ export default function NewProjectPage() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
+
+  // Resume an in-progress deck on reload/back instead of starting over.
+  // Only the form values and which step they'd reached are restored — the
+  // category filter is just a view of step 1's grid, not entered data, so
+  // it isn't worth the restore complexity and always comes back as "all".
+  useEffect(() => {
+    let readyTimer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const draft: ProjectDraft = JSON.parse(raw);
+        if (Date.now() - draft.savedAt < DRAFT_MAX_AGE_MS) {
+          reset(draft.values);
+          setStep(draft.step === 2 ? 2 : 1);
+          setRestoredDraft(true);
+        } else {
+          localStorage.removeItem(DRAFT_KEY);
+        }
+      }
+    } catch {
+      /* corrupt or inaccessible storage — carry on with a blank form */
+    }
+    // react-hook-form's reset() notifies watch() subscribers on its own
+    // next tick rather than synchronously, which (under React 18 Strict
+    // Mode's double-invoked effects, where this one runs twice) can land
+    // the notification after the *second* run's subscription is already
+    // live — firing a save built from a stale, pre-restore `step` closure
+    // that clobbers the very draft.step just read above. Deferring "ready"
+    // past that tick means that notification finds autosave still off.
+    readyTimer = setTimeout(() => {
+      draftReadyRef.current = true;
+    }, 0);
+    return () => clearTimeout(readyTimer);
+    // Runs once, on mount, before anything the user does should be saved.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * `stepOverride` exists because the three places that change `step` (the
+   * buttons below) call this in the same breath as `setStep`, when the
+   * `step` state captured in this closure is still the value from *before*
+   * that click — passing the new value directly avoids a save that writes
+   * the stale step back over whatever a reload just restored.
+   */
+  const saveDraft = useCallback((stepOverride?: 1 | 2) => {
+    if (!draftReadyRef.current) return;
+    try {
+      const draft: ProjectDraft = { values: getValues(), step: stepOverride ?? step, category: "all", savedAt: Date.now() };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      /* storage full/unavailable (e.g. private browsing) — drafting just
+       * stops working silently, nothing in the form depends on it */
+    }
+  }, [getValues, step]);
+
+  // Autosave every field as it's typed.
+  useEffect(() => {
+    const subscription = watch(() => saveDraft());
+    return () => subscription.unsubscribe();
+  }, [watch, saveDraft]);
+
+  const discardDraft = () => {
+    // reset() notifies watch() on its own tick (see the restore effect's
+    // comment above) — without this, that notification autosaves the
+    // blank form right back to storage a moment after we clear it.
+    draftReadyRef.current = false;
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* already unavailable */
+    }
+    setRestoredDraft(false);
+    reset({
+      deckType: "investor",
+      deckFormat: "presenter",
+      currency: "INR",
+      brief: {},
+      hasWebsite: true,
+      companyUrl: "",
+      name: "",
+      founders: [{ name: "", role: "", oneLiner: "" }],
+      startImmediately: true,
+    });
+    setStep(1);
+    setCategory("all");
+    setLogoFile(null);
+    setTimeout(() => {
+      draftReadyRef.current = true;
+    }, 0);
+    setGalleryFiles([]);
+  };
 
   const { fields: founderFields, append: appendFounder, remove: removeFounder } = useFieldArray({
     control,
@@ -551,6 +673,11 @@ export default function NewProjectPage() {
         } catch {
           /* non-fatal: the deck just opens on the default template */
         }
+      }
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        /* already unavailable */
       }
       toast.success("Project created!");
       navigate(`/projects/${project.id}`);
@@ -629,7 +756,7 @@ export default function NewProjectPage() {
       <button
         type="button"
         style={ndS.stepBtn}
-        onClick={() => { if (done) { setDir(-1); setStep(n); } }}
+        onClick={() => { if (done) { setDir(-1); setStep(n); saveDraft(n); } }}
         aria-current={active ? "step" : undefined}
       >
         <span style={{ ...ndS.stepNum, ...(active || done ? ndS.stepNumOn : ndS.stepNumOff) }}>
@@ -659,6 +786,13 @@ export default function NewProjectPage() {
           </div>
           <span style={{ width: 90 }} aria-hidden="true" />
         </div>
+
+        {restoredDraft && (
+          <div style={ndS.draftBanner}>
+            <span>We picked up where you left off — your answers were restored from this device.</span>
+            <button type="button" style={ndS.draftBannerBtn} onClick={discardDraft}>Start over</button>
+          </div>
+        )}
 
         {/* One motion moment in the whole flow: moving between steps. The
             slide carries direction — forward leans left, Change leans right —
@@ -778,7 +912,7 @@ export default function NewProjectPage() {
               </ol>
               <div style={ndS.orderFoot}>
                 <style>{`.np-go{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;padding:11px 16px;border-radius:12px;background:#059669;color:#fff;font:600 13px var(--font-body);box-shadow:0 4px 12px -4px rgba(5,150,105,.5);transition:background .2s}.np-go:hover{background:#047857}.np-go:active{background:#065F46}.np-go:focus-visible{outline:2px solid #059669;outline-offset:2px}`}</style>
-                <button type="button" className="np-go" onClick={() => { setDir(1); setStep(2); }}>
+                <button type="button" className="np-go" onClick={() => { setDir(1); setStep(2); saveDraft(2); }}>
                   Continue to details <ArrowRight size={15} />
                 </button>
               </div>
@@ -805,7 +939,7 @@ export default function NewProjectPage() {
                 <div style={ndS.chosenName}>{selectedType?.label ?? "Investor / Fundraising"}</div>
                 <div style={ndS.chosenMeta}>{runningOrder.length} slides</div>
               </span>
-              <button type="button" style={ndS.changeBtn} onClick={() => { setDir(-1); setStep(1); }}>Change</button>
+              <button type="button" style={ndS.changeBtn} onClick={() => { setDir(-1); setStep(1); saveDraft(1); }}>Change</button>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} style={ndS.form}>
