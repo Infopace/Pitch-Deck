@@ -93,11 +93,18 @@ export default function MintStoryGraphic() {
         <text x="435" y="401" fill="#475569" fontSize="7">Customers</text>
       </g>
 
-      {/* Mint transformation point */}
+      {/* Mint transformation point — the actual brand mark, not a stand-in glyph */}
       <g filter="url(#mint-story-core-shadow)">
-        <circle cx="421" cy="231" r="48" fill="#2563EB" />
-        <circle cx="421" cy="231" r="39" stroke="white" strokeOpacity="0.22" />
-        <path d="M400 249V214L421 232L442 214V249" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="421" cy="231" r="48" fill="#F8FAFC" />
+        <circle cx="421" cy="231" r="39" stroke="#2563EB" strokeOpacity="0.18" />
+        <g transform="translate(421 231) scale(1.3333) translate(-24 -24)">
+          <rect x="3" y="3" width="42" height="42" rx="9" fill="#0F172A" />
+          <path d="M10 14.5 30.5 7.5v6L19.5 20 10 16.5v-2Z" fill="#fff" />
+          <path d="M10 15.5 19.5 20.5V39L10 33.5v-18Z" fill="#2563EB" />
+          <path d="M20.5 20 30.5 14.5V34l-10 5V20Z" fill="#10B981" />
+          <path d="M31.5 14.5 35.5 12.5v19L31.5 34V14.5Z" fill="#059669" />
+          <path d="m19.5 20 11-6.5v3.3l-10 5.7-1-2.5Z" fill="#020617" />
+        </g>
         <circle cx="447" cy="204" r="5" fill="#34D399" />
       </g>
       <text x="421" y="293" textAnchor="middle" fill="#0F172A" fontSize="9" fontWeight="800" letterSpacing="1.4">MINT</text>
