@@ -799,10 +799,9 @@ Return ONLY valid JSON:
         # from the deck-type registry rather than written out here, so a deck's
         # shape is declared in exactly one place (app/decks/registry.py).
         sections = tuple(sections or resolve_sections(deck_type, stage=stage))
-        B = build_generation_sections(deck_type, sections, stage=stage, deck_format=deck_format)
-
         # Format user-provided financials, in the currency the founder entered them in
         currency = currency_of(u)
+        B = build_generation_sections(deck_type, sections, stage=stage, deck_format=deck_format, currency=currency)
         financials = []
         if u.get("arr_usd"):
             financials.append(f"ARR: {format_money(u['arr_usd'], currency)}")

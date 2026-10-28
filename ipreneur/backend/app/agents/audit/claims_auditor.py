@@ -150,10 +150,16 @@ def audit_deck(
         if tam and som and not (sam and som > sam) and som > tam:
             add("error", key, "SOM is larger than TAM.")
 
-    # 5. Revenue figures must match what the founder supplied.
+    # 5. Revenue figures must match what the founder supplied - in both
+    # magnitude and currency. The founder's own figures (ARR, MRR, ask,
+    # pricing) are never allowed to drift off the currency they were
+    # entered in; third-party figures (TAM/SAM/SOM, competitor funding) are
+    # excluded below since CURRENCY_GUIDANCE lets those keep whatever
+    # currency their source reported.
     currency = currency_of(u)
+    other_symbol, own_symbol = ("$", "₹") if currency == "INR" else ("₹", "$")
     founder_arr = u.get("arr_usd") or (u.get("mrr_usd") * 12 if u.get("mrr_usd") else None)
-    for key in ("traction", "summary", "financials", "evTraction"):
+    for key in ("traction", "summary", "financials", "roi", "recommendation", "period", "unitEconomics"):
         sec = td.get(key)
         if not isinstance(sec, dict):
             continue
@@ -161,6 +167,11 @@ def audit_deck(
         for t in tiles:
             if not isinstance(t, dict):
                 continue
+            raw_k = str(t.get("k", ""))
+            if other_symbol in raw_k:
+                add("error", key,
+                    f"{t.get('l', 'This figure')} is shown as {raw_k}, using the wrong currency - "
+                    f"the project is set to {currency}, so this should read {own_symbol}.")
             label, val = str(t.get("l", "")), parse_money(t.get("k"))
             if not _REVENUE_LABEL.search(label) or val is None:
                 continue

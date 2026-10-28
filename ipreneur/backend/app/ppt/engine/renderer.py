@@ -396,7 +396,10 @@ class PPTRenderer:
 
         cd = CategoryChartData()
         cd.categories = cats
-        cd.add_series("Growth ($M)", vals)
+        # No currency reaches this renderer layer, and the model isn't bound to
+        # any particular unit for these values anyway — the real figures (with
+        # their actual currency) are the kpi tiles drawn above the chart.
+        cd.add_series("Growth", vals)
         chart = slide.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, x, y, cx, cy, cd).chart
         chart.has_legend = False
         chart.value_axis.visible = False

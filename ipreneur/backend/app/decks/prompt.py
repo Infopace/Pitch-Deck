@@ -10,9 +10,11 @@ instead of being retyped per type.
 Everything these functions return is plain text destined for a single `{}` slot
 in the prompt's f-string, so the JSON braces inside need no escaping.
 """
+import re
 from datetime import date
 from typing import Optional, Sequence
 
+from app.core.money import Currency, short_inr
 from app.decks.registry import (
     DeckType,
     format_guidance,
@@ -23,6 +25,29 @@ from app.decks.sections import SECTION_SPECS
 
 # Layouts the legacy slides[] renderer knows how to dispatch on.
 _LEGACY_LAYOUTS = {"full_bleed", "big_number", "cards", "two_column", "market_sizing", "timeline", "title_bullets"}
+
+# Every section skeleton below was written with illustrative $ amounts — fine
+# as a JSON *shape* example, but a model shown "$2.4M" right next to an
+# instruction to write ARR in ₹ reliably copies the example's currency over
+# the instruction. This rewrites those examples to a plausible ₹ figure (a
+# notional USD→INR rate — illustrative only, never a real conversion) so the
+# few-shot format agrees with CURRENCY_GUIDANCE instead of contradicting it.
+_SKELETON_USD_RE = re.compile(r'\$([\d][\d,]*(?:\.\d+)?)\s*([KMB])?\b')
+_USD_UNIT_MULT = {"K": 1e3, "M": 1e6, "B": 1e9, None: 1}
+_NOTIONAL_USD_TO_INR = 83
+
+
+def _localize_skeleton_money(text: str, currency: Currency) -> str:
+    if currency != "INR":
+        return text
+
+    def _convert(m: "re.Match[str]") -> str:
+        amount = float(m.group(1).replace(",", "")) * _USD_UNIT_MULT[m.group(2)]
+        return short_inr(amount * _NOTIONAL_USD_TO_INR)
+
+    text = text.replace('"Raising $XM Series A"', '"Raising ₹XX Cr Series A"')
+    text = text.replace("($M)", "(₹ Cr)").replace("($K)", "(₹ L)")
+    return _SKELETON_USD_RE.sub(_convert, text)
 
 
 def upcoming_quarters(today: Optional[date] = None, n: int = 4) -> list[str]:
@@ -118,7 +143,7 @@ def build_section_rules(sections: Sequence[str]) -> str:
     return "\n\n".join(blocks)
 
 
-def build_template_skeleton(sections: Sequence[str]) -> str:
+def build_template_skeleton(sections: Sequence[str], currency: Currency = "USD") -> str:
     """The `template_data` object the model must return, for these sections only."""
     lines = ['    "company": "Company name",',
              '    "mark": "1-2 letter monogram",',
@@ -132,7 +157,8 @@ def build_template_skeleton(sections: Sequence[str]) -> str:
         spec = SECTION_SPECS.get(key)
         if not spec or not spec.model or not spec.skeleton:
             continue
-        entries.append(f'    "{key}": {resolve_dates(spec.skeleton)}')
+        skeleton = _localize_skeleton_money(resolve_dates(spec.skeleton), currency)
+        entries.append(f'    "{key}": {skeleton}')
     return "{\n" + "\n".join(lines) + "\n" + ",\n".join(entries) + "\n  }"
 
 
@@ -171,6 +197,7 @@ def build_generation_sections(
     *,
     stage: Optional[str] = None,
     deck_format: Optional[str] = None,
+    currency: Currency = "USD",
 ) -> dict[str, str]:
     """Every deck-type-dependent block the generation prompt needs."""
     dt = get_deck_type(deck_type)
@@ -178,7 +205,7 @@ def build_generation_sections(
         "type_header": build_type_header(deck_type, stage=stage, deck_format=deck_format),
         "slide_plan": build_slide_plan(sections),
         "section_rules": build_section_rules(sections),
-        "template_skeleton": build_template_skeleton(sections),
+        "template_skeleton": build_template_skeleton(sections, currency),
         "slides_skeleton": build_slides_skeleton(sections),
         "slide_count": str(len(sections)),
         "eyebrow": dt.eyebrow,

@@ -45,6 +45,18 @@ def test_invented_revenue_is_flagged_when_none_was_given():
     assert any("invented" in m for m in _msgs(r, "error"))
 
 
+def test_dollar_figure_on_an_inr_deck_is_flagged_even_if_the_magnitude_matches():
+    td = {"traction": {"kpis": [{"k": "$2.4M", "l": "ARR"}]}}
+    r = audit_deck(td, ["traction"], user_inputs={"currency": "INR", "arr_usd": 2_400_000})
+    assert any("wrong currency" in m for m in _msgs(r, "error"))
+
+
+def test_inr_figure_on_an_inr_deck_is_not_flagged():
+    td = {"traction": {"kpis": [{"k": "₹2,00,00,000", "l": "ARR"}]}}
+    r = audit_deck(td, ["traction"], user_inputs={"currency": "INR"})
+    assert not any("wrong currency" in m for m in _msgs(r, "error"))
+
+
 def test_unevidenced_certification_is_flagged_but_hedged_is_not():
     bad = audit_deck({"security": {"steps": [{"d": "SOC 2 Type II certified"}]}}, ["security"])
     ok = audit_deck({"security": {"steps": [{"d": "SOC 2 audit in progress"}]}}, ["security"])
