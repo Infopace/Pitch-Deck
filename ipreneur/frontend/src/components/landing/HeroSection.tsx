@@ -61,7 +61,7 @@ export default function HeroSection() {
       <div className="hero-c1-content">
         {/* Main Headline */}
         <h1 className="hero-c1-title">
-          Turn Your Website Into <span className="hero-c1-gradient">A Deck That's Ready to Send</span>
+          Turn Your Website Into <span className="hero-c1-gradient">An Investor-Ready Deck</span>
         </h1>
 
         {/* Subtitle */}
