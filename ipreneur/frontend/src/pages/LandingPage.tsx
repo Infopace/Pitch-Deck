@@ -9,15 +9,29 @@
  *
  * Product previews are rendered live through the real slide renderer, so what a
  * visitor sees is literally what the generator produces.
+ *
+ * Copy refreshed from "Mint Landing Page Content.docx" (2026-10-28) — a
+ * consultant brief modeled on Pitch.com's structure. Applied in full, but
+ * every claim was re-checked against the code first: the brief assumes a
+ * free-text prompt box (this product is website-first, with a structured
+ * form, not a chat prompt), a browsable "template library" (this product has
+ * 40 visual designs you switch on a deck, not separate templates), and a
+ * generic audience list including Students/Educators, which doesn't map to
+ * any deck type here — all adapted rather than copied verbatim. The brief's
+ * "Use Cases" section is folded into the existing deck-type groups below
+ * rather than duplicated, since that section already is the use-case
+ * breakdown, grounded in the registry rather than invented personas.
  */
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight, Check, ChevronDown, Globe, Search, Sparkles,
-  PencilLine, Download, Layers, FileText, Minus,
+  PencilLine, Download, Layers, FileText, Minus, FileSearch,
+  ShieldCheck,
 } from "lucide-react";
 
 import HeroSection from "@/components/landing/HeroSection";
+import LandingFooter from "@/components/landing/LandingFooter";
 import { THEMES, getTheme, ensureDeckFonts } from "@/components/workspace/deckTemplates/themes";
 import { sampleDeckVariant } from "@/components/workspace/deckTemplates/sampleDeck";
 import { renderSlide } from "@/components/workspace/deckTemplates/TemplatedDeck";
@@ -39,6 +53,55 @@ const CAPABILITIES = [
   { v: "40", label: "designs, switchable on any deck at any time" },
   { v: "5–25", label: "slides, decided by the deck type you pick" },
   { v: ".pptx", label: "export with native charts and editable text" },
+];
+
+// Benefit-led teaser, ahead of the mechanics in "How it works" below —
+// keeps the two sections from repeating each other.
+const INTRO_CARDS = [
+  {
+    step: "01",
+    title: "Skip the blank page",
+    body: "Start from your website, not an empty slide. Mint reads what you've already written about your company before it writes anything new.",
+  },
+  {
+    step: "02",
+    title: "Let research do the work",
+    body: "Market size, competitors and comparable companies arrive with the reasoning attached — not a model's best guess dressed up as a fact.",
+  },
+  {
+    step: "03",
+    title: "Present with confidence",
+    body: "A second, deterministic pass checks the deck for numbers that don't add up or claims nothing backs up, before you ever see it.",
+  },
+];
+
+// What the research pass actually does, and what checks the output before a
+// visitor sees it — the credibility angle the generic "AI assistant" framing
+// in the brief didn't have the detail to cover.
+const TRUST_POINTS = [
+  {
+    icon: Search,
+    title: "Research, not recall",
+    body: "The first pass runs live web search for your market, competitors and comparable companies, rather than relying on what the model happened to learn in training.",
+  },
+  {
+    icon: FileSearch,
+    title: "Confidence, not confidence tricks",
+    body: "Each researched fact carries how sure the model is about it, so a shaky figure is never presented with the same weight as a well-sourced one.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "A second pass checks the first",
+    body: "Before a deck reaches you, a separate, deterministic check looks for numbers that contradict each other, certifications with no evidence, and figures that don't match what you told it.",
+  },
+];
+
+const WHY_MINT = [
+  "Start faster: go from an idea or a URL to a full slide sequence, not a blank canvas.",
+  "Structure your story: every deck type follows the sequence that room actually expects — a sales deck doesn't borrow an investor deck's order.",
+  "Create with confidence: research arrives sourced, and a second pass checks the output before you see it.",
+  "Adapt to your audience: the same company facts read differently in a sales deck, an investor deck and an internal memo.",
+  "Switch your mind freely: 40 designs apply to a deck you've already written, so changing one never means starting over.",
 ];
 
 const STEPS = [
@@ -108,6 +171,14 @@ const FAMILY_NOTES: Record<string, string> = {
 };
 
 const FAQS = [
+  {
+    q: "Who is Mint for?",
+    a: "Founders raising a round, teams presenting internally, and anyone pitching a sale or a partnership. The deck type you pick decides the slide sequence and the questions you're asked, so the same tool fits very different rooms.",
+  },
+  {
+    q: "Do I need design experience?",
+    a: "No. Each deck comes out already laid out in one of 40 designs, and editing is clicking text and retyping it — there's no layout grid or font picker to learn.",
+  },
   {
     q: "What do I have to give it to get a deck?",
     a: "A company name and a website is enough to start. The more you tell it — stage, business model, traction, who you sell to — the less you will have to correct afterwards. You can fill those in as you go rather than up front.",
@@ -191,8 +262,32 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How it works ─────────────────────────────────────────────── */}
+      {/* ── Product introduction — benefit-led, mechanics come next ───── */}
       <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+        <div className="mb-12 max-w-[46rem]">
+          <h2 className="l-title mb-4">Your ideas deserve better slides.</h2>
+          <p className="l-lede">
+            Writing a deck from nothing takes hours of research, structuring and
+            formatting before you even get to the part that matters — what you
+            actually have to say.
+          </p>
+        </div>
+
+        <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
+          {INTRO_CARDS.map((c) => (
+            <div key={c.step} className="l-panel p-7">
+              <div className="l-meta mb-4 tabular-nums">{c.step}</div>
+              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+                {c.title}
+              </h3>
+              <p className="l-body text-[14px] leading-relaxed">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── How it works ─────────────────────────────────────────────── */}
+      <section id="how-it-works" className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-12 max-w-[46rem]">
           <h2 className="l-title mb-4">A website goes in. A deck comes out.</h2>
           <p className="l-lede">
@@ -242,8 +337,8 @@ export default function LandingPage() {
                   key={slot.key}
                   onClick={() => setSlideIdx(i)}
                   className={`rounded-full border px-3 py-1 text-[12px] font-medium transition-colors ${i === slideIdx
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-300 bg-white text-slate-500 hover:bg-slate-50"
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-300 bg-white text-slate-500 hover:bg-slate-50"
                     }`}
                 >
                   {slot.eyebrow || slot.key}
@@ -275,10 +370,42 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 13 deck types ────────────────────────────────────────────── */}
+      {/* ── What's actually behind the deck ─────────────────────────────
+          The brief's "AI assistant" section, reframed: this product has no
+          chat prompt, so the honest version of "meet the AI" is explaining
+          the two-pass research and the audit pass that checks it. ────── */}
+      <section className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+          <div className="mb-12 max-w-[46rem]">
+            <h2 className="l-title mb-4">Every number comes with its reasoning attached.</h2>
+            <p className="l-lede">
+              A deck is only useful if you can defend what's on it. Here's what
+              actually happens between pasting a URL and getting a deck back.
+            </p>
+          </div>
+
+          <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
+            {TRUST_POINTS.map((t) => (
+              <div key={t.title} className="l-panel p-7">
+                <span className="mb-5 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
+                  <t.icon size={16} />
+                </span>
+                <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+                  {t.title}
+                </h3>
+                <p className="l-body text-[14px] leading-relaxed">{t.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 13 deck types — this is also the brief's "Use Cases" section:
+          the deck-type groups already are the use-case breakdown, grounded
+          in the registry rather than a second, invented persona list. ──── */}
       <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-12 max-w-[46rem]">
-          <h2 className="l-title mb-4">Not every deck is a pitch deck</h2>
+          <h2 className="l-title mb-4">One platform, whatever the room.</h2>
           <p className="l-lede">
             A demo-day teaser is not a shortened investor deck, and a sales deck
             is not a pitch with the price added. Each of the {Object.keys(DECK_TYPES).length}{" "}
@@ -313,7 +440,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Designs ──────────────────────────────────────────────────── */}
-      <section className="l-panel border-y border-slate-200/80">
+      <section id="designs" className="l-panel border-y border-slate-200/80">
         <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
           <div className="mb-12 max-w-[46rem]">
             <h2 className="l-title mb-4">Forty designs, and you can change your mind</h2>
@@ -439,11 +566,29 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── What it does not do ──────────────────────────────────────── */}
-      <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+      {/* ── Why Mint, paired with what it doesn't do — confident about what's
+          real, honest about what isn't, which is the brief's "Why Choose"
+          section done the way this page already does everything else. ──── */}
+      <section id="why-mint" className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-8 max-w-[46rem]">
-          <h2 className="l-title mb-4">What it does not do yet</h2>
+          <h2 className="l-title mb-4">A smarter way to start a presentation.</h2>
           <p className="l-lede">
+            Great decks do more than display information — they tell a story,
+            build understanding, and survive the room they're presented in.
+          </p>
+        </div>
+        <ul className="mb-16 grid gap-x-10 gap-y-3 sm:grid-cols-2">
+          {WHY_MINT.map((t) => (
+            <li key={t} className="flex gap-2.5">
+              <Check size={15} className="mt-0.5 shrink-0 text-blue-600" />
+              <span className="l-body text-[14px] leading-relaxed">{t}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mb-8 max-w-[46rem]">
+          <h3 className="text-[18px] font-semibold tracking-[-0.015em] text-slate-900">What it does not do yet</h3>
+          <p className="l-lede mt-2">
             Worth knowing before you sign up, rather than after.
           </p>
         </div>
@@ -465,7 +610,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────────────── */}
-      <section className="l-panel border-y border-slate-200/80">
+      <section id="faq" className="l-panel border-y border-slate-200/80">
         <div className="mx-auto max-w-[820px] px-4 py-20 sm:px-6">
           <h2 className="l-title mb-10">Questions</h2>
           <div className="border-t border-slate-200/80">
@@ -496,7 +641,7 @@ export default function LandingPage() {
       {/* ── Close ────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-4 py-24 text-center sm:px-6">
         <h2 className="mx-auto mb-5 max-w-[18ch] font-[family-name:var(--font-display)] text-[2.25rem] font-semibold leading-[1.08] tracking-[-0.025em] text-slate-900 sm:text-[3.25rem]">
-          Start with your website.
+          Your next deck starts with a website, not a blank page.
         </h2>
         <p className="l-lede mx-auto mb-9 max-w-[46ch]">
           Three decks on the free plan. No card, and nothing to install.
@@ -516,6 +661,8 @@ export default function LandingPage() {
           </Link>
         </div>
       </section>
+
+      <LandingFooter />
     </div>
   );
 }

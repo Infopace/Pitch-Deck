@@ -43,9 +43,9 @@ export default function HeroSection() {
 
         <nav className="hero-c1-nav">
           <a href="#showcase">Live Deck</a>
-          <a href="#features">How It Works</a>
-          <a href="#templates">Templates</a>
-          <a href="#comparison">Why Mint</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#designs">Designs</a>
+          <a href="#why-mint">Why Mint</a>
           <a href="#faq">FAQ</a>
         </nav>
 
@@ -63,18 +63,18 @@ export default function HeroSection() {
         {/* Eyebrow Badge */}
         <div className="hero-c1-badge">
           <Sparkles size={13} className="text-blue-600" />
-          <span>Autonomous AI Pitch Deck Generator</span>
+          <span>AI-Powered Pitch Deck Generation</span>
         </div>
 
         {/* Main Headline */}
         <h1 className="hero-c1-title">
-          The Deck That Closes <span className="hero-c1-gradient">The Round</span>
+          Turn Your Website Into <span className="hero-c1-gradient">A Deck That's Ready to Send</span>
         </h1>
 
         {/* Subtitle */}
         <p className="hero-c1-subtitle">
-          Instantly generate professional, data-driven investor pitch decks with AI.
-          <br className="hidden sm:inline" /> Input your website, Mint creates your winning presentation.
+          Paste your company's website. Mint researches your market and writes a complete,
+          <br className="hidden sm:inline" /> editable pitch deck — no blank page, no formatting from scratch.
         </p>
 
         {/* Search / URL Intake Pill Bar */}
@@ -98,7 +98,7 @@ export default function HeroSection() {
         {/* Quick architecture filter chips */}
         <div className="hero-c1-chips">
           <span className="chips-hint">Presets:</span>
-          {["⚡ Investor Pitch", "🚀 YC Demo Day", "💼 Enterprise Sales", "📈 Series A"].map((preset) => (
+          {["⚡ Investor Pitch", "🚀 Demo Day", "💼 Enterprise Sales", "📈 Series A"].map((preset) => (
             <button
               key={preset}
               type="button"
@@ -132,12 +132,12 @@ export default function HeroSection() {
 
               <div className="card-body">
                 <h4 className="card-title">Total Addressable Market (TAM)</h4>
-                <p className="card-caption">Global clinical trial recruitment software</p>
+                <p className="card-caption">Example — researched from your website and public data</p>
 
                 <div className="tam-hero-stat">
-                  <span className="tam-label">Global Target</span>
-                  <div className="tam-number">$3.8B</div>
-                  <span className="tam-growth">+22% YoY CAGR</span>
+                  <span className="tam-label">Illustrative example</span>
+                  <div className="tam-number">$X.XB</div>
+                  <span className="tam-growth">Sourced, not guessed</span>
                 </div>
 
                 {/* Bar chart graphic */}
@@ -165,7 +165,7 @@ export default function HeroSection() {
                 </div>
 
                 <div className="card-footer-metric">
-                  <span className="metric-chip">Serviceable Market: $960M</span>
+                  <span className="metric-chip">TAM / SAM / SOM, worked out from research</span>
                 </div>
               </div>
             </div>
@@ -186,31 +186,31 @@ export default function HeroSection() {
               <div className="card-body">
                 <div className="center-header-row">
                   <div>
-                    <h4 className="card-title">Projected Revenue Growth</h4>
-                    <p className="card-caption">Multi-year ARR scaling model, site to enterprise tier</p>
+                    <h4 className="card-title">Financial Projections</h4>
+                    <p className="card-caption">Built from your numbers, not invented</p>
                   </div>
                   <div className="center-live-pill">
                     <span className="live-dot" />
-                    <span>Live Model</span>
+                    <span>Example</span>
                   </div>
                 </div>
 
                 {/* Financial KPI chips */}
                 <div className="financial-kpi-row">
                   <div className="kpi-box">
-                    <span className="kpi-label">Projected ARR</span>
-                    <div className="kpi-val">$17M</div>
-                    <span className="kpi-badge text-emerald-600">6.1x Growth</span>
+                    <span className="kpi-label">ARR</span>
+                    <div className="kpi-val">$X.XM</div>
+                    <span className="kpi-badge text-emerald-600">Your figures</span>
                   </div>
                   <div className="kpi-box">
-                    <span className="kpi-label">Target Margin</span>
-                    <div className="kpi-val">80%</div>
-                    <span className="kpi-badge text-blue-600">SaaS Benchmark</span>
+                    <span className="kpi-label">Gross Margin</span>
+                    <div className="kpi-val">XX%</div>
+                    <span className="kpi-badge text-blue-600">Your figures</span>
                   </div>
                   <div className="kpi-box">
                     <span className="kpi-label">Net Retention</span>
-                    <div className="kpi-val">121%</div>
-                    <span className="kpi-badge text-emerald-600">Expansion</span>
+                    <div className="kpi-val">XX%</div>
+                    <span className="kpi-badge text-emerald-600">Your figures</span>
                   </div>
                 </div>
 
@@ -253,7 +253,7 @@ export default function HeroSection() {
                     <span>Real vector chart in PowerPoint (.pptx)</span>
                   </div>
                   <span className="font-mono text-[11px] font-semibold text-slate-500">
-                    Series A Target
+                    Sample slide
                   </span>
                 </div>
               </div>
@@ -274,25 +274,25 @@ export default function HeroSection() {
 
               <div className="card-body">
                 <h4 className="card-title">Founders & Leadership</h4>
-                <p className="card-caption">Operators who lived the enrollment bottleneck firsthand</p>
+                <p className="card-caption">Pulled from your site and confirmed by you</p>
 
                 {/* Team member cards */}
                 <div className="team-members-list">
                   <div className="team-member-card">
-                    <div className="team-avatar avatar-1">NM</div>
+                    <div className="team-avatar avatar-1">A</div>
                     <div className="team-meta">
-                      <span className="team-name">Nina Markovic</span>
+                      <span className="team-name">Founder name</span>
                       <span className="team-role">CEO & Co-Founder</span>
-                      <span className="team-prev">Ex-IQVIA • Trial Ops</span>
+                      <span className="team-prev">Background, from your site</span>
                     </div>
                   </div>
 
                   <div className="team-member-card">
-                    <div className="team-avatar avatar-2">JT</div>
+                    <div className="team-avatar avatar-2">B</div>
                     <div className="team-meta">
-                      <span className="team-name">Jonah Teller</span>
+                      <span className="team-name">Founder name</span>
                       <span className="team-role">CTO & Co-Founder</span>
-                      <span className="team-prev">Ex-Epic • EHR Integrations</span>
+                      <span className="team-prev">Background, from your site</span>
                     </div>
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export default function HeroSection() {
                 <div className="card-team-trust">
                   <div className="trust-pill">
                     <Zap size={11} className="text-amber-500" />
-                    <span>Advised by former ops chiefs at IQVIA & Flatiron Health</span>
+                    <span>Never invented — left blank if we can't find it</span>
                   </div>
                 </div>
               </div>
