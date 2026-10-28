@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 52" fill="none">
+  <path d="M8 14.5 30.5 6.5v6.3L19.5 19.5 8 15.5v-1Z" fill="#fff" stroke="#0F172A" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M8 14.5 19.5 20.5V43L8 36.5v-22Z" fill="#2563EB"/>
+  <path d="M20.5 20 31 14v22.5L20.5 43V20Z" fill="#10B981"/>
+  <path d="M32 14 37 11.5v22L32 37V14Z" fill="#059669"/>
+  <path d="m19.5 20 11-6.5V17l-10 6-1-3Z" fill="#0F172A"/>
+  <text x="54" y="38" font-family="system-ui,-apple-system,sans-serif" font-size="34" font-weight="800" letter-spacing="-1.2" fill="#0F172A">Mint</text>
+</svg>

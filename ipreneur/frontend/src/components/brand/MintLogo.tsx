@@ -17,32 +17,23 @@ export const MintLogo: React.FC<MintLogoProps> = ({
   className = "",
   textColor = "currentColor",
 }) => {
-  // Option 1: Geometric M-Leaf
+  // Option 1: Pitch Deck M
   if (variant === 1) {
     if (layout === "icon") {
       return (
         <svg
           height={height}
-          viewBox="0 0 50 50"
+          viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className={className}
         >
-          <defs>
-            <linearGradient id="mintGrad1-icon" x1="4" y1="6" x2="44" y2="46" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#34D399" />
-              <stop offset="50%" stop-color="#10B981" />
-              <stop offset="100%" stop-color="#059669" />
-            </linearGradient>
-            <linearGradient id="mintGradLeaf-icon" x1="18" y1="12" x2="38" y2="34" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#6EE7B7" />
-              <stop offset="100%" stop-color="#047857" />
-            </linearGradient>
-          </defs>
-          <path d="M8 44V10L22 28L18 44H8Z" fill="url(#mintGrad1-icon)" />
-          <path d="M42 44V10L28 28L32 44H42Z" fill="url(#mintGrad1-icon)" fillOpacity="0.85" />
-          <path d="M25 4C25 4 39 12 37 28C35 40 25 44 25 44C25 44 15 40 13 28C11 12 25 4 25 4Z" fill="url(#mintGradLeaf-icon)" />
-          <path d="M25 10V38" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeOpacity="0.5" />
+          <rect x="3" y="3" width="42" height="42" rx="9" fill="#0F172A" />
+          <path d="M10 14.5L30.5 7.5V13.5L19.5 20L10 16.5V14.5Z" fill="#FFFFFF" />
+          <path d="M10 15.5L19.5 20.5V39L10 33.5V15.5Z" fill="#2563EB" />
+          <path d="M20.5 20L30.5 14.5V34L20.5 39V20Z" fill="#10B981" />
+          <path d="M31.5 14.5L35.5 12.5V31.5L31.5 34V14.5Z" fill="#059669" />
+          <path d="M19.5 20L30.5 13.5V16.8L20.5 22.5L19.5 20Z" fill="#020617" />
         </svg>
       );
     }
@@ -50,28 +41,17 @@ export const MintLogo: React.FC<MintLogoProps> = ({
     return (
       <svg
         height={height}
-        viewBox="0 0 210 52"
+        viewBox="0 0 160 52"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className={className}
       >
-        <defs>
-          <linearGradient id="mintGrad1" x1="4" y1="6" x2="44" y2="46" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#34D399" />
-            <stop offset="50%" stopColor="#10B981" />
-            <stop offset="100%" stopColor="#059669" />
-          </linearGradient>
-          <linearGradient id="mintGradLeaf" x1="18" y1="12" x2="38" y2="34" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#6EE7B7" />
-            <stop offset="100%" stopColor="#047857" />
-          </linearGradient>
-        </defs>
-        <path d="M8 44V10L22 28L18 44H8Z" fill="url(#mintGrad1)" />
-        <path d="M42 44V10L28 28L32 44H42Z" fill="url(#mintGrad1)" fillOpacity="0.85" />
-        <path d="M25 4C25 4 39 12 37 28C35 40 25 44 25 44C25 44 15 40 13 28C11 12 25 4 25 4Z" fill="url(#mintGradLeaf)" />
-        <path d="M25 10V38" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeOpacity="0.5" />
-        <text x="62" y="36" fontFamily="system-ui, -apple-system, sans-serif" fontSize="32" fontWeight="900" letterSpacing="-0.5" fill={textColor}>mint</text>
-        <circle cx="156" cy="18" r="4.5" fill="#10B981" />
+        <path d="M8 14.5L30.5 6.5V12.8L19.5 19.5L8 15.5V14.5Z" fill="#FFFFFF" stroke="#0F172A" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M8 14.5L19.5 20.5V43L8 36.5V14.5Z" fill="#2563EB" />
+        <path d="M20.5 20L31 14V36.5L20.5 43V20Z" fill="#10B981" />
+        <path d="M32 14L37 11.5V34L32 37V14Z" fill="#059669" />
+        <path d="M19.5 20L30.5 13.5V17L20.5 23L19.5 20Z" fill="#0F172A" />
+        <text x="54" y="38" fontFamily="system-ui, -apple-system, sans-serif" fontSize="34" fontWeight="800" letterSpacing="-1.2" fill={textColor}>Mint</text>
       </svg>
     );
   }
