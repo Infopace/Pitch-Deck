@@ -32,6 +32,7 @@ import {
 
 import HeroSection from "@/components/landing/HeroSection";
 import LandingFooter from "@/components/landing/LandingFooter";
+import MintStoryGraphic from "@/components/landing/MintStoryGraphic";
 import { THEMES, getTheme, ensureDeckFonts } from "@/components/workspace/deckTemplates/themes";
 import { sampleDeckVariant } from "@/components/workspace/deckTemplates/sampleDeck";
 import { renderSlide } from "@/components/workspace/deckTemplates/TemplatedDeck";
@@ -53,26 +54,6 @@ const CAPABILITIES = [
   { v: "40", label: "designs, switchable on any deck at any time" },
   { v: "5–25", label: "slides, decided by the deck type you pick" },
   { v: ".pptx", label: "export with native charts and editable text" },
-];
-
-// Benefit-led teaser, ahead of the mechanics in "How it works" below —
-// keeps the two sections from repeating each other.
-const INTRO_CARDS = [
-  {
-    step: "01",
-    title: "Start from what you've already written",
-    body: "Mint reads your website and the public material around it before it writes anything new, so you begin with a draft to correct rather than an empty slide.",
-  },
-  {
-    step: "02",
-    title: "Grounded in real research",
-    body: "Market size, competitors and comparable companies arrive with the reasoning attached — not a model's best guess presented as a fact.",
-  },
-  {
-    step: "03",
-    title: "Present with confidence",
-    body: "A second, deterministic pass checks the deck for numbers that don't add up or claims nothing backs up, before you ever see it.",
-  },
 ];
 
 // What the research pass actually does, and what checks the output before a
@@ -265,7 +246,7 @@ export default function LandingPage() {
       {/* ── Product introduction — benefit-led, mechanics come next ───── */}
       <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-12 max-w-[46rem]">
-          <h2 className="l-title mb-4">Your ideas deserve better slides.</h2>
+          <h2 className="l-title mb-4">From company context to a sharper pitch.</h2>
           <p className="l-lede">
             Writing a deck from nothing takes hours of research, structuring and
             formatting before you even get to the part that matters — what you
@@ -273,17 +254,8 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
-          {INTRO_CARDS.map((c) => (
-            <div key={c.step} className="l-panel p-7">
-              <div className="l-meta mb-4 tabular-nums">{c.step}</div>
-              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
-                {c.title}
-              </h3>
-              <p className="l-body text-[14px] leading-relaxed">{c.body}</p>
-            </div>
-          ))}
-        </div>
+        <MintStoryGraphic />
+
       </section>
 
       {/* ── How it works ─────────────────────────────────────────────── */}

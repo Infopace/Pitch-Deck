@@ -1,0 +1,38 @@
+.mint-story-graphic {
+  display: block;
+  overflow: visible;
+}
+
+.mint-story-path {
+  animation: mint-story-flow 2.8s linear infinite;
+}
+
+.mint-story-path-delay {
+  animation-delay: -0.9s;
+}
+
+.mint-story-path-delay-2 {
+  animation-delay: -1.8s;
+}
+
+.mint-story-badge {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mint-story-float 4.8s ease-in-out infinite;
+}
+
+@keyframes mint-story-flow {
+  to { stroke-dashoffset: -52; }
+}
+
+@keyframes mint-story-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(-1deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mint-story-path,
+  .mint-story-badge {
+    animation: none;
+  }
+}
