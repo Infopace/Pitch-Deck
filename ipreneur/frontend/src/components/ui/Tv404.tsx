@@ -3,9 +3,14 @@ import React from "react";
 interface Tv404Props {
   className?: string;
   scale?: number;
+  /** What the screen's static shows. Defaults to the original 404 text. */
+  screenText?: string;
+  /** The giant "404" watermark behind the set — only means something for an
+   * actual 404, so other error kinds turn it off. */
+  watermark?: boolean;
 }
 
-export function Tv404({ className = "", scale }: Tv404Props) {
+export function Tv404({ className = "", scale, screenText = "NOT FOUND", watermark = true }: Tv404Props) {
   return (
     <div
       className={`tv-404-container ${className}`}
@@ -39,10 +44,10 @@ export function Tv404({ className = "", scale }: Tv404Props) {
               <div className="screen_out">
                 <div className="screen_out1">
                   <div className="screen">
-                    <span className="notfound_text"> NOT FOUND</span>
+                    <span className="notfound_text"> {screenText}</span>
                   </div>
                   <div className="screenM">
-                    <span className="notfound_text"> NOT FOUND</span>
+                    <span className="notfound_text"> {screenText}</span>
                   </div>
                 </div>
               </div>
@@ -72,11 +77,13 @@ export function Tv404({ className = "", scale }: Tv404Props) {
             <div className="base3" />
           </div>
         </div>
-        <div className="text_404">
-          <div className="text_4041">4</div>
-          <div className="text_4042">0</div>
-          <div className="text_4043">4</div>
-        </div>
+        {watermark && (
+          <div className="text_404">
+            <div className="text_4041">4</div>
+            <div className="text_4042">0</div>
+            <div className="text_4043">4</div>
+          </div>
+        )}
       </div>
     </div>
   );

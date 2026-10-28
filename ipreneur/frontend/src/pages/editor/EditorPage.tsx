@@ -12,6 +12,8 @@ import type { EditPath } from "@/components/workspace/deckTemplates/editing/edit
 import { setByPath } from "@/components/workspace/deckTemplates/editing/setByPath";
 import { HourglassLoader } from "@/components/ui/HourglassLoader";
 import { Tv404 } from "@/components/ui/Tv404";
+import { OfflineScreen } from "@/components/ui/OfflineScreen";
+import { isNetworkError } from "@/utils/isNetworkError";
 import { hasResearchContent, ResearchSourcesPanel } from "@/components/workspace/ResearchSourcesPanel";
 
 const ep = {
@@ -26,7 +28,7 @@ export default function EditorPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const qc = useQueryClient();
 
-  const { data: project, isLoading, isError } = useQuery({
+  const { data: project, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => projectsApi.get(projectId!),
     enabled: !!projectId,
@@ -114,6 +116,10 @@ export default function EditorPage() {
         </p>
       </div>
     );
+  }
+
+  if (isError && isNetworkError(error)) {
+    return <OfflineScreen onRetry={() => refetch()} minHeight="75vh" />;
   }
 
   if (isError || !project) {

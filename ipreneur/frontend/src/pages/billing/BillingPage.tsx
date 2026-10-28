@@ -6,6 +6,8 @@ import { billingApi, type PlanSummary } from "@/services/api/billing";
 import { openSubscriptionCheckout } from "@/services/razorpay";
 import { projectsApi } from "@/services/api/projects";
 import { useCurrentUser } from "@/stores/authStore";
+import { OfflineScreen } from "@/components/ui/OfflineScreen";
+import { isNetworkError } from "@/utils/isNetworkError";
 
 /** Plan names from the API ("Free", "Pro") line up with the user's role
  *  ("free", "pro"); admin accounts are shown as Enterprise. */
@@ -95,7 +97,7 @@ function PlanCard({
 export default function BillingPage() {
   const user = useCurrentUser();
 
-  const { data: plan, isLoading: planLoading, isError: planError } = useQuery({
+  const { data: plan, isLoading: planLoading, isError: planError, error: planErrorObj, refetch: refetchPlan } = useQuery({
     queryKey: ["billing-plan"],
     queryFn: () => billingApi.getPlan(),
     staleTime: 5 * 60_000,
@@ -151,6 +153,13 @@ export default function BillingPage() {
   const current = planKey(plan?.plan);
   const currentName = current.charAt(0).toUpperCase() + current.slice(1);
   const decksUsed = projectData?.total ?? projectData?.data?.length ?? 0;
+
+  // If the plan request never reached the server, it's a safe bet the other
+  // two queries on this page didn't either — the whole page is unreachable,
+  // not just this one card.
+  if (planError && isNetworkError(planErrorObj)) {
+    return <OfflineScreen onRetry={() => refetchPlan()} minHeight="70vh" />;
+  }
 
   return (
     <div className="mx-auto max-w-5xl p-6 sm:p-8">

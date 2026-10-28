@@ -18,6 +18,8 @@ import { FitSlide } from "@/components/workspace/deckTemplates/FitSlide";
 import { getTheme, ensureDeckFonts, DEFAULT_THEME_KEY } from "@/components/workspace/deckTemplates/themes";
 import { VIEW_CTX } from "@/components/workspace/deckTemplates/editing/editableText";
 import { HourglassLoader } from "@/components/ui/HourglassLoader";
+import { OfflineScreen } from "@/components/ui/OfflineScreen";
+import { isNetworkError } from "@/utils/isNetworkError";
 import type { Project } from "@/types";
 
 function getGreeting(): string {
@@ -108,7 +110,7 @@ export default function DashboardPage() {
   const [sortOrder, setSortOrder] = useState<"recent" | "name" | "slides">("recent");
   const [tab, setTab] = useState<"all" | "ready" | "running" | "draft" | "failed">("all");
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["projects"],
     queryFn: () => projectsApi.list({ pageSize: 30 }),
   });
@@ -161,6 +163,14 @@ export default function DashboardPage() {
 
   const user = useCurrentUser();
   const firstName = user?.name?.split(" ")[0] ?? "there";
+
+  // A true connectivity failure makes every figure on this page wrong (0
+  // decks, 0% ready, etc.), not just the list below — so it replaces the
+  // whole page rather than nesting inside the deck-grid section like a
+  // server-stated error (a 404/500) still does.
+  if (isError && isNetworkError(error)) {
+    return <OfflineScreen onRetry={() => refetch()} minHeight="70vh" />;
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1280px] space-y-5 p-5 lg:p-6">

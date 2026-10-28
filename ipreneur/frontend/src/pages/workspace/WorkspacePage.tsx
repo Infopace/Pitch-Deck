@@ -15,6 +15,8 @@ import type { TemplateDeckData } from "@/components/workspace/deckTemplates/type
 import { BrandingPanel } from "@/components/workspace/BrandingPanel";
 import { HourglassLoader } from "@/components/ui/HourglassLoader";
 import { Tv404 } from "@/components/ui/Tv404";
+import { OfflineScreen } from "@/components/ui/OfflineScreen";
+import { isNetworkError } from "@/utils/isNetworkError";
 import type { Project } from "@/types";
 
 const POLLING_MS = 3000;
@@ -115,6 +117,13 @@ export default function WorkspacePage() {
   const isReady = project?.status === "ready";
   const isDraft = project?.status === "draft";
   const isError = project?.status === "error";
+
+  // Checked before the not-found case below: that check's `!project` branch
+  // is also true for a connectivity failure, which used to show "Pitch Deck
+  // Not Found" for a problem that has nothing to do with the deck.
+  if (projectQuery.isError && isNetworkError(projectQuery.error)) {
+    return <OfflineScreen onRetry={() => projectQuery.refetch()} minHeight="75vh" />;
+  }
 
   if (projectQuery.isError && ((projectQuery.error as any)?.response?.status === 404 || !project)) {
     return (
@@ -232,7 +241,7 @@ export default function WorkspacePage() {
                     <div style={{ flex: 1 }}>
                       <h2 style={{ font: "700 16px var(--font-display)", color: "#b45309", marginBottom: 6 }}>Gemini API Quota Exceeded</h2>
                       <p style={{ font: "400 13px var(--font-body)", color: "var(--text-muted)", marginBottom: 16 }}>
-                        Your Gemini API key has hit the free-tier daily limit (20 requests/day) for gemini-2.5-flash. The quota resets every 24 hours.
+                        Your Gemini API key has hit its free-tier daily limit for gemini-3.8-flash. The quota resets every 24 hours.
                       </p>
                       <div style={{ display: "flex", gap: 10 }}>
                         <Button variant="secondary" onClick={() => triggerAnalysis()} loading={isTriggering} icon={<RefreshCw size={14} />}>Retry Analysis</Button>

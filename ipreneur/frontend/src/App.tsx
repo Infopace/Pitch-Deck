@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PageLoader } from "@/components/shared/PageLoader";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { useAuthStore } from "@/stores/authStore";
 
 // ── Lazy-loaded pages (code splitting per route) ──────────────────────────────
@@ -40,6 +41,12 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        {/* Must be inside BrowserRouter: its fallback (CrashScreen) uses
+            <Link>, which needs router context. Catching a crash by replacing
+            the tree with a screen that itself crashes for lack of that
+            context is worse than not catching it — nothing is left to
+            catch that second failure, and React unmounts everything. */}
+        <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public */}
@@ -64,28 +71,28 @@ export default function App() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
+        </ErrorBoundary>
+
+        {/* Global toast notifications */}
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: "#1A1130",
+              color: "#F5F3FF",
+              border: "1px solid #2A1F45",
+              borderRadius: "12px",
+              fontSize: "14px",
+            },
+            success: {
+              iconTheme: { primary: "#22C55E", secondary: "#0A0716" },
+            },
+            error: {
+              iconTheme: { primary: "#EF4444", secondary: "#0A0716" },
+            },
+          }}
+        />
       </BrowserRouter>
-
-      {/* Global toast notifications */}
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: "#1A1130",
-            color: "#F5F3FF",
-            border: "1px solid #2A1F45",
-            borderRadius: "12px",
-            fontSize: "14px",
-          },
-          success: {
-            iconTheme: { primary: "#22C55E", secondary: "#0A0716" },
-          },
-          error: {
-            iconTheme: { primary: "#EF4444", secondary: "#0A0716" },
-          },
-        }}
-      />
-
     </QueryClientProvider>
   );
 }
