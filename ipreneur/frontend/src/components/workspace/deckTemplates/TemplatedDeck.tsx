@@ -111,8 +111,17 @@ function shell(T: Theme, C: TemplateDeckData, no: number, inner: N, opts: ShellO
     }
   }
 
+  // The "dot" footer is position:absolute, so it never claims space from the
+  // flex column above it — a template whose content stretches with flex:1
+  // (every multi-column card layout does) runs its last row straight into
+  // the dots instead of stopping short of them. Reserving that band here,
+  // once, fixes every such template instead of padding each one individually.
+  const dotBand = !opts.noFoot && chrome === "dot" ? 58 : 0;
+
   return e("div", { style: { position: "relative", width: 1280, height: 720, background: T.bg, color: T.text, fontFamily: T.fontB + ", sans-serif", padding: tPad(T, opts.pad), display: "flex", flexDirection: "column", overflow: "hidden" } },
-    opts.deco || null, inner, foot);
+    opts.deco || null,
+    dotBand ? e("div", { key: "in-wrap", style: { flex: 1, display: "flex", flexDirection: "column", minHeight: 0, paddingBottom: dotBand } }, inner) : inner,
+    foot);
 }
 
 function areaChart(T: Theme, series: { y: string; v: number }[], w: number, h: number, X: EditCtx = VIEW_CTX, basePath: EditPath = ["traction", "series"]): N {
@@ -138,8 +147,12 @@ function areaChart(T: Theme, series: { y: string; v: number }[], w: number, h: n
     pts.map((p, i) => e("circle", { key: "c" + i, cx: p[0], cy: p[1], r: 5, fill: T.bg, stroke: T.accent, strokeWidth: 3 })),
     safe.map((s, i) => e("text", { key: "lx" + i, x: px(i), y: h + 24, textAnchor: i === 0 ? "start" : i === n - 1 ? "end" : "middle", fontSize: 13, fontFamily: T.fontB, fill: T.muted },
       hasRealData ? editableSvgText(s.y, [...basePath, i, "y"], X, undefined, "n" + i) : s.y)),
+    // No "$" / "M" here: template_data carries no currency, and these are the
+    // same figures the kpi tiles beside this chart already state correctly
+    // (in whatever currency the project is in) — this bare number is just
+    // the chart's own axis value, not a second, wrongly-labelled claim.
     safe.map((s, i) => e("text", { key: "lv" + i, x: px(i), y: py(s.v) - 14, textAnchor: "middle", fontSize: 13, fontWeight: 700, fontFamily: fD(T), fill: T.text },
-      "$", hasRealData ? editableSvgText(String(s.v), [...basePath, i, "v"], X, { numeric: true }, "n" + i) : s.v, "M"))
+      hasRealData ? editableSvgText(String(s.v), [...basePath, i, "v"], X, { numeric: true }, "n" + i) : s.v))
   );
 }
 
