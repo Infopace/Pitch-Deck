@@ -139,7 +139,7 @@ async def test_readiness_is_stage_aware(client):
     seed = (await client.get(f"/profiles/{pid}/readiness",
                              params={"deck_type": "investor", "stage": "seed"})).json()["data"]
     pre = (await client.get(f"/profiles/{pid}/readiness",
-                            params={"deck_type": "investor", "stage": "pre_revenue"})).json()["data"]
+                            params={"deck_type": "investor", "stage": "pre_seed"})).json()["data"]
     seed_names = {m["name"] for m in seed["missing_required"]}
     pre_names = {m["name"] for m in pre["missing_required"]}
     # A pre-revenue company is never told it is missing an ARR.

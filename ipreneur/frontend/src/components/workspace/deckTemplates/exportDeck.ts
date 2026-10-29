@@ -9,7 +9,11 @@
  * onto 16:9 PPTX slides. The result is byte-for-byte what the user previewed.
  *
  * Trade-off: slides are images (not editable text in PowerPoint) — that is the
- * cost of guaranteeing an exact visual match.
+ * cost of guaranteeing an exact visual match. Links are the one exception:
+ * every `<a href>` in the captured slide (team contact chips, the closing
+ * slide's email/website) gets an invisible clickable rectangle layered over
+ * the image at the same position, so emails/phone numbers/LinkedIn profiles
+ * stay clickable in the exported file even though the slide itself is a PNG.
  */
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -119,6 +123,30 @@ export async function exportTemplatedDeckToPptx(
       const slide = pptx.addSlide();
       slide.background = { color: bgColor };
       slide.addImage({ data: dataUrl, x: 0, y: 0, w: PPTX_W, h: PPTX_H });
+
+      // Layer an invisible, clickable rectangle over every link in the
+      // captured slide — the image itself has no notion of a hyperlink.
+      // getBoundingClientRect() is viewport-relative, and `node` sits far
+      // off-screen, so every link's rect is measured against the node's own
+      // rect rather than the page origin.
+      const sx = PPTX_W / SLIDE_W;
+      const sy = PPTX_H / SLIDE_H;
+      const hostRect = node.getBoundingClientRect();
+      for (const a of Array.from(node.querySelectorAll<HTMLAnchorElement>("a[href]"))) {
+        const r = a.getBoundingClientRect();
+        const w = r.width * sx;
+        const h = r.height * sy;
+        if (w <= 0 || h <= 0 || !a.href) continue;
+        slide.addShape(pptx.ShapeType.rect, {
+          x: (r.left - hostRect.left) * sx,
+          y: (r.top - hostRect.top) * sy,
+          w,
+          h,
+          fill: { color: "FFFFFF", transparency: 100 },
+          line: { type: "none" },
+          hyperlink: { url: a.href },
+        });
+      }
     }
 
     const name = fileName.toLowerCase().endsWith(".pptx")

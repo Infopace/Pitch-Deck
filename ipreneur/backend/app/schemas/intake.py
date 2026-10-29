@@ -13,12 +13,12 @@ from app.decks.registry import DEFAULT_DECK_FORMAT, DEFAULT_DECK_TYPE, get_deck_
 
 class FundingStage(str, Enum):
     idea = "idea"
-    pre_revenue = "pre_revenue"
     pre_seed = "pre_seed"
     seed = "seed"
-    series_a = "series_a"
-    series_b = "series_b"
-    growth = "growth"
+    early_stage = "early_stage"
+    growth_stage = "growth_stage"
+    late_stage = "late_stage"
+    pre_ipo = "pre_ipo"
     bootstrapped = "bootstrapped"
 
 
@@ -54,6 +54,8 @@ class CompanyIntake(BaseModel):
     # ── Financials ───────────────────────────────────────────────────────────
     arr_usd: Optional[float] = None         # Annual Recurring Revenue
     mrr_usd: Optional[float] = None         # Monthly Recurring Revenue
+    burn_usd: Optional[float] = None        # Net monthly cash burn
+    runway_months: Optional[float] = None   # Months of cash left at current burn
 
     # ── Traction ─────────────────────────────────────────────────────────────
     total_customers: Optional[int] = None
@@ -93,7 +95,8 @@ class CompanyIntake(BaseModel):
         if self.industry:
             lines.append(f"  Industry: {self.industry}")
         if self.funding_stage:
-            lines.append(f"  Funding Stage: {self.funding_stage.value.replace('_', ' ').title()}")
+            stage_label = self.funding_stage.value.replace("_", " ").title().replace("Ipo", "IPO")
+            lines.append(f"  Funding Stage: {stage_label}")
         if self.business_model:
             lines.append(f"  Business Model: {self.business_model.value.upper()}")
         if self.founded_year:
@@ -124,6 +127,10 @@ class CompanyIntake(BaseModel):
             lines.append(f"  LTV:CAC: {self.ltv_usd / self.cac_usd:.1f}x")
         if self.churn_rate_pct is not None:
             lines.append(f"  Monthly Churn: {self.churn_rate_pct:.1f}%")
+        if self.burn_usd is not None:
+            lines.append(f"  Monthly Burn: {format_money(self.burn_usd, self.currency)}")
+        if self.runway_months is not None:
+            lines.append(f"  Runway: {self.runway_months:.0f} months")
         if self.nrr_pct is not None:
             lines.append(f"  Net Revenue Retention: {self.nrr_pct:.0f}%")
 

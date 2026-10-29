@@ -28,7 +28,7 @@ async def main():
         company_name=None,          # let crawler infer
         industry=None,              # let crawler infer
         business_model=BusinessModelType.saas,
-        funding_stage=FundingStage.series_a,
+        funding_stage=FundingStage.early_stage,
         founded_year=2019,
         team_size=80,
 

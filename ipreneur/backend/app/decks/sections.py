@@ -151,6 +151,9 @@ class TeamMember(BaseModel):
     n: str = ""
     r: str = ""
     b: str = ""
+    em: str = ""   # email — only when actually known, never invented
+    ph: str = ""   # phone — only when actually known, never invented
+    li: str = ""   # LinkedIn profile URL — only when actually known, never invented
 
 
 class TeamSection(BaseModel):
@@ -373,11 +376,18 @@ SECTION_SPECS: dict[str, SectionSpec] = {
         renderer="team", layout="cards", label="Team",
         prompt="the real, verified people only — never invented",
         model=TeamSection, caps={"members": 4},
-        skeleton='{"headline": "...", "members": [{"i": "BA", "n": "Full Name", "r": "CEO & Co-Founder", "b": "education + prior companies"}], "advisors": "Backed by ..."}',
+        skeleton='{"headline": "...", "members": [{"i": "BA", "n": "Full Name", "r": "CEO & Co-Founder", "b": "education + prior companies", "em": "", "ph": "", "li": ""}], "advisors": "Backed by ..."}',
         rules=(
             "team.members: include ONLY real people from research_data.founders. ⛔ NEVER invent names/titles/bios.\n"
             'Entries with source="founder-provided" are self-reported ground truth, not fabrication — use them directly.\n'
-            'If research_data.founders is empty → members:[{"i":"","n":"Leadership","r":"Team","b":"Details available on request"}].'
+            'If research_data.founders is empty → members:[{"i":"","n":"Leadership","r":"Team","b":"Details available on request"}].\n'
+            "em/ph/li = that person's email, phone, and LinkedIn URL — copy EXACTLY from that founder's own\n"
+            "email/phone/linkedin fields in research_data.founders when present, byte for byte, never reformatted\n"
+            "or guessed. If a founder's source URL is clearly their own linkedin.com/in/... profile (not the\n"
+            "company page), that URL may be used as li. Otherwise leave em/ph/li as \"\" — ⛔ NEVER invent or\n"
+            "infer a phone number, personal email, or LinkedIn URL for a real, named person. This is stricter\n"
+            "than every other field on this slide: a fabricated bio detail is embarrassing, a fabricated contact\n"
+            "detail attributed to a real person is a privacy and credibility failure."
         ),
     ),
 
@@ -677,7 +687,13 @@ SECTION_SPECS: dict[str, SectionSpec] = {
             "stated growth rate — state the assumption in sub — UNLESS this deck type's\n"
             "guidance fixes a specific growth rate, in which case use that instead and\n"
             "still state it explicitly in sub. Never present a projection as though it\n"
-            "were history; label future periods clearly."
+            "were history; label future periods clearly.\n"
+            "kpis[] = up to 4 headline figures. 'Monthly burn' and 'Runway' MUST come\n"
+            "verbatim from this founder's own Monthly Burn / Runway figures above when\n"
+            "given — ⛔ NEVER estimate, back-calculate, or invent either one. If the\n"
+            "founder did not supply burn and/or runway, drop that tile entirely rather\n"
+            "than guessing a number — replace it with another real figure (customers,\n"
+            "gross margin, team size) so kpis[] still has up to 4 entries."
         ),
     ),
 

@@ -186,7 +186,7 @@ def audit_deck(
                     "provided - this looks invented.")
 
     # 6. Pre-revenue companies shouldn't present a revenue story.
-    if stage in ("idea", "pre_revenue") and td.get("traction"):
+    if stage in ("idea", "pre_seed") and td.get("traction"):
         add("warning", "traction",
             f"Stage is {stage} but the deck includes a traction slide; use validation "
             "signals (pilots, waitlist, LOIs) instead of a growth curve.")

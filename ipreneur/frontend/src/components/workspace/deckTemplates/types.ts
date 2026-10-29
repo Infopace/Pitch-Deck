@@ -107,7 +107,8 @@ export interface GalleryData {
 
 export interface TeamData {
   headline: string;
-  members: { i: string; n: string; r: string; b: string }[];
+  // em/ph/li = email/phone/LinkedIn URL — optional, blank unless actually known.
+  members: { i: string; n: string; r: string; b: string; em?: string; ph?: string; li?: string }[];
   advisors: string;
 }
 

@@ -189,7 +189,7 @@ REVENUE_GROUPS = ("unit_economics", "financials", "financial_statements",
 VALIDATION_GROUPS = ("evidence_and_diligence", "customer_research",
                      "traction_and_validation")
 
-PRE_REVENUE_STAGES = {"idea", "pre_revenue", "pre_seed"}
+PRE_REVENUE_STAGES = {"idea", "pre_seed"}
 
 #: Individual revenue parameters that must never be *required* pre-revenue —
 #: asking is what produces invented numbers.

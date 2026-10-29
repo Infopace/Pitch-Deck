@@ -31,6 +31,9 @@ const founderSchema = z.object({
   name: z.preprocess(trimOrUndefined, z.string().optional()),
   role: z.preprocess(trimOrUndefined, z.string().optional()),
   oneLiner: z.preprocess(trimOrUndefined, z.string().max(140).optional()),
+  email: z.preprocess(trimOrUndefined, z.string().email("Invalid email").optional()),
+  phone: z.preprocess(trimOrUndefined, z.string().max(30).optional()),
+  linkedin: z.preprocess(trimOrUndefined, z.string().max(200).optional()),
 });
 
 const baseSchema = z.object({
@@ -58,7 +61,7 @@ const baseSchema = z.object({
   ),
   fundingStage: z.preprocess(
     (v) => (v === "" ? undefined : v),
-    z.enum(["idea", "pre_revenue", "pre_seed", "seed", "series_a", "series_b", "growth", "bootstrapped"]).optional()
+    z.enum(["idea", "pre_seed", "seed", "early_stage", "growth_stage", "late_stage", "pre_ipo", "bootstrapped"]).optional()
   ),
   arrUsd: z.preprocess(
     (v) => (v === "" || v == null ? undefined : Number(v)),
@@ -80,7 +83,13 @@ const baseSchema = z.object({
     (v) => (v === "" || v == null ? undefined : Number(v)),
     z.number().positive().optional()
   ),
-  roundType: z.preprocess(trimOrUndefined, z.string().max(40).optional()),
+  roundType: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.enum([
+      "bootstrap", "angel", "round", "pre_seed", "seed", "pre_series_a",
+      "series_a", "series_b", "series_c", "growth", "venture_debt", "debt_financing",
+    ]).optional()
+  ),
   // These were already accepted by CompanyIntake and already formatted into the
   // generation prompt by `to_prompt_section()` — they were simply never asked
   // for, so every deck was written without them.
@@ -107,6 +116,14 @@ const baseSchema = z.object({
   churnRatePct: z.preprocess(
     (v) => (v === "" || v == null ? undefined : Number(v)),
     z.number().min(0).max(100).optional()
+  ),
+  burnUsd: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().positive().optional()
+  ),
+  runwayMonths: z.preprocess(
+    (v) => (v === "" || v == null ? undefined : Number(v)),
+    z.number().positive().max(120).optional()
   ),
   nrrPct: z.preprocess(
     (v) => (v === "" || v == null ? undefined : Number(v)),
@@ -186,8 +203,6 @@ const NUMBER_FIELDS: { name: string; form: keyof FormData; label: string; placeh
     hint: "People who used the product at least once in the last 30 days." },
   { name: "ask_amount_usd", form: "askAmountUsd", label: "Amount you're raising (the ask)", placeholder: "e.g. 15000000", money: true,
     hint: "The total investment you want from this round." },
-  { name: "round_type", form: "roundType", label: "Round", placeholder: "e.g. Seed, Series A", text: true,
-    hint: "The name of this funding round: Pre-seed, Seed, Series A and so on." },
   { name: "founded_year", form: "foundedYear", label: "Founded year", placeholder: "e.g. 2023",
     hint: "The year the company started or was incorporated." },
   { name: "team_size", form: "teamSize", label: "Team size", placeholder: "e.g. 12",
@@ -196,6 +211,10 @@ const NUMBER_FIELDS: { name: string; form: keyof FormData; label: string; placeh
     hint: "How much revenue grew from last month to this month, as a percentage." },
   { name: "churn_rate_pct", form: "churnRatePct", label: "Monthly churn (%)", placeholder: "e.g. 2.5",
     hint: "The share of customers who cancel or stop paying each month." },
+  { name: "burn_usd", form: "burnUsd", label: "Monthly burn", placeholder: "e.g. 1500000", money: true,
+    hint: "Net cash you spend each month — operating costs minus revenue." },
+  { name: "runway_months", form: "runwayMonths", label: "Runway (months)", placeholder: "e.g. 14",
+    hint: "How many months of cash you have left at the current burn rate." },
   { name: "cac_usd", form: "cacUsd", label: "Customer Acquisition Cost (CAC)", placeholder: "e.g. 9000", money: true,
     hint: "Average spend to win one paying customer." },
   { name: "ltv_usd", form: "ltvUsd", label: "Customer Lifetime Value (LTV)", placeholder: "e.g. 54000", money: true,
@@ -353,8 +372,6 @@ const ndS = {
   toggleTitle: { font: "600 13px var(--font-body)", color: "var(--text-strong)" } as React.CSSProperties,
   toggleSub: { marginTop: 3, font: "400 12px var(--font-body)", color: "var(--text-muted)" } as React.CSSProperties,
   trust: { textAlign: "center", marginTop: 14, font: "400 12px var(--font-body)", color: "var(--text-faint)" } as React.CSSProperties,
-  advToggle: { border: 0, background: "none", cursor: "pointer", font: "600 12.5px var(--font-body)", color: "var(--text-brand)", padding: 0 } as React.CSSProperties,
-  sectionRow: { display: "flex", alignItems: "center", justifyContent: "space-between" } as React.CSSProperties,
   sunken: { padding: "14px 16px", background: "var(--surface-sunken)", borderRadius: "var(--radius-md)", display: "flex", flexDirection: "column", gap: 14 } as React.CSSProperties,
   uploadLabel: { font: "600 12px var(--font-body)", color: "var(--text-strong)", marginBottom: 8 } as React.CSSProperties,
   uploadHint: { font: "400 11px var(--font-body)", color: "var(--text-faint)" } as React.CSSProperties,
@@ -367,7 +384,9 @@ const ndS = {
   thumbWrap: { position: "relative", aspectRatio: "1", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border-default)" } as React.CSSProperties,
   thumb: { width: "100%", height: "100%", objectFit: "cover", display: "block" } as React.CSSProperties,
   thumbX: { position: "absolute", top: 2, right: 2, width: 18, height: 18, borderRadius: "50%", border: 0, background: "rgba(0,0,0,.6)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 } as React.CSSProperties,
+  founderCard: { display: "flex", flexDirection: "column", gap: 6 } as React.CSSProperties,
   founderRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 8, alignItems: "start" } as React.CSSProperties,
+  founderContactRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, alignItems: "start" } as React.CSSProperties,
   briefHint: { marginTop: 4, font: "400 11px var(--font-body)", color: "var(--text-faint)" } as React.CSSProperties,
   actions: { display: "flex", justifyContent: "flex-end", marginTop: 4 } as React.CSSProperties,
 };
@@ -406,7 +425,6 @@ export default function NewProjectPage() {
   const [dir, setDir] = useState<1 | -1>(1);
   const reduceMotion = useReducedMotion();
   const [category, setCategory] = useState<string>("all");
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [startNow, setStartNow] = useState(true);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
@@ -438,7 +456,7 @@ export default function NewProjectPage() {
       hasWebsite: true,
       companyUrl: "",
       name: "",
-      founders: [{ name: "", role: "", oneLiner: "" }],
+      founders: [{ name: "", role: "", oneLiner: "", email: "", phone: "", linkedin: "" }],
       startImmediately: true,
     },
   });
@@ -590,7 +608,7 @@ export default function NewProjectPage() {
       hasWebsite: true,
       companyUrl: "",
       name: "",
-      founders: [{ name: "", role: "", oneLiner: "" }],
+      founders: [{ name: "", role: "", oneLiner: "", email: "", phone: "", linkedin: "" }],
       startImmediately: true,
     });
     setStep(1);
@@ -642,6 +660,8 @@ export default function NewProjectPage() {
           cac_usd: data.cacUsd,
           ltv_usd: data.ltvUsd,
           churn_rate_pct: data.churnRatePct,
+          burn_usd: data.burnUsd,
+          runway_months: data.runwayMonths,
           nrr_pct: data.nrrPct,
           ...(!data.hasWebsite && {
             problem_statement: data.problemStatement,
@@ -651,7 +671,10 @@ export default function NewProjectPage() {
             competitor_notes: data.competitorNotes,
             founders: data.founders
               .filter((f) => f.name?.trim())
-              .map((f) => ({ name: f.name || "", role: f.role || "", one_liner: f.oneLiner })),
+              .map((f) => ({
+                name: f.name || "", role: f.role || "", one_liner: f.oneLiner,
+                email: f.email, phone: f.phone, linkedin: f.linkedin,
+              })),
           }),
         },
       }),
@@ -1017,26 +1040,34 @@ export default function NewProjectPage() {
                     {needsFounders && (
                       <div>
                         <div style={ndS.uploadLabel}>Founders</div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                           {founderFields.map((field, i) => (
-                            <div key={field.id} style={ndS.founderRow}>
-                              <Input {...register(`founders.${i}.name` as const)} placeholder="Full name"
-                                error={i === 0 ? errors.founders?.[0]?.name?.message : undefined} />
-                              <Input {...register(`founders.${i}.role` as const)} placeholder="Role, e.g. Co-founder & CEO"
-                                error={i === 0 ? errors.founders?.[0]?.role?.message : undefined} />
-                              <Input {...register(`founders.${i}.oneLiner` as const)} placeholder="Background (optional), e.g. Ex-Google PM" />
-                              {founderFields.length > 1 && (
-                                <button type="button" style={ndS.removeBtn} onClick={() => removeFounder(i)}>
-                                  <X size={14} />
-                                </button>
-                              )}
+                            <div key={field.id} style={ndS.founderCard}>
+                              <div style={ndS.founderRow}>
+                                <Input {...register(`founders.${i}.name` as const)} placeholder="Full name"
+                                  error={i === 0 ? errors.founders?.[0]?.name?.message : undefined} />
+                                <Input {...register(`founders.${i}.role` as const)} placeholder="Role, e.g. Co-founder & CEO"
+                                  error={i === 0 ? errors.founders?.[0]?.role?.message : undefined} />
+                                <Input {...register(`founders.${i}.oneLiner` as const)} placeholder="Background (optional), e.g. Ex-Google PM" />
+                                {founderFields.length > 1 && (
+                                  <button type="button" style={ndS.removeBtn} onClick={() => removeFounder(i)}>
+                                    <X size={14} />
+                                  </button>
+                                )}
+                              </div>
+                              <div style={ndS.founderContactRow}>
+                                <Input {...register(`founders.${i}.email` as const)} placeholder="Email (optional)"
+                                  error={i === 0 ? errors.founders?.[0]?.email?.message : undefined} />
+                                <Input {...register(`founders.${i}.phone` as const)} placeholder="Phone (optional)" />
+                                <Input {...register(`founders.${i}.linkedin` as const)} placeholder="LinkedIn URL (optional)" />
+                              </div>
                             </div>
                           ))}
                         </div>
                         <button
                           type="button"
                           style={{ ...ndS.exBtn, marginTop: 10, display: "inline-flex", alignItems: "center", gap: 4 }}
-                          onClick={() => appendFounder({ name: "", role: "", oneLiner: "" })}
+                          onClick={() => appendFounder({ name: "", role: "", oneLiner: "", email: "", phone: "", linkedin: "" })}
                         >
                           <Plus size={13} /> Add founder
                         </button>
@@ -1098,7 +1129,7 @@ export default function NewProjectPage() {
                   </div>
                 ))}
 
-                {(asks("funding_stage") || asks("business_model")) && (
+                {(asks("funding_stage") || asks("business_model") || asks("round_type")) && (
                 <div style={ndS.twoCol}>
                   {asks("funding_stage") && (
                     <Select
@@ -1107,13 +1138,35 @@ export default function NewProjectPage() {
                       options={[
                         { value: "", label: "Select stage" },
                         { value: "idea", label: "Idea" },
-                        { value: "pre_revenue", label: "Pre-revenue" },
                         { value: "pre_seed", label: "Pre-seed" },
                         { value: "seed", label: "Seed" },
+                        { value: "early_stage", label: "Early-stage" },
+                        { value: "growth_stage", label: "Growth-stage" },
+                        { value: "late_stage", label: "Late-stage" },
+                        { value: "pre_ipo", label: "Pre-IPO" },
+                        { value: "bootstrapped", label: "Bootstrapped" },
+                      ]}
+                    />
+                  )}
+                  {asks("round_type") && (
+                    <Select
+                      label="Funding round"
+                      hint="The instrument or round this deck is raised against"
+                      {...register("roundType")}
+                      options={[
+                        { value: "", label: "Select round" },
+                        { value: "bootstrap", label: "Bootstrap" },
+                        { value: "angel", label: "Angel" },
+                        { value: "round", label: "Round" },
+                        { value: "pre_seed", label: "Pre-seed" },
+                        { value: "seed", label: "Seed" },
+                        { value: "pre_series_a", label: "Pre-series A" },
                         { value: "series_a", label: "Series A" },
                         { value: "series_b", label: "Series B" },
+                        { value: "series_c", label: "Series C" },
                         { value: "growth", label: "Growth" },
-                        { value: "bootstrapped", label: "Bootstrapped" },
+                        { value: "venture_debt", label: "Venture debt" },
+                        { value: "debt_financing", label: "Debt financing" },
                       ]}
                     />
                   )}
@@ -1155,18 +1208,13 @@ export default function NewProjectPage() {
 
               {/* ── Optional details ────────────────────────────────────── */}
               <div style={ndS.panel}>
-                <div style={ndS.sectionRow}>
-                  <div>
-                    <div style={ndS.panelHead}>{numberFields.length ? "Numbers & branding" : "Branding"}</div>
-                    <div style={ndS.panelSub}>
-                      {numberFields.length
-                        ? "Optional. Only the figures this deck uses — anything you give us is used exactly as entered."
-                        : "Optional. Your logo and photos for the slides."}
-                    </div>
+                <div>
+                  <div style={ndS.panelHead}>{numberFields.length ? "Numbers & branding" : "Branding"}</div>
+                  <div style={ndS.panelSub}>
+                    {numberFields.length
+                      ? "Optional. Only the figures this deck uses — anything you give us is used exactly as entered."
+                      : "Optional. Your logo and photos for the slides."}
                   </div>
-                  <button type="button" style={ndS.advToggle} onClick={() => setShowAdvanced((v) => !v)}>
-                    {showAdvanced ? "Hide" : "Add details"}
-                  </button>
                 </div>
 
                 {numberFields.length > 0 && (
@@ -1190,81 +1238,79 @@ export default function NewProjectPage() {
                   </div>
                 )}
 
-                {showAdvanced && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    {hasWebsite && (
-                      <div style={ndS.twoCol}>
-                        <Input label="Company name" {...register("companyName")} placeholder="e.g. Zomato" />
-                        <Input label="Industry" hint="AI will detect" {...register("industry")} placeholder="e.g. Fintech, SaaS" />
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {hasWebsite && (
+                    <div style={ndS.twoCol}>
+                      <Input label="Company name" {...register("companyName")} placeholder="e.g. Zomato" />
+                      <Input label="Industry" hint="AI will detect" {...register("industry")} placeholder="e.g. Fintech, SaaS" />
+                    </div>
+                  )}
+                  {numberFields.length > 0 && (
+                    <div style={ndS.twoCol}>
+                      {numberFields.map((f) => (
+                        <Input
+                          key={f.name}
+                          label={f.label}
+                          hint={f.money ? `${f.hint} In ${CURRENCIES[currency].symbol} (${currency}).` : f.hint}
+                          icon={f.money ? <span aria-hidden="true">{CURRENCIES[currency].symbol}</span> : undefined}
+                          {...register(f.form)}
+                          type={f.text ? "text" : "number"}
+                          placeholder={f.placeholder}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {stageHidesRevenue && (
+                    <div style={ndS.briefHint}>
+                      Revenue metrics are hidden at this stage — we won't ask for numbers you don't have yet.
+                    </div>
+                  )}
+
+                  <div>
+                    <div style={ndS.uploadLabel}>Company logo <span style={ndS.uploadHint}>· shown on every slide</span></div>
+                    {logoFile ? (
+                      <div style={ndS.logoRow}>
+                        <img src={URL.createObjectURL(logoFile)} alt="logo" style={ndS.logoPreview} />
+                        <span style={ndS.fileName}>{logoFile.name}</span>
+                        <button type="button" style={ndS.removeBtn} onClick={() => setLogoFile(null)}><X size={14} /></button>
                       </div>
+                    ) : (
+                      <label style={ndS.dropZone}>
+                        <Upload size={15} /> <span>Upload logo (PNG/SVG)</span>
+                        <input type="file" accept="image/*" style={{ display: "none" }}
+                          onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+                      </label>
                     )}
-                    {numberFields.length > 0 && (
-                      <div style={ndS.twoCol}>
-                        {numberFields.map((f) => (
-                          <Input
-                            key={f.name}
-                            label={f.label}
-                            hint={f.money ? `${f.hint} In ${CURRENCIES[currency].symbol} (${currency}).` : f.hint}
-                            icon={f.money ? <span aria-hidden="true">{CURRENCIES[currency].symbol}</span> : undefined}
-                            {...register(f.form)}
-                            type={f.text ? "text" : "number"}
-                            placeholder={f.placeholder}
-                          />
+                  </div>
+
+                  {hasGallery && (
+                  <div>
+                    <div style={ndS.uploadLabel}>Gallery photos <span style={ndS.uploadHint}>· up to 5, shown on the Gallery slide</span></div>
+                    {galleryFiles.length > 0 && (
+                      <div style={ndS.thumbGrid}>
+                        {galleryFiles.map((f, i) => (
+                          <div key={i} style={ndS.thumbWrap}>
+                            <img src={URL.createObjectURL(f)} alt={f.name} style={ndS.thumb} />
+                            <button type="button" style={ndS.thumbX}
+                              onClick={() => setGalleryFiles((prev) => prev.filter((_, k) => k !== i))}><X size={12} /></button>
+                          </div>
                         ))}
                       </div>
                     )}
-                    {stageHidesRevenue && (
-                      <div style={ndS.briefHint}>
-                        Revenue metrics are hidden at this stage — we won't ask for numbers you don't have yet.
-                      </div>
-                    )}
-
-                    <div>
-                      <div style={ndS.uploadLabel}>Company logo <span style={ndS.uploadHint}>· shown on every slide</span></div>
-                      {logoFile ? (
-                        <div style={ndS.logoRow}>
-                          <img src={URL.createObjectURL(logoFile)} alt="logo" style={ndS.logoPreview} />
-                          <span style={ndS.fileName}>{logoFile.name}</span>
-                          <button type="button" style={ndS.removeBtn} onClick={() => setLogoFile(null)}><X size={14} /></button>
-                        </div>
-                      ) : (
-                        <label style={ndS.dropZone}>
-                          <Upload size={15} /> <span>Upload logo (PNG/SVG)</span>
-                          <input type="file" accept="image/*" style={{ display: "none" }}
-                            onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
-                        </label>
-                      )}
-                    </div>
-
-                    {hasGallery && (
-                    <div>
-                      <div style={ndS.uploadLabel}>Gallery photos <span style={ndS.uploadHint}>· up to 5, shown on the Gallery slide</span></div>
-                      {galleryFiles.length > 0 && (
-                        <div style={ndS.thumbGrid}>
-                          {galleryFiles.map((f, i) => (
-                            <div key={i} style={ndS.thumbWrap}>
-                              <img src={URL.createObjectURL(f)} alt={f.name} style={ndS.thumb} />
-                              <button type="button" style={ndS.thumbX}
-                                onClick={() => setGalleryFiles((prev) => prev.filter((_, k) => k !== i))}><X size={12} /></button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {galleryFiles.length < 5 && (
-                        <label style={{ ...ndS.dropZone, marginTop: galleryFiles.length ? 10 : 0 }}>
-                          <ImageIcon size={15} /> <span>Add photos ({galleryFiles.length}/5)</span>
-                          <input type="file" accept="image/*" multiple style={{ display: "none" }}
-                            onChange={(e) => {
-                              const picked = Array.from(e.target.files || []);
-                              setGalleryFiles((prev) => [...prev, ...picked].slice(0, 5));
-                              e.target.value = "";
-                            }} />
-                        </label>
-                      )}
-                    </div>
+                    {galleryFiles.length < 5 && (
+                      <label style={{ ...ndS.dropZone, marginTop: galleryFiles.length ? 10 : 0 }}>
+                        <ImageIcon size={15} /> <span>Add photos ({galleryFiles.length}/5)</span>
+                        <input type="file" accept="image/*" multiple style={{ display: "none" }}
+                          onChange={(e) => {
+                            const picked = Array.from(e.target.files || []);
+                            setGalleryFiles((prev) => [...prev, ...picked].slice(0, 5));
+                            e.target.value = "";
+                          }} />
+                      </label>
                     )}
                   </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <div style={ndS.toggleRow}>

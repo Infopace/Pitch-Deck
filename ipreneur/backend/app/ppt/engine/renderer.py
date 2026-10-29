@@ -10,6 +10,7 @@ Layout system:
   timeline    — Milestones: horizontal flow of events
 """
 import io
+import re
 from typing import Optional, Sequence
 
 from pptx import Presentation
@@ -27,6 +28,17 @@ from app.services.images.image_service import normalize_logo
 
 
 # ── Color helpers ──────────────────────────────────────────────────────────────
+
+def _with_http(url: str) -> str:
+    """Normalize a bare domain/handle ("company.com") into a clickable
+    https:// URL — founders and the model alike tend to omit the scheme."""
+    url = url.strip()
+    return url if re.match(r"^https?://", url, re.IGNORECASE) else f"https://{url}"
+
+
+def _tel_href(phone: str) -> str:
+    return "tel:" + re.sub(r"[^\d+]", "", phone)
+
 
 def _rgb(hex_color: str) -> RGBColor:
     h = hex_color.lstrip("#")
@@ -314,14 +326,24 @@ class PPTRenderer:
                  s.body, size=15, color=p["text_muted"], align=PP_ALIGN.CENTER)
 
         closing = td.get("closing") or {}
-        footer = (closing.get("contact") if s.slide_number != 1 and closing.get("contact") else None)
+        contact = closing.get("contact") if s.slide_number != 1 else None
+        site = closing.get("site") if s.slide_number != 1 else None
         # The deck-type eyebrow ("Sales Presentation", "Partnership Proposal", …)
         # rides in template_data's passthrough keys — every deck type but the
         # investor one used to be mislabelled here.
         eyebrow = str(td.get("eyebrow") or "").strip() or "Presentation"
-        _txt(slide, Inches(3.5), Inches(6.9), Inches(6.3), Inches(0.4),
-             footer or f"{eyebrow}  •  Confidential",
-             size=10, color=p["text_muted"], align=PP_ALIGN.CENTER)
+        if contact or site:
+            items = []
+            if contact:
+                items.append((contact, "mailto:" + contact))
+            if site:
+                items.append((site, _with_http(site)))
+            _contact_line(slide, Inches(3.5), Inches(6.9), Inches(6.3), Inches(0.4),
+                          items, size=10, color=p["text_muted"], align=PP_ALIGN.CENTER)
+        else:
+            _txt(slide, Inches(3.5), Inches(6.9), Inches(6.3), Inches(0.4),
+                 f"{eyebrow}  •  Confidential",
+                 size=10, color=p["text_muted"], align=PP_ALIGN.CENTER)
 
     def _big_number(self, slide, s: SlideContent, p: dict, td: Optional[dict] = None):
         """Market/traction/summary slide with large metric callouts, and — when
@@ -478,10 +500,18 @@ class PPTRenderer:
             else:
                 body_y = y + Inches(0.85)
 
+            contacts = card.get("contacts") or []
+            contacts_h = Inches(0.3) if contacts else Inches(0)
+
             if card.get("body"):
                 _txt(slide, x + Inches(0.2), body_y, card_w - Inches(0.4),
-                     card_h - (body_y - y) - Inches(0.2),
+                     card_h - (body_y - y) - Inches(0.2) - contacts_h,
                      card["body"], size=13, color=p["text_sec"], wrap=True)
+
+            if contacts:
+                _contact_line(slide, x + Inches(0.2), y + card_h - Inches(0.38),
+                              card_w - Inches(0.4), Inches(0.3),
+                              contacts, size=9, color=p["text_muted"])
 
     @staticmethod
     def _resolve_cards(s: SlideContent, td: dict) -> list:
@@ -489,14 +519,22 @@ class PPTRenderer:
         business-model streams+tiers) over the flatter SlideContent.cards,
         normalized into the {title, metric, body} shape the card grid uses."""
         if td.get("members"):
-            return [
-                {
+            cards = []
+            for m in td["members"][:4]:
+                contacts = []
+                if m.get("em"):
+                    contacts.append((m["em"], "mailto:" + m["em"]))
+                if m.get("ph"):
+                    contacts.append((m["ph"], _tel_href(m["ph"])))
+                if m.get("li"):
+                    contacts.append((m["li"], _with_http(m["li"])))
+                cards.append({
                     "title": f"{m.get('n', '')} — {m.get('r', '')}".strip(" —"),
                     "metric": m.get("i", ""),
                     "body": m.get("b", ""),
-                }
-                for m in td["members"][:4]
-            ]
+                    "contacts": contacts,
+                })
+            return cards
         if td.get("steps"):
             return [
                 {
@@ -1129,6 +1167,7 @@ def _txt(
     align=PP_ALIGN.LEFT,
     wrap: bool = True,
     font: str = "Calibri",
+    href: Optional[str] = None,
 ):
     if not text:
         return None
@@ -1148,6 +1187,8 @@ def _txt(
             run.font.color.rgb = color
             run.font.name = font
             run.font.bold = bold or (pi % 2 == 1)
+            if href:
+                run.hyperlink.address = href
     else:
         run = p.add_run()
         run.text = text
@@ -1155,5 +1196,44 @@ def _txt(
         run.font.color.rgb = color
         run.font.name = font
         run.font.bold = bold
+        if href:
+            run.hyperlink.address = href
 
+    return tb
+
+
+def _contact_line(
+    slide, left, top, width, height,
+    items: Sequence[tuple[str, str]],
+    size: int = 10,
+    color: RGBColor = TEXT_MUTED,
+    font: str = "Calibri",
+    align=PP_ALIGN.LEFT,
+):
+    """One line of several independently-hyperlinked runs (email / phone /
+    LinkedIn), separated by ' · '. Each `(text, href)` pair becomes its own
+    run so each can carry its own `run.hyperlink.address` — a single run
+    can only link to one address, which is why this isn't just `_txt`."""
+    items = [(t, h) for t, h in items if t]
+    if not items:
+        return None
+    tb = slide.shapes.add_textbox(left, top, width, height)
+    tf = tb.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.alignment = align
+    for idx, (text, href) in enumerate(items):
+        if idx > 0:
+            sep = p.add_run()
+            sep.text = "   ·   "
+            sep.font.size = Pt(size)
+            sep.font.color.rgb = color
+            sep.font.name = font
+        run = p.add_run()
+        run.text = text
+        run.font.size = Pt(size)
+        run.font.color.rgb = color
+        run.font.name = font
+        if href:
+            run.hyperlink.address = href
     return tb

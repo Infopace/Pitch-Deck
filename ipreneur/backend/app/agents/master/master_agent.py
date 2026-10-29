@@ -30,6 +30,29 @@ from app.decks.registry import (
 )
 
 
+# Display labels for the intake form's fixed-option dropdowns — the stored
+# value is a snake_case key (see FundingStage in app/schemas/intake.py and the
+# "Funding round" Select in NewProjectPage.tsx), but the prompt should read
+# naturally rather than showing the model a raw key like "pre_series_a".
+_STAGE_LABELS: dict[str, str] = {
+    "idea": "Idea", "pre_seed": "Pre-seed", "seed": "Seed",
+    "early_stage": "Early-stage", "growth_stage": "Growth-stage",
+    "late_stage": "Late-stage", "pre_ipo": "Pre-IPO", "bootstrapped": "Bootstrapped",
+}
+_ROUND_LABELS: dict[str, str] = {
+    "bootstrap": "Bootstrap", "angel": "Angel", "round": "Round",
+    "pre_seed": "Pre-seed", "seed": "Seed", "pre_series_a": "Pre-series A",
+    "series_a": "Series A", "series_b": "Series B", "series_c": "Series C",
+    "growth": "Growth", "venture_debt": "Venture debt", "debt_financing": "Debt financing",
+}
+
+
+def _display_label(value: str, known: dict[str, str]) -> str:
+    """A known key's human label, or a best-effort fallback for anything
+    stored before this option list existed (e.g. an older "pre_revenue")."""
+    return known.get(value, value.replace("_", " ").strip().capitalize())
+
+
 @dataclass
 class BrandingResult:
     company_name: str = ""
@@ -255,6 +278,9 @@ class MasterDeckAgent:
                 "name": f.get("name", "").strip(),
                 "title": f.get("role", "").strip(),
                 "prior": f.get("one_liner", "").strip(),
+                "email": f.get("email", "").strip(),
+                "phone": f.get("phone", "").strip(),
+                "linkedin": f.get("linkedin", "").strip(),
                 "source": "founder-provided",
                 "confidence": "HIGH",
             }
@@ -814,7 +840,7 @@ Return ONLY valid JSON:
         if u.get("ask_amount_usd"):
             financials.append(f"Raising: {format_money(u['ask_amount_usd'], currency)}")
         if u.get("funding_stage"):
-            financials.append(f"Funding Stage: {u['funding_stage']}")
+            financials.append(f"Funding Stage: {_display_label(u['funding_stage'], _STAGE_LABELS)}")
         if u.get("growth_rate_mom_pct"):
             financials.append(f"MoM Growth: {u['growth_rate_mom_pct']}%")
 
@@ -850,8 +876,16 @@ Return ONLY valid JSON:
             financials.append(f"Monthly Churn: {churn:.1f}%")
         if nrr is not None:
             financials.append(f"Net Revenue Retention: {nrr:.0f}%")
+
+        burn = _num("burn_usd")
+        if burn is not None:
+            financials.append(f"Monthly Burn: {format_money(burn, currency)}")
+        runway = _num("runway_months")
+        if runway is not None:
+            financials.append(f"Runway: {runway:.0f} months")
+
         if u.get("round_type"):
-            financials.append(f"Round: {u['round_type']}")
+            financials.append(f"Round: {_display_label(u['round_type'], _ROUND_LABELS)}")
 
         financials_block = "\n".join(f"  - {f}" for f in financials) if financials else "  - Not provided"
         company_name = u.get("company_name", "")

@@ -100,7 +100,7 @@ DECK_TYPES: dict[str, DeckType] = {
         ),
         stage_overrides={
             "idea": _EARLY_STAGE_SECTIONS,
-            "pre_revenue": _EARLY_STAGE_SECTIONS,
+            "pre_seed": _EARLY_STAGE_SECTIONS,
         },
     ),
 
@@ -351,8 +351,8 @@ DECK_TYPES: dict[str, DeckType] = {
         ),
         stage_overrides={"idea": ("cover", "probsol", "persona", "product", "market",
                                   "vision", "competition", "team", "ask", "closing"),
-                         "pre_revenue": ("cover", "probsol", "persona", "product", "market",
-                                         "vision", "competition", "team", "ask", "closing")},
+                         "pre_seed": ("cover", "probsol", "persona", "product", "market",
+                                      "vision", "competition", "team", "ask", "closing")},
     ),
 
     "gtm": DeckType(
@@ -476,30 +476,35 @@ STAGE_EMPHASIS: dict[str, str] = {
         "STAGE — IDEA: there is no product or traction yet. Do not imply either exists. "
         "Weight goes on the problem's severity, why this team, and why now."
     ),
-    "pre_revenue": (
-        "STAGE — PRE-REVENUE: built but not yet monetised. Show validation signals "
-        "(pilots, waitlist, LOIs) as exactly what they are; never present them as revenue."
-    ),
     "pre_seed": (
         "STAGE — PRE-SEED: investors are buying the team and the insight. Weight the "
-        "problem, the wedge, and founder-market fit. Early traction is a bonus, not the case."
+        "problem, the wedge, and founder-market fit. Early traction is a bonus, not the case. "
+        "If the company is built but not yet monetised, show validation signals (pilots, "
+        "waitlist, LOIs) as exactly what they are; never present them as revenue."
     ),
     "seed": (
         "STAGE — SEED: show early product-market-fit evidence — retention, usage depth, "
         "and the first repeatable acquisition channel. Retention is the single most "
         "diagnostic metric here; show it only if the founder supplied it."
     ),
-    "series_a": (
-        "STAGE — SERIES A: the case rests on repeatability. Weight unit economics, "
-        "CAC payback, cohort retention, and the proof that growth is a system not a streak."
+    "early_stage": (
+        "STAGE — EARLY-STAGE: the case rests on repeatability. Weight unit economics, "
+        "CAC payback, cohort retention, and the proof that growth is a system, not a streak."
     ),
-    "series_b": (
-        "STAGE — SERIES B: the case is scale and efficiency. Weight net revenue retention, "
-        "margin structure, competitive moat, and the path to category leadership."
+    "growth_stage": (
+        "STAGE — GROWTH-STAGE: the case is scale and efficiency. Weight net revenue retention, "
+        "margin structure, competitive moat, durable market share, and a credible line to "
+        "profitability or category leadership."
     ),
-    "growth": (
-        "STAGE — GROWTH: weight durable margins, market share, expansion motions, "
-        "and a credible line to profitability or exit."
+    "late_stage": (
+        "STAGE — LATE-STAGE: this is a maturity story, not a growth pitch. Weight "
+        "profitability (or a clear, funded path to it), market leadership, governance "
+        "readiness, and the durability of the moat over any single growth metric."
+    ),
+    "pre_ipo": (
+        "STAGE — PRE-IPO: this reads like an institutional diligence document. Weight "
+        "audited-grade financial discipline, governance and compliance maturity, predictable "
+        "unit economics at scale, and a credible public-market narrative."
     ),
     "bootstrapped": (
         "STAGE — BOOTSTRAPPED: capital efficiency IS the story. Weight revenue per employee, "
@@ -674,6 +679,8 @@ INTAKE_FIELD_PARAMS: dict[str, str] = {
     "team_size": "team_size",
     "growth_rate_mom_pct": "revenue_growth",
     "churn_rate_pct": "churn",
+    "burn_usd": "monthly_burn",
+    "runway_months": "runway",
     "cac_usd": "cac",
     "ltv_usd": "ltv",
     "nrr_pct": "nrr",
@@ -682,7 +689,7 @@ INTAKE_FIELD_PARAMS: dict[str, str] = {
 #: Revenue figures a company at these stages does not have yet. The form hides
 #: them rather than inviting an invented ARR — the same stages whose investor
 #: deck swaps the traction slide for the vision slide.
-NO_REVENUE_STAGES = ("idea", "pre_revenue")
+NO_REVENUE_STAGES = ("idea", "pre_seed")
 REVENUE_INTAKE_FIELDS = frozenset({
     "arr_usd", "mrr_usd", "growth_rate_mom_pct", "churn_rate_pct",
     "cac_usd", "ltv_usd", "nrr_pct",

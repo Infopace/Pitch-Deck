@@ -80,13 +80,13 @@ def test_appendix_consumes_the_whole_catalogue():
 # ── The spec's pre-revenue rule (docx lines 172, 540, 1695, 1880) ─────────────
 
 def test_pre_revenue_never_requires_a_revenue_figure():
-    for stage in ("idea", "pre_revenue", "pre_seed"):
+    for stage in ("idea", "pre_seed"):
         assert param_relevance("investor", "arr", stage=stage) != "R"
 
 
 def test_pre_revenue_promotes_validation_evidence():
-    assert relevance_for("investor", "evidence_and_diligence", stage="pre_revenue") == "R"
-    assert relevance_for("investor", "evidence_and_diligence", stage="series_a") == "O"
+    assert relevance_for("investor", "evidence_and_diligence", stage="pre_seed") == "R"
+    assert relevance_for("investor", "evidence_and_diligence", stage="early_stage") == "O"
 
 
 def test_derived_parameters_are_never_asked_for():

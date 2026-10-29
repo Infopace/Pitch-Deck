@@ -16,7 +16,7 @@
  * `renderSlide(theme, data, index, editCtx, order)` is also exported for thumbnails.
  */
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Maximize2, X as XIcon } from "lucide-react";
+import { Maximize2, X as XIcon, Mail, Phone, Linkedin } from "lucide-react";
 import {
   Theme, mix, border, fD,
   tRadius, tCards, tCover, tChrome, tFigure, tOrnament, tPad, tInset, tH1, tCoverSize,
@@ -194,6 +194,37 @@ function avatar(T: Theme, initials: N): N {
   return e("div", { style: { width: 84, height: 84, borderRadius: "50%", padding: 3, background: mix(T.accent, T.mode === "dark" ? 22 : 13, T.mode === "dark" ? "transparent" : "#fff"), border: `1px solid ${mix(T.accent, 32)}`, flexShrink: 0 } },
     e("div", { style: { width: "100%", height: "100%", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: fD(T), fontWeight: 700, fontSize: 24, color: T.accent, background: mix(T.accent, T.mode === "dark" ? 14 : 8, T.mode === "dark" ? "transparent" : "#fff") } }, initials)
   );
+}
+
+// Normalizes a bare domain/handle into a clickable https:// URL — founders
+// and the model alike tend to write "linkedin.com/in/x" with no scheme.
+function withHttp(url: string): string {
+  const trimmed = url.trim();
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+// Small inline contact chip (email/phone/LinkedIn), shared by the team and
+// closing slides — a real link in view mode, an editable marker in edit mode.
+// Hidden entirely in view mode when there's no value; always shown in edit
+// mode (even empty) so a founder can click to fill one in.
+function contactChip(
+  T: Theme, X: EditCtx, path: EditPath, value: string,
+  Icon: React.ElementType, href: (v: string) => string, external = false
+): N {
+  if (!value && !X.editable) return null;
+  const key = path.join(".");
+  const style: React.CSSProperties = {
+    display: "inline-flex", alignItems: "center", gap: 5,
+    fontSize: 12.5, color: T.muted, textDecoration: "none",
+  };
+  const icon = e(Icon, { key: "ic", size: 13, strokeWidth: 2, style: { flexShrink: 0 } });
+  if (X.editable) {
+    return e("span", { key, style }, icon, editableText(value, path, X));
+  }
+  return e("a", {
+    key, href: href(value), style,
+    ...(external ? { target: "_blank", rel: "noopener noreferrer" } : {}),
+  }, icon, value);
 }
 
 // The repeated container across most slides.
@@ -1102,7 +1133,12 @@ const team: SlideFn = (T, C, i, X, A) => {
         e("div", { key: "tx" },
           e("div", { key: "n", style: { fontFamily: fD(T), fontWeight: 600, fontSize: 19, color: T.text, letterSpacing: "-0.01em" } }, editableText(m.n, [A.k, "members", k, "n"], X)),
           e("div", { key: "r", style: { marginTop: 4, fontSize: 13.5, fontWeight: 600, color: T.accent } }, editableText(m.r, [A.k, "members", k, "r"], X)),
-          e("div", { key: "b", style: { marginTop: 11, fontSize: 13.5, lineHeight: 1.5, color: T.muted } }, editableText(m.b, [A.k, "members", k, "b"], X, { multiline: true }))
+          e("div", { key: "b", style: { marginTop: 11, fontSize: 13.5, lineHeight: 1.5, color: T.muted } }, editableText(m.b, [A.k, "members", k, "b"], X, { multiline: true })),
+          e("div", { key: "ct", style: { marginTop: 10, display: "flex", flexDirection: "column", gap: 5 } },
+            contactChip(T, X, [A.k, "members", k, "em"], m.em || "", Mail, (v) => "mailto:" + v),
+            contactChip(T, X, [A.k, "members", k, "ph"], m.ph || "", Phone, (v) => "tel:" + v.replace(/[^\d+]/g, "")),
+            contactChip(T, X, [A.k, "members", k, "li"], m.li || "", Linkedin, withHttp, true)
+          )
         )
       ))
     ),
@@ -1154,7 +1190,9 @@ const closing: SlideFn = (T, C, i, X, A) => {
       X.editable
         ? e("span", { key: "m", style: { textDecoration: "none", fontFamily: fD(T), fontWeight: 600, fontSize: 16, color: T.mode === "dark" ? T.bg : "#fff", background: T.accent, padding: "13px 24px", borderRadius: 999, display: "inline-block" } }, editableText(Cl.contact, [A.k, "contact"], X))
         : e("a", { key: "m", href: "mailto:" + Cl.contact, style: { textDecoration: "none", fontFamily: fD(T), fontWeight: 600, fontSize: 16, color: T.mode === "dark" ? T.bg : "#fff", background: T.accent, padding: "13px 24px", borderRadius: 999 } }, Cl.contact),
-      e("span", { key: "w", style: { fontFamily: fD(T), fontWeight: 600, fontSize: 16, color: T.text, padding: "13px 24px", borderRadius: 999, border: `1px solid ${border(T, true)}` } }, editableText(Cl.site, [A.k, "site"], X))
+      X.editable
+        ? e("span", { key: "w", style: { fontFamily: fD(T), fontWeight: 600, fontSize: 16, color: T.text, padding: "13px 24px", borderRadius: 999, border: `1px solid ${border(T, true)}`, display: "inline-block" } }, editableText(Cl.site, [A.k, "site"], X))
+        : e("a", { key: "w", href: withHttp(Cl.site), target: "_blank", rel: "noopener noreferrer", style: { textDecoration: "none", fontFamily: fD(T), fontWeight: 600, fontSize: 16, color: T.text, padding: "13px 24px", borderRadius: 999, border: `1px solid ${border(T, true)}` } }, Cl.site)
     )
   );
   return shell(T, C, i, inner, { deco, total: A.total });
