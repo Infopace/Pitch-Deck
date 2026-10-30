@@ -93,14 +93,21 @@ export default function WorkspacePage() {
   // Templated decks export client-side (pixel-exact to the previewed theme);
   // TemplatedDeckSection registers its theme-aware exporter here. Non-templated
   // decks fall back to the backend PPTX render.
-  const templatedExportRef = useRef<null | (() => Promise<void>)>(null);
+  const templatedExportRef = useRef<null | ((onProgress?: (done: number, total: number) => void) => Promise<void>)>(null);
   const [isExporting, setIsExporting] = useState(false);
   const handleExport = async () => {
     if (!projectId) return;
     setIsExporting(true);
+    // Each slide is captured as a full-resolution image and then assembled
+    // into the pptx, so a 20+ slide deck genuinely takes a while — say so up
+    // front and keep the same toast updated with live progress rather than
+    // leaving the button spinning with no explanation.
+    const toastId = toast.loading("Exporting your deck — larger decks can take a minute or two…");
     try {
       if (templatedExportRef.current) {
-        await templatedExportRef.current();
+        await templatedExportRef.current((done, total) => {
+          toast.loading(`Exporting slide ${done} of ${total}…`, { id: toastId });
+        });
       } else {
         const blob = await projectsApi.export(projectId, "pptx");
         const url = URL.createObjectURL(blob);
@@ -110,8 +117,9 @@ export default function WorkspacePage() {
         a.click();
         URL.revokeObjectURL(url);
       }
+      toast.success("Export ready", { id: toastId });
     } catch {
-      toast.error("Export failed — please try again");
+      toast.error("Export failed — please try again", { id: toastId });
     } finally {
       setIsExporting(false);
     }

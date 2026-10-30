@@ -40,9 +40,11 @@ interface Props {
   /**
    * Registers a theme-aware export function with the parent so the topbar's
    * "Export PPTX" button downloads exactly the deck shown here. Re-registered
-   * whenever the selected theme or data changes.
+   * whenever the selected theme or data changes. The registered function takes
+   * an optional progress callback so the caller can show "N of total" while
+   * slides rasterize.
    */
-  registerExport?: (fn: () => Promise<void>) => void;
+  registerExport?: (fn: (onProgress?: (done: number, total: number) => void) => Promise<void>) => void;
   /** Enables click-to-edit text on the live deck (EditorPage only). */
   editable?: boolean;
   onEdit?: (path: EditPath, value: string | number) => void;
@@ -86,8 +88,8 @@ export function TemplatedDeckSection({ data: rawData, deckType, slideOrder: stor
   // download always matches the previewed theme (and injected assets).
   useEffect(() => {
     if (!registerExport) return;
-    registerExport(() =>
-      exportTemplatedDeckToPptx(data, theme, fileName || "pitch-deck", order)
+    registerExport((onProgress) =>
+      exportTemplatedDeckToPptx(data, theme, fileName || "pitch-deck", order, onProgress)
     );
   }, [registerExport, data, theme, fileName, order]);
 
