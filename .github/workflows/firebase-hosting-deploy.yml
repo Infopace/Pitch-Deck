@@ -56,7 +56,7 @@ jobs:
           # backend's GOOGLE_CLIENT_ID (on Cloud Run) must be set to this
           # same value — empty here just hides the "Continue with Google"
           # button rather than breaking the build.
-          VITE_GOOGLE_CLIENT_ID: ""
+          VITE_GOOGLE_CLIENT_ID: "868264766280-tb8bn6cndf6b941kik5u6ull199ra3nt.apps.googleusercontent.com"
 
       - id: auth
         uses: google-github-actions/auth@v2
