@@ -8,6 +8,7 @@ import {
   BuildIcon,
   ScaleIcon,
 } from "@/components/auth/RocketIllustration";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { MintLogo } from "@/components/brand/MintLogo";
 
 /**
@@ -226,6 +227,11 @@ export default function LoginPage() {
                   )}
                 </button>
               </form>
+
+              <GoogleAuthButton
+                onSuccess={() => navigate("/dashboard")}
+                onError={(message) => setError(message)}
+              />
 
               <div className="mt-5 text-center">
                 <p className="text-[14px] text-[#71819e]">

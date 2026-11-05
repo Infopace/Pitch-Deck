@@ -1,7 +1,10 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 import bcrypt
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel, EmailStr, ConfigDict
 from jose import jwt
 from sqlalchemy import select
@@ -13,6 +16,10 @@ from app.db.session import get_db
 from app.models.models import User
 
 router = APIRouter()
+
+#: Reused across verify_oauth2_token calls — it does its own HTTP caching of
+#: Google's public signing keys, so one instance avoids refetching them.
+_google_request = google_requests.Request()
 
 
 def _hash_password(password: str) -> str:
@@ -85,6 +92,62 @@ async def login(request: Request, response: Response, payload: LoginRequest, db:
 
     if not _verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    user_dict = UserOut.model_validate(user).model_dump()
+    return {"success": True, "data": {"user": user_dict, "access_token": _create_access_token(user.id)}}
+
+
+class GoogleLoginRequest(BaseModel):
+    #: The ID token (JWT) Google Identity Services' button returns as
+    #: `credentialResponse.credential` — not an access token, not a code.
+    credential: str
+
+
+@router.post("/google")
+@limiter.limit(AUTH_LIMIT)
+async def login_with_google(
+    request: Request, response: Response, payload: GoogleLoginRequest, db: AsyncSession = Depends(get_db)
+):
+    """Sign in (or sign up) with a Google ID token.
+
+    Verifies the token's signature, audience and expiry against Google's own
+    keys — nothing here trusts the browser. A first-time email becomes a new
+    account with an unusable random password hash (there's no `users` column
+    for "no password", and this database has no migration tooling to add
+    one safely), so the account is Google-only until a real password reset
+    flow exists. A returning email just signs in, whichever way it was
+    originally created.
+    """
+    if not settings.google_client_id:
+        raise HTTPException(status_code=503, detail="Google sign-in is not configured yet.")
+
+    try:
+        idinfo = google_id_token.verify_oauth2_token(
+            payload.credential, _google_request, settings.google_client_id
+        )
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid Google sign-in.")
+
+    if not idinfo.get("email_verified"):
+        raise HTTPException(status_code=401, detail="Google account email is not verified.")
+    email = idinfo["email"]
+
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if user is None:
+        user = User(
+            email=email,
+            name=idinfo.get("name") or email.split("@")[0],
+            # Random and discarded — this account only ever signs in via
+            # Google, but the column is NOT NULL and there's no migration
+            # path to make it optional without hand-altering production.
+            hashed_password=_hash_password(secrets.token_urlsafe(32)),
+            avatar_url=idinfo.get("picture"),
+            is_verified=True,
+        )
+        db.add(user)
+        await db.flush()
+        await db.refresh(user)
 
     user_dict = UserOut.model_validate(user).model_dump()
     return {"success": True, "data": {"user": user_dict, "access_token": _create_access_token(user.id)}}

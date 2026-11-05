@@ -8,6 +8,7 @@ import {
   BuildIcon,
   ScaleIcon,
 } from "@/components/auth/RocketIllustration";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { MintLogo } from "@/components/brand/MintLogo";
 
 /**
@@ -27,20 +28,24 @@ export default function RegisterPage() {
   const { register, isLoading } = useAuthStore();
   const navigate = useNavigate();
 
+  const goToDashboard = () => {
+    if (promptParam) {
+      navigate(
+        `/dashboard?prompt=${encodeURIComponent(promptParam)}&format=${encodeURIComponent(
+          formatParam || "pitch-deck"
+        )}`
+      );
+    } else {
+      navigate("/dashboard");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     try {
       await register(name, email, password);
-      if (promptParam) {
-        navigate(
-          `/dashboard?prompt=${encodeURIComponent(promptParam)}&format=${encodeURIComponent(
-            formatParam || "pitch-deck"
-          )}`
-        );
-      } else {
-        navigate("/dashboard");
-      }
+      goToDashboard();
     } catch (err: any) {
       setError(err?.response?.data?.detail || "Registration failed");
     }
@@ -265,6 +270,8 @@ export default function RegisterPage() {
                   )}
                 </button>
               </form>
+
+              <GoogleAuthButton onSuccess={goToDashboard} onError={(message) => setError(message)} />
 
               <div className="mt-5 text-center">
                 <p className="text-[14px] text-[#71819e]">

@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     # in until you sign out or six days pass, whichever comes first.
     jwt_access_token_expire_minutes: int = 60 * 24 * 6
     jwt_refresh_token_expire_days: int = 30
+    #: OAuth client ID from Google Cloud Console (Credentials → OAuth client
+    #: ID → Web application). This is the audience the frontend's Google
+    #: Identity Services button sends tokens for and this backend verifies
+    #: them against — it's public (ships in the frontend bundle too), not a
+    #: secret. Empty disables the endpoint (503).
+    google_client_id: str = ""
 
     # ── Google Gemini (primary — better quality) ─────────────────────────────
     # Supports both AQ. OAuth2 tokens (new format) and AIzaSy... API keys (legacy)
