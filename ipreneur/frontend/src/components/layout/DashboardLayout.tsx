@@ -16,7 +16,6 @@ import {
 
 import { useAuthStore, useCurrentUser } from "@/stores/authStore";
 import { projectsApi } from "@/services/api/projects";
-import { billingApi } from "@/services/api/billing";
 import { MintLogo } from "@/components/brand/MintLogo";
 
 const IN_PROGRESS = ["analyzing", "researching", "generating"];
@@ -53,12 +52,6 @@ export function DashboardLayout() {
     queryFn: () => projectsApi.list({ pageSize: 30 }),
     staleTime: 30_000,
   });
-  const { data: plan } = useQuery({
-    queryKey: ["billing-plan"],
-    queryFn: () => billingApi.getPlan(),
-    staleTime: 5 * 60_000,
-  });
-
   const projects = projectData?.data ?? [];
 
   const mix = useMemo(() => {
@@ -262,7 +255,7 @@ export function DashboardLayout() {
             </div>
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-[11.5px] font-semibold text-slate-800">{displayName}</span>
-              <span className="truncate text-[9.5px] capitalize text-slate-400">{plan?.plan ?? user?.role ?? "free"} plan</span>
+              <span className="truncate text-[9.5px] text-slate-400">{user?.email}</span>
             </div>
             <button
               onClick={handleLogout}

@@ -1,48 +1,51 @@
 import { apiClient } from "./client";
 
-export interface PlanInfo {
-  plan: string;
-  /** -1 means unlimited. */
-  projectsLimit: number;
-  exportsLimit: number;
-  isActive: boolean;
+export interface PricingRow {
+  key: string;
+  label: string;
+  priceInr: number;
 }
 
-export interface PlanSummary {
-  name: string;
-  price: string;
-  features: string[];
-}
-
-export interface CheckoutSession {
-  subscriptionId: string;
+export interface CreditOrder {
+  orderId: string;
   keyId: string;
+  amount: number; // paise
+  currency: string;
+  deckType: string;
+  priceInr: number;
 }
 
-export interface PaymentResult {
+export interface OrderPaymentResult {
+  razorpay_order_id: string;
   razorpay_payment_id: string;
-  razorpay_subscription_id: string;
   razorpay_signature: string;
 }
 
-export const billingApi = {
-  createCheckout: async (): Promise<CheckoutSession> => {
-    const { data } = await apiClient.post("/billing/checkout");
-    return data;
-  },
-  verifyPayment: async (result: PaymentResult): Promise<void> => {
-    await apiClient.post("/billing/verify", result);
-  },
-  cancel: async (): Promise<void> => {
-    await apiClient.post("/billing/cancel");
-  },
-  listPlans: async (): Promise<PlanSummary[]> => {
-    const { data } = await apiClient.get("/billing/plans");
-    return data;
-  },
+export interface CreditRow {
+  id: string;
+  deckType: string;
+  deckLabel: string;
+  amountInr: number;
+  status: "created" | "paid" | "consumed";
+  createdAt: string;
+  projectId: string | null;
+}
 
-  getPlan: async (): Promise<PlanInfo> => {
-    const { data } = await apiClient.get("/billing/plan");
+export const billingApi = {
+  getPricing: async (): Promise<PricingRow[]> => {
+    const { data } = await apiClient.get("/billing/pricing");
+    return data;
+  },
+  listCredits: async (): Promise<CreditRow[]> => {
+    const { data } = await apiClient.get("/billing/credits");
+    return data;
+  },
+  createCreditOrder: async (deckType: string): Promise<CreditOrder> => {
+    const { data } = await apiClient.post("/billing/credits/order", { deck_type: deckType });
+    return data;
+  },
+  verifyCreditPayment: async (result: OrderPaymentResult): Promise<{ deckType: string; status: string }> => {
+    const { data } = await apiClient.post("/billing/credits/verify", result);
     return data;
   },
 };

@@ -44,6 +44,7 @@ export default function HeroSection() {
           <a href="#showcase">Live Deck</a>
           <a href="#how-it-works">How It Works</a>
           <a href="#designs">Designs</a>
+          <a href="#pricing">Pricing</a>
           <a href="#why-mint">Why Mint</a>
           <a href="#faq">FAQ</a>
         </nav>
@@ -59,9 +60,12 @@ export default function HeroSection() {
 
       {/* ── CENTER HERO HERO CONTENT ── */}
       <div className="hero-c1-content">
+        {/* Eyebrow */}
+        <span className="hero-c1-badge">AI-Powered Presentation Creation</span>
+
         {/* Main Headline */}
         <h1 className="hero-c1-title">
-          Turn Your Website Into <span className="hero-c1-gradient">An Investor-Ready Deck</span>
+          Turn Your Ideas Into <span className="hero-c1-gradient">Presentations That Make an Impact</span>
         </h1>
 
         {/* Subtitle */}
@@ -83,10 +87,17 @@ export default function HeroSection() {
             />
           </div>
           <button type="submit" className="c1-generate-btn">
-            <span>Generate Deck</span>
+            <span>Create Your Pitch Deck</span>
             <ArrowRight size={15} />
           </button>
         </form>
+
+        <p className="mb-5 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[13px] text-slate-500">
+          <span>No design expertise needed. Just bring your ideas.</span>
+          <a href="#how-it-works" className="font-medium text-blue-600 hover:text-blue-700">
+            Explore how it works →
+          </a>
+        </p>
 
         {/* Quick architecture filter chips */}
         <div className="hero-c1-chips">

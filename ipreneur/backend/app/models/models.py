@@ -318,3 +318,54 @@ class Subscription(Base):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="subscriptions")
+
+
+# ─── DeckCredit ────────────────────────────────────────────────────────────
+
+class DeckCredit(Base):
+    """One paid, one-time right to generate a deck of a given type.
+
+    Pricing replaced the monthly Subscription plan above: a deck type is
+    bought individually (see app.decks.pricing.DECK_PRICES_INR) rather than
+    bundled into a monthly quota. A credit is created on `status="created"`
+    when the Razorpay order is opened, flips to `"paid"` once the signature
+    verifies, and to `"consumed"` the moment a project's analysis actually
+    starts spending it — so a paid-but-unused credit can carry over to
+    whichever project of that deck type needs it next.
+    """
+    __tablename__ = "deck_credits"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    deck_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    amount_inr: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    razorpay_order_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    razorpay_payment_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
+
+    status: Mapped[str] = mapped_column(String(20), default="created", nullable=False)
+
+    # Set once this credit is spent on a specific project's analysis run.
+    project_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped["User"] = relationship("User")
+    project: Mapped[Optional["Project"]] = relationship("Project")
+
+    def __repr__(self) -> str:
+        return f"<DeckCredit id={self.id} deck_type={self.deck_type} status={self.status}>"

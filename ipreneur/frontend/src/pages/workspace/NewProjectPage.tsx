@@ -15,6 +15,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 
 import { projectsApi } from "@/services/api/projects";
+import { billingApi } from "@/services/api/billing";
+import { useDeckPayment } from "@/hooks/useDeckPayment";
+import { useCurrentUser } from "@/stores/authStore";
 import { deckTypesApi, type DeckTypeOption } from "@/services/api/deckTypes";
 import {
   DECK_TYPES as DECK_TYPE_SECTIONS,
@@ -469,6 +472,26 @@ export default function NewProjectPage() {
     staleTime: Infinity,
   });
 
+  // One-time price per deck type, and any credits already bought but not yet
+  // spent — so a type paid for earlier (e.g. a payment that outlived a closed
+  // tab) isn't charged for twice.
+  const user = useCurrentUser();
+  const { data: pricing } = useQuery({
+    queryKey: ["billing-pricing"],
+    queryFn: billingApi.getPricing,
+    staleTime: 30 * 60_000,
+  });
+  const { data: credits } = useQuery({
+    queryKey: ["billing-credits"],
+    queryFn: billingApi.listCredits,
+    staleTime: 10_000,
+  });
+  const priceByType = useMemo(
+    () => Object.fromEntries((pricing ?? []).map((p) => [p.key, p.priceInr])),
+    [pricing]
+  );
+  const payment = useDeckPayment();
+
   const deckType = watch("deckType");
   const deckFormat = watch("deckFormat");
   const currency = watch("currency");
@@ -477,6 +500,12 @@ export default function NewProjectPage() {
     [deckTypes, deckType]
   );
   const runningOrder = useMemo(() => slideLabels(deckType), [deckType]);
+  const hasPaidCredit = useCallback(
+    (type: string) => (credits ?? []).some((c) => c.deckType === type && c.status === "paid"),
+    [credits]
+  );
+  const selectedPrice = priceByType[deckType];
+  const selectedCovered = hasPaidCredit(deckType);
 
   // The selection is kept when it is filtered out of view: the side panel
   // still describes it, and clearing it would silently change what gets built.
@@ -761,7 +790,7 @@ export default function NewProjectPage() {
     return ok;
   };
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     data.startImmediately = startNow;
     // Drop answers to fields this deck doesn't ask for — typed under another
     // type, or hidden by the stage — so they never reach the prompt.
@@ -770,6 +799,27 @@ export default function NewProjectPage() {
       if (!asks(name)) values[form] = undefined;
     }
     if (!validateForDeckType(data)) return;
+
+    // Generating immediately spends a paid credit server-side — buy one now
+    // if this deck type isn't already covered, rather than letting the
+    // create call fail with a 402 after the user has filled the whole form.
+    if (startNow && priceByType[data.deckType] != null && !hasPaidCredit(data.deckType)) {
+      let paid = false;
+      try {
+        paid = await payment.mutateAsync({
+          deckType: data.deckType,
+          deckLabel: selectedType?.label ?? data.deckType,
+          name: user?.name,
+          email: user?.email,
+        });
+      } catch (e: any) {
+        toast.error(e?.response?.data?.detail || e?.message || "Payment failed. Try again.");
+        return;
+      }
+      if (!paid) return; // checkout window closed without paying
+      qc.invalidateQueries({ queryKey: ["billing-credits"] });
+    }
+
     createProject(data);
   };
 
@@ -905,7 +955,14 @@ export default function NewProjectPage() {
                         </div>
                         <div style={ndS.typeDesc}>{t.description}</div>
                       </span>
-                      <span style={on ? ndS.countPill : ndS.typeCount}>{t.slideCount} slides</span>
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                        <span style={on ? ndS.countPill : ndS.typeCount}>{t.slideCount} slides</span>
+                        {priceByType[t.key] != null && (
+                          <span style={{ fontSize: 11, fontWeight: 600, color: on ? "#2563EB" : "#64748B" }}>
+                            ₹{priceByType[t.key]}
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </button>
                 );
@@ -925,7 +982,14 @@ export default function NewProjectPage() {
                   <span style={ndS.orderTitle}>Slide running order</span>
                   <span style={ndS.orderMeta}>{runningOrder.length} slides</span>
                 </div>
-                {selectedType && <div style={ndS.orderPreset}>Preset for {selectedType.label}</div>}
+                {selectedType && (
+                  <div style={ndS.orderPreset}>
+                    Preset for {selectedType.label}
+                    {selectedPrice != null && (
+                      <> · {selectedCovered ? "already paid" : `₹${selectedPrice}`}</>
+                    )}
+                  </div>
+                )}
               </div>
               <ol style={ndS.orderList}>
                 {runningOrder.map((label, i) => (
@@ -1316,7 +1380,11 @@ export default function NewProjectPage() {
               <div style={ndS.toggleRow}>
                 <div>
                   <div style={ndS.toggleTitle}>Generate immediately</div>
-                  <div style={ndS.toggleSub}>Start AI analysis right after creating</div>
+                  <div style={ndS.toggleSub}>
+                    {startNow && selectedPrice != null && !selectedCovered
+                      ? `Pay ₹${selectedPrice} for a ${selectedType?.label ?? "this"} deck, then start right away`
+                      : "Start AI analysis right after creating"}
+                  </div>
                 </div>
                 <Switch checked={startNow} onChange={setStartNow} />
               </div>
@@ -1326,10 +1394,16 @@ export default function NewProjectPage() {
                 variant="primary"
                 size="lg"
                 fullWidth
-                loading={isPending}
-                iconRight={!isPending ? <ArrowRight size={16} /> : undefined}
+                loading={isPending || payment.isPending}
+                iconRight={!(isPending || payment.isPending) ? <ArrowRight size={16} /> : undefined}
               >
-                {isPending ? "Creating…" : "Create deck"}
+                {payment.isPending
+                  ? "Opening checkout…"
+                  : isPending
+                    ? "Creating…"
+                    : startNow && selectedPrice != null && !selectedCovered
+                      ? `Pay ₹${selectedPrice} & Generate`
+                      : "Create deck"}
               </Button>
 
               <p style={ndS.trust}>Takes about two minutes. Every slide is editable afterwards.</p>

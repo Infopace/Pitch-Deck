@@ -1,4 +1,4 @@
-import type { PaymentResult } from "@/services/api/billing";
+import type { OrderPaymentResult } from "@/services/api/billing";
 
 const SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
 
@@ -28,24 +28,30 @@ function loadScript(): Promise<void> {
   return loading;
 }
 
-/** Opens Razorpay checkout for a subscription. Resolves with the signed
- *  payment result, or null when the user closes the window without paying. */
-export async function openSubscriptionCheckout(opts: {
+/** Opens Razorpay checkout for a one-time deck-type order. Resolves with the
+ *  signed payment result, or null when the user closes the window without
+ *  paying. */
+export async function openOrderCheckout(opts: {
   keyId: string;
-  subscriptionId: string;
+  orderId: string;
+  amount: number;
+  currency: string;
+  deckLabel: string;
   name?: string;
   email?: string;
-}): Promise<PaymentResult | null> {
+}): Promise<OrderPaymentResult | null> {
   await loadScript();
   return new Promise((resolve) => {
     const rzp = new window.Razorpay!({
       key: opts.keyId,
-      subscription_id: opts.subscriptionId,
-      name: "iPreneur",
-      description: "Pro plan",
+      order_id: opts.orderId,
+      amount: opts.amount,
+      currency: opts.currency,
+      name: "Mint",
+      description: `${opts.deckLabel} deck`,
       prefill: { name: opts.name, email: opts.email },
       theme: { color: "#2563EB" },
-      handler: (r: PaymentResult) => resolve(r),
+      handler: (r: OrderPaymentResult) => resolve(r),
       modal: { ondismiss: () => resolve(null) },
     });
     rzp.open();

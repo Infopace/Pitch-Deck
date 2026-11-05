@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /settings
+Disallow: /billing
+Disallow: /editor
+
+Sitemap: https://pitchdeck.infopaceindia.com/sitemap.xml

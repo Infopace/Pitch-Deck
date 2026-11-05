@@ -15,11 +15,11 @@ export default defineConfig({
       // Same-origin API and uploads, so one forwarded port covers the whole
       // app and CORS never comes into it. Requires VITE_API_URL=/api/v1.
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://localhost:8010",
         changeOrigin: true,
       },
       "/uploads": {
-        target: "http://localhost:8000",
+        target: "http://localhost:8010",
         changeOrigin: true,
       },
     },

@@ -8,7 +8,6 @@ env.cloudrun.yaml
 *.cloudrun.yaml
 _gen_cloudrun_env.py
 .firebase/
-stitch_modern_interface_redesign.zip
 
 # ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/

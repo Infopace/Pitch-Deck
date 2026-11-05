@@ -48,7 +48,10 @@ class Settings(BaseSettings):
     # ── Auth ─────────────────────────────────────────────────────────────────
     jwt_secret_key: str = "change_me"
     jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 30
+    # There is no refresh-token flow — this single token is the whole session,
+    # so its lifetime IS how long a sign-in lasts. 6 days: log in once, stay
+    # in until you sign out or six days pass, whichever comes first.
+    jwt_access_token_expire_minutes: int = 60 * 24 * 6
     jwt_refresh_token_expire_days: int = 30
 
     # ── Google Gemini (primary — better quality) ─────────────────────────────
@@ -112,12 +115,12 @@ class Settings(BaseSettings):
     log_level: str = "DEBUG"
 
     # ── Billing ──────────────────────────────────────────────────────────────
-    #: Razorpay. Empty key id/secret leaves checkout disabled (503).
+    #: Razorpay. Empty key id/secret leaves checkout disabled (503). Pricing
+    #: is per deck type (app.decks.pricing), not a plan id — there's no
+    #: separate Razorpay plan to configure, only one-time orders.
     razorpay_key_id: str = ""
     razorpay_key_secret: str = ""
     razorpay_webhook_secret: str = ""
-    #: Id of the monthly Pro plan created in the Razorpay dashboard (plan_xxx).
-    razorpay_pro_plan_id: str = ""
 
     # ── Crawler ──────────────────────────────────────────────────────────────
     playwright_headless: bool = True

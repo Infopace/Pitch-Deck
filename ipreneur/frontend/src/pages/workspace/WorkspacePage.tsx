@@ -2,10 +2,14 @@ import { useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, Play, Download, Edit3, RefreshCw, Loader2, KeyRound, ExternalLink } from "lucide-react";
+import { ArrowLeft, Play, Download, Edit3, RefreshCw, Loader2, KeyRound, ExternalLink, IndianRupee } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { projectsApi } from "@/services/api/projects";
+import { billingApi } from "@/services/api/billing";
+import { useDeckPayment } from "@/hooks/useDeckPayment";
+import { useCurrentUser } from "@/stores/authStore";
+import { deckTypeLabel } from "@/components/workspace/deckTemplates/deckTypes";
 import { Button } from "@/components/ui/Button";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
 import { AnalysisProgress } from "@/components/workspace/AnalysisProgress";
@@ -69,6 +73,31 @@ export default function WorkspacePage() {
     enabled: !!projectId && ACTIVE.has(project?.status ?? ""),
   });
 
+  const user = useCurrentUser();
+  const payment = useDeckPayment();
+
+  // Price for this project's deck type, and whether it's already covered by
+  // a paid, unconsumed credit — so the price is visible before Generate is
+  // clicked, not just surfaced reactively from a 402.
+  const { data: pricing } = useQuery({
+    queryKey: ["billing-pricing"],
+    queryFn: billingApi.getPricing,
+    staleTime: 30 * 60_000,
+  });
+  const { data: credits } = useQuery({
+    queryKey: ["billing-credits"],
+    queryFn: billingApi.listCredits,
+    staleTime: 10_000,
+  });
+  const deckPrice = pricing?.find((p) => p.key === project?.deckType)?.priceInr;
+  // Covered either by an unspent paid credit, or by one already spent on
+  // this exact project (so a retry after a failure never charges twice).
+  const deckCovered = (credits ?? []).some(
+    (c) =>
+      c.deckType === project?.deckType &&
+      (c.status === "paid" || (c.status === "consumed" && c.projectId === project?.id))
+  );
+
   const { mutate: triggerAnalysis, isPending: isTriggering } = useMutation({
     mutationFn: () => projectsApi.analyze(projectId!),
     onSuccess: () => {
@@ -76,8 +105,29 @@ export default function WorkspacePage() {
       qc.invalidateQueries({ queryKey: ["project", projectId] });
       qc.invalidateQueries({ queryKey: ["projects"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.response?.data?.detail || "Failed to start analysis");
+    onError: async (err: any) => {
+      const detail = err?.response?.data?.detail;
+      // A structured 402 means this deck type needs paying for before the
+      // AI pipeline runs — open checkout, then retry the same trigger.
+      if (err?.response?.status === 402 && detail?.error === "payment_required") {
+        const deckType = detail.deck_type as string;
+        try {
+          const paid = await payment.mutateAsync({
+            deckType,
+            deckLabel: deckTypeLabel(deckType),
+            name: user?.name,
+            email: user?.email,
+          });
+          if (paid) {
+            qc.invalidateQueries({ queryKey: ["billing-credits"] });
+            triggerAnalysis();
+          }
+        } catch (e: any) {
+          toast.error(e?.response?.data?.detail || e?.message || "Payment failed. Try again.");
+        }
+        return;
+      }
+      toast.error(typeof detail === "string" ? detail : "Failed to start analysis");
     },
   });
 
@@ -174,14 +224,34 @@ export default function WorkspacePage() {
           )}
         </div>
         <div style={ws.topActions}>
+          {(isDraft || isError) && deckPrice != null && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "0 12px",
+                height: 34,
+                borderRadius: 999,
+                font: "700 12.5px var(--font-body)",
+                whiteSpace: "nowrap",
+                ...(deckCovered
+                  ? { background: "linear-gradient(135deg,#ECFDF5,#D1FAE5)", border: "1px solid rgba(16,185,129,.35)", color: "#047857" }
+                  : { background: "linear-gradient(135deg,#EFF6FF,#DBEAFE)", border: "1px solid rgba(37,99,235,.3)", color: "#1d4ed8" }),
+              }}
+            >
+              <IndianRupee size={12} strokeWidth={2.75} />
+              {deckCovered ? "Paid — ready" : `${deckPrice} one-time`}
+            </span>
+          )}
           {isDraft && (
             <Button variant="primary" onClick={() => triggerAnalysis()} loading={isTriggering} icon={<Play size={15} />}>
-              Generate Deck
+              {deckPrice != null && !deckCovered ? `Pay ₹${deckPrice} & Generate` : "Generate Deck"}
             </Button>
           )}
           {isError && (
             <Button variant="secondary" onClick={() => triggerAnalysis()} loading={isTriggering} icon={<RefreshCw size={15} />}>
-              Retry
+              {deckPrice != null && !deckCovered ? `Pay ₹${deckPrice} & Retry` : "Retry"}
             </Button>
           )}
           {isReady && (

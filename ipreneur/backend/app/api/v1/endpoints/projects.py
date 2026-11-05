@@ -19,8 +19,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 
 from app.api.deps.auth import get_current_user
+from app.api.v1.endpoints.billing import consume_credit, has_paid_credit, project_already_paid
 from app.core.ratelimit import limiter, GENERATION_LIMIT, CREATE_LIMIT
 from app.db.session import get_db, get_db_context
+from app.decks.pricing import price_for
 from app.decks.registry import DEFAULT_DECK_FORMAT, DEFAULT_DECK_TYPE, resolve_sections
 from app.models.models import Job, Project, User, Presentation
 from app.schemas.project import (
@@ -33,6 +35,14 @@ from app.schemas.project import (
 from app.workers.tasks.analysis import run_analysis_pipeline
 
 router = APIRouter()
+
+
+def _payment_required(deck_type: str) -> HTTPException:
+    price = price_for(deck_type)
+    return HTTPException(
+        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        detail={"error": "payment_required", "deck_type": deck_type, "price_inr": price},
+    )
 
 
 # ─── Inline analysis pipeline (runs without Celery) ──────────────────────────
@@ -367,7 +377,16 @@ async def create_project(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
-    """Create a new project and optionally kick off analysis immediately."""
+    """Create a new project and optionally kick off analysis immediately.
+
+    Starting analysis immediately spends a paid credit for this deck type
+    (see app.decks.pricing) — checked before the project row even exists, so
+    an unpaid request never creates an orphaned draft.
+    """
+    if payload.start_analysis and price_for(payload.deck_type) is not None:
+        if not await has_paid_credit(db, current_user.id, payload.deck_type):
+            raise _payment_required(payload.deck_type)
+
     try:
         project = Project(
             user_id=current_user.id,
@@ -382,6 +401,8 @@ async def create_project(
         await db.flush()
 
         if payload.start_analysis:
+            if price_for(payload.deck_type) is not None:
+                await consume_credit(db, current_user.id, payload.deck_type, project_id=project.id)
             project.status = "analyzing"
             job = Job(project_id=project.id, status="queued", message="Queued for processing")
             db.add(job)
@@ -551,6 +572,10 @@ async def trigger_analysis(
             status_code=status.HTTP_409_CONFLICT,
             detail="Analysis already in progress for this project",
         )
+
+    if price_for(project.deck_type) is not None and not await project_already_paid(db, project.id):
+        if not await consume_credit(db, current_user.id, project.deck_type, project.id):
+            raise _payment_required(project.deck_type)
 
     project.status = "analyzing"
     job = Job(project_id=project.id, status="queued", message="Queued for processing")

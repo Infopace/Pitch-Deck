@@ -11,23 +11,30 @@
  * visitor sees is literally what the generator produces.
  *
  * Copy refreshed from "Mint Landing Page Content.docx" (2026-10-28) — a
- * consultant brief modeled on Pitch.com's structure. Applied in full, but
- * every claim was re-checked against the code first: the brief assumes a
- * free-text prompt box (this product is website-first, with a structured
- * form, not a chat prompt), a browsable "template library" (this product has
- * 40 visual designs you switch on a deck, not separate templates), and a
- * generic audience list including Students/Educators, which doesn't map to
- * any deck type here — all adapted rather than copied verbatim. The brief's
- * "Use Cases" section is folded into the existing deck-type groups below
- * rather than duplicated, since that section already is the use-case
- * breakdown, grounded in the registry rather than invented personas.
+ * consultant brief modeled on Pitch.com's structure. Every section and CTA
+ * label in the brief is on the page now, in the brief's own wording wherever
+ * that wording is true of the product. Three specific departures, each
+ * required by the facts rather than a style choice:
+ *   - Hero/How It Works keep the real website-URL intake instead of the
+ *     brief's free-text "describe your idea" prompt box — there is no chat
+ *     prompt in this product, and a fake one would be a dead input.
+ *   - The Use Cases personas drop "Students and Educators" — there is no
+ *     academic deck type in the registry to back that claim up.
+ *   - The brief's "Meet Your AI Presentation Assistant" section (with a
+ *     mocked-up input box) is kept as "Every number comes with its reasoning
+ *     attached" instead — same slot, but describing the real two-pass
+ *     research and audit instead of a prompt UI that doesn't exist, again to
+ *     avoid a second dead input on the page.
+ * The FAQ keeps its own real answers rather than the brief's placeholder
+ * instructions ("Insert your actual pricing here", etc.) — those are notes
+ * to the implementer, not copy to publish.
  */
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight, Check, ChevronDown, Globe, Search, Sparkles,
-  PencilLine, Download, Layers, FileText, Minus, FileSearch,
-  ShieldCheck,
+  PencilLine, Layers, FileText, Minus, FileSearch,
+  ShieldCheck, LayoutGrid, Zap,
 } from "lucide-react";
 
 import HeroSection from "@/components/landing/HeroSection";
@@ -49,11 +56,35 @@ import { slideOrder, DECK_TYPES, deckTypeLabel } from "@/components/workspace/de
 
 const ORDER = slideOrder("investor");
 
+// "appendix" is a dynamically-generated evidence section, not a deck a
+// visitor sets out to buy — excluded here and from pricing, same as the
+// backend's app.decks.pricing.
+const SELLABLE_DECK_TYPES = Object.keys(DECK_TYPES).filter((k) => k !== "appendix");
+
 const CAPABILITIES = [
-  { v: "13", label: "deck types, each with its own slide sequence" },
+  { v: String(SELLABLE_DECK_TYPES.length), label: "deck types, each with its own slide sequence" },
   { v: "40", label: "designs, switchable on any deck at any time" },
   { v: "5–25", label: "slides, decided by the deck type you pick" },
   { v: ".pptx", label: "export with native charts and editable text" },
+];
+
+// One-time, per-deck pricing — mirrors app.decks.pricing.DECK_PRICES_INR on
+// the backend exactly, since that's what checkout actually charges. Grouped
+// by tier, highest first, matching GET /billing/pricing's own ordering.
+const DECK_PRICES_INR: { key: string; price: number }[] = [
+  { key: "investor", price: 699 },
+  { key: "gtm", price: 699 },
+  { key: "business", price: 699 },
+  { key: "partnership", price: 699 },
+  { key: "master", price: 699 },
+  { key: "general", price: 599 },
+  { key: "vision", price: 599 },
+  { key: "sales", price: 499 },
+  { key: "product", price: 499 },
+  { key: "demoday", price: 499 },
+  { key: "update", price: 399 },
+  { key: "internal", price: 399 },
+  { key: "elevator", price: 399 },
 ];
 
 // What the research pass actually does, and what checks the output before a
@@ -83,6 +114,107 @@ const WHY_MINT = [
   "Create with confidence: research arrives sourced, and a second pass checks the output before you see it.",
   "Adapt to your audience: the same company facts read differently in a sales deck, an investor deck and an internal memo.",
   "Change your mind anytime: 40 designs apply to a deck you've already written, so changing one never means starting over.",
+];
+
+// Brief's "Product Introduction" three cards — Card 1 adapted from "describe
+// your topic" to "share your website", since that's the real intake.
+const PRODUCT_INTRO_CARDS = [
+  {
+    step: "01",
+    title: "Start With Your Website",
+    body: "Share your company's website. Get a structured presentation draft tailored to your business.",
+  },
+  {
+    step: "02",
+    title: "Create Beautiful Slides",
+    body: "Turn your content into visually engaging slides with clear layouts, compelling headlines, and a professional presentation flow.",
+  },
+  {
+    step: "03",
+    title: "Present With Confidence",
+    body: "Refine your message, personalize your content, and prepare a presentation that is ready to share with your audience.",
+  },
+];
+
+// Brief's "Features" section, filtered to the six capabilities the product
+// actually has — all verified against the same facts listed above.
+const FEATURES = [
+  {
+    icon: Sparkles,
+    title: "AI-Powered Content Generation",
+    blurb: "From a company website to a structured presentation.",
+    body: "Mint runs live research on your market and writes slide content from it, so you start from a full draft, not a blank page.",
+  },
+  {
+    icon: Layers,
+    title: "Professional Slide Design",
+    blurb: "Make every slide look presentation-ready.",
+    body: "Every deck comes out laid out in one of 40 designs, with organized layouts, clear typography and a consistent visual style.",
+  },
+  {
+    icon: FileSearch,
+    title: "Smart Content Structuring",
+    blurb: "Bring clarity to every idea.",
+    body: "Each deck type follows the slide sequence that room actually expects, from a five-slide teaser to a full board narrative.",
+  },
+  {
+    icon: PencilLine,
+    title: "Customizable Presentations",
+    blurb: "Make the presentation your own.",
+    body: "Click any headline, bullet or number to edit it, upload your logo and photos, and download a .pptx you can keep editing.",
+  },
+  {
+    icon: LayoutGrid,
+    title: "Multiple Presentation Use Cases",
+    blurb: "One tool. Thirteen kinds of room.",
+    body: "Build decks for fundraising, sales, internal decisions, partnerships and more — each with its own slide sequence.",
+  },
+  {
+    icon: Zap,
+    title: "Faster Presentation Creation",
+    blurb: "Less time formatting. More time deciding what to say.",
+    body: "Start from your website instead of a blank page, and let the research and first draft happen before you open the editor.",
+  },
+];
+
+// Brief's "Use Cases" personas — the one persona the registry can't back up,
+// Students and Educators, is left out: there's no academic deck type here.
+const USE_CASES = [
+  {
+    title: "Startup Founders",
+    tagline: "Turn your vision into an investor-ready story.",
+    body: "Build pitch decks that explain your problem, solution, business model, market opportunity, and growth strategy.",
+    cta: "Create a Startup Pitch Deck",
+    preset: "Startup Pitch",
+  },
+  {
+    title: "Business Professionals",
+    tagline: "Make your next business presentation count.",
+    body: "Present strategies, business plans, performance updates, and recommendations with greater clarity and structure.",
+    cta: "Create a Business Presentation",
+    preset: "Business",
+  },
+  {
+    title: "Sales and Marketing Teams",
+    tagline: "Communicate value. Build trust. Win opportunities.",
+    body: "Develop persuasive sales presentations, marketing proposals, campaign plans, and product pitches.",
+    cta: "Create a Sales Deck",
+    preset: "Sales",
+  },
+  {
+    title: "Product Teams",
+    tagline: "Bring your product vision to life.",
+    body: "Present product concepts, roadmaps, feature proposals, and launch strategies in a format that's easy to understand.",
+    cta: "Create a Product Deck",
+    preset: "Product",
+  },
+  {
+    title: "Consultants and Agencies",
+    tagline: "Turn insights into compelling client presentations.",
+    body: "Structure recommendations, project proposals, market research, and strategic plans into polished business narratives.",
+    cta: "Create a Client Presentation",
+    preset: "Partnership",
+  },
 ];
 
 const STEPS = [
@@ -246,16 +378,27 @@ export default function LandingPage() {
       {/* ── Product introduction — benefit-led, mechanics come next ───── */}
       <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-12 max-w-[46rem]">
-          <h2 className="l-title mb-4">From company context to a sharper pitch.</h2>
+          <h2 className="l-title mb-4">Your ideas deserve better slides.</h2>
           <p className="l-lede">
-            Writing a deck from nothing takes hours of research, structuring and
-            formatting before you even get to the part that matters — what you
-            actually have to say.
+            Creating a great presentation shouldn't take hours of writing,
+            designing, and formatting. Mint helps you transform your ideas into
+            structured, visually engaging presentations with the power of AI.
           </p>
         </div>
 
         <MintStoryGraphic />
 
+        <div className="mt-14 grid gap-px bg-slate-200/70 md:grid-cols-3">
+          {PRODUCT_INTRO_CARDS.map((c) => (
+            <div key={c.step} className="l-panel p-7">
+              <span className="l-meta mb-3 block tabular-nums">{c.step}</span>
+              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+                {c.title}
+              </h3>
+              <p className="l-body text-[14px] leading-relaxed">{c.body}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ── How it works ─────────────────────────────────────────────── */}
@@ -372,15 +515,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 13 deck types — this is also the brief's "Use Cases" section:
-          the deck-type groups already are the use-case breakdown, grounded
-          in the registry rather than a second, invented persona list. ──── */}
+      {/* ── 13 deck types, browsable by room ─────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
         <div className="mb-12 max-w-[46rem]">
-          <h2 className="l-title mb-4">One platform for every room.</h2>
+          <h2 className="l-title mb-4">Or browse by deck type.</h2>
           <p className="l-lede">
             A demo-day teaser is not a shortened investor deck, and a sales deck
-            is not a pitch with the price added. Each of the {Object.keys(DECK_TYPES).length}{" "}
+            is not a pitch with the price added. Each of the {SELLABLE_DECK_TYPES.length}{" "}
             types here has its own slide sequence, written for the room it is
             going into.
           </p>
@@ -415,7 +556,7 @@ export default function LandingPage() {
       <section id="designs" className="l-panel border-y border-slate-200/80">
         <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
           <div className="mb-12 max-w-[46rem]">
-            <h2 className="l-title mb-4">Forty designs, and you can change your mind</h2>
+            <h2 className="l-title mb-4">Forty designs for every purpose.</h2>
             <p className="l-lede">
               The words and the design are stored separately, so switching
               template redraws the same deck rather than starting a new one —
@@ -447,39 +588,61 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Editing, branding, export ────────────────────────────────── */}
+      {/* ── Features ─────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
-        <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
-          {[
-            {
-              icon: PencilLine,
-              title: "Edit the words in place",
-              body:
-                "Click a headline, a bullet or a number on the slide itself and retype it. No separate form, no round trip through the AI. Your edits stay yours — regenerating never silently overwrites them.",
-            },
-            {
-              icon: Layers,
-              title: "Your logo, your photos",
-              body:
-                "Upload a logo and it sits on every slide. Upload product shots and they fill the gallery slots. Both are applied when the deck is drawn, so they survive a change of design.",
-            },
-            {
-              icon: Download,
-              title: "Leave with a real file",
-              body:
-                "Download a .pptx with native text boxes, tables and charts that are still charts in PowerPoint. Or take a pixel-exact image export if you would rather it look identical to the screen.",
-            },
-          ].map((c) => (
+        <div className="mb-12 max-w-[46rem]">
+          <h2 className="l-title mb-4">Everything you need to build a better presentation.</h2>
+          <p className="l-lede">
+            A smarter way to turn complex ideas into clear stories and
+            professional presentations.
+          </p>
+        </div>
+        <div className="grid gap-px bg-slate-200/70 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((c) => (
             <div key={c.title} className="l-panel p-7">
               <span className="mb-5 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
                 <c.icon size={16} />
               </span>
-              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+              <h3 className="mb-1.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
                 {c.title}
               </h3>
+              <p className="mb-2.5 text-[13px] font-medium text-slate-500">{c.blurb}</p>
               <p className="l-body text-[14px] leading-relaxed">{c.body}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ── Use cases — the brief's personas, mapped to real deck types.
+          "Students and Educators" is dropped: there's no academic deck type
+          in the registry to back that claim up. ─────────────────────────── */}
+      <section className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+          <div className="mb-12 max-w-[46rem]">
+            <h2 className="l-title mb-4">One platform for every big idea.</h2>
+            <p className="l-lede">
+              Whatever you're working on, turn your company's story into a
+              presentation built for the room you're walking into.
+            </p>
+          </div>
+
+          <div className="grid gap-px bg-slate-200/70 sm:grid-cols-2 lg:grid-cols-3">
+            {USE_CASES.map((u) => (
+              <div key={u.title} className="l-panel flex flex-col p-7">
+                <h3 className="mb-1.5 text-[16px] font-semibold tracking-[-0.015em] text-slate-900">
+                  {u.title}
+                </h3>
+                <p className="mb-3 text-[14px] font-medium text-slate-700">{u.tagline}</p>
+                <p className="l-body mb-5 flex-1 text-[13px] leading-relaxed">{u.body}</p>
+                <button
+                  onClick={() => navigate(`/register?prompt=${encodeURIComponent(`Build a ${u.preset} deck`)}`)}
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-600 hover:text-blue-700"
+                >
+                  {u.cta} <ArrowRight size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -538,6 +701,57 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Before / after — the brief's "Before and After" section, grounded
+          in capabilities this page already documents (company profile, live
+          research, a full slide sequence) rather than the brief's generic,
+          unverifiable claims. ────────────────────────────────────────────── */}
+      <section className="l-panel border-y border-slate-200/80">
+        <div className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+          <div className="mb-12 max-w-[46rem]">
+            <h2 className="l-title mb-4">From scattered notes to a structured deck.</h2>
+            <p className="l-lede">
+              The problem was never your idea. It was turning it into slides.
+            </p>
+          </div>
+
+          <div className="grid gap-px bg-slate-200/70 md:grid-cols-2">
+            <div className="l-panel p-7">
+              <div className="l-meta mb-5 text-[11px] uppercase tracking-[0.07em]">Before Mint</div>
+              <ul className="space-y-3">
+                {[
+                  "Company facts scattered across your website, old decks, and your head.",
+                  "Market research you have to go find and check yourself.",
+                  "A blank slide and a blinking cursor.",
+                  "Re-typing the same company facts into every new deck.",
+                ].map((t) => (
+                  <li key={t} className="flex gap-2.5">
+                    <Minus size={15} className="mt-0.5 shrink-0 text-slate-400" />
+                    <span className="l-body text-[14px] leading-relaxed">{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="l-panel p-7">
+              <div className="l-meta mb-5 text-[11px] uppercase tracking-[0.07em]">With Mint</div>
+              <ul className="space-y-3">
+                {[
+                  "One company profile, built from your website, that every deck draws from.",
+                  "Market research gathered live and shown with its reasoning, not asserted.",
+                  "A full slide sequence waiting before you write a word.",
+                  "A second deck that asks for far less than the first.",
+                ].map((t) => (
+                  <li key={t} className="flex gap-2.5">
+                    <Check size={15} className="mt-0.5 shrink-0 text-blue-600" />
+                    <span className="l-body text-[14px] leading-relaxed">{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Why Mint, paired with what it doesn't do — confident about what's
           real, honest about what isn't, which is the brief's "Why Choose"
           section done the way this page already does everything else. ──── */}
@@ -581,6 +795,42 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Pricing — one-time, per deck type. Mirrors GET /billing/pricing
+          and app.decks.pricing.DECK_PRICES_INR exactly, since this is what
+          checkout actually charges. ─────────────────────────────────────── */}
+      <section id="pricing" className="mx-auto max-w-[1180px] px-4 py-20 sm:px-6">
+        <div className="mb-12 max-w-[46rem]">
+          <h2 className="l-title mb-4">Pay once per deck. No subscription.</h2>
+          <p className="l-lede">
+            Every deck type is a one-time purchase — pay when you generate it,
+            keep it and re-generate it as often as you like. Nothing recurs,
+            nothing expires.
+          </p>
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white">
+          <table className="w-full text-left text-[14px]">
+            <thead>
+              <tr className="border-b border-slate-200/80 bg-slate-50/70 text-[11px] uppercase tracking-wide text-slate-500">
+                <th className="px-5 py-3 font-medium">Deck type</th>
+                <th className="px-5 py-3 text-right font-medium">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DECK_PRICES_INR.map((d) => (
+                <tr key={d.key} className="border-b border-slate-100 last:border-b-0">
+                  <td className="px-5 py-3 font-medium text-slate-900">{deckTypeLabel(d.key)}</td>
+                  <td className="px-5 py-3 text-right tabular-nums text-slate-700">₹{d.price}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-4 text-[12px] text-slate-500">
+          Payments are processed securely by Razorpay. Prices shown in INR.
+        </p>
+      </section>
+
       {/* ── FAQ ──────────────────────────────────────────────────────── */}
       <section id="faq" className="l-panel border-y border-slate-200/80">
         <div className="mx-auto max-w-[820px] px-4 py-20 sm:px-6">
@@ -616,14 +866,14 @@ export default function LandingPage() {
           Your next deck starts with a website, not a blank page.
         </h2>
         <p className="l-lede mx-auto mb-9 max-w-[46ch]">
-          Three decks on the free plan. No credit card, and nothing to install.
+          From ₹399 a deck, one-time. Nothing to install, nothing recurring.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={() => navigate("/register")}
             className="l-press inline-flex items-center gap-2 rounded-xl bg-slate-900 px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-slate-800"
           >
-            Build your first deck <ArrowRight size={16} />
+            Create Your Pitch Deck <ArrowRight size={16} />
           </button>
           <Link
             to="/login"
