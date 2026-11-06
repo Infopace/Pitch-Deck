@@ -293,7 +293,7 @@ export default function DashboardPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {filtered.map((deck) => {
               const v = deckView(deck);
               const chip = statusChip(deck.status);
@@ -334,11 +334,11 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  <div className="p-3">
-                    <h3 className="line-clamp-2 min-h-[34px] text-[13px] font-semibold leading-snug text-slate-900 transition-colors group-hover:text-blue-600">
+                  <div className="p-2 sm:p-3">
+                    <h3 className="line-clamp-2 min-h-[28px] text-[11.5px] font-semibold leading-snug text-slate-900 transition-colors group-hover:text-blue-600 sm:min-h-[34px] sm:text-[13px]">
                       {deck.name}
                     </h3>
-                    <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
+                    <div className="mt-1 flex flex-col gap-0.5 text-[10px] sm:mt-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:text-[11px]">
                       <span className="truncate text-slate-500">
                         {v.typeLabel}
                         {v.slides > 0 && <span className="text-slate-400"> · {v.slides} slides</span>}

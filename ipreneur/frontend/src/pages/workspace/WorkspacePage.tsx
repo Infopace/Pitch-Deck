@@ -44,14 +44,13 @@ const statusLabel: Record<string, string> = {
 };
 
 const ws = {
-  topbar: { position: "sticky", top: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 28px", background: "rgba(255,255,255,0.82)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", borderBottom: "1px solid var(--border-subtle)" } as React.CSSProperties,
-  topLeft: { display: "flex", alignItems: "center", gap: 16, minWidth: 0 } as React.CSSProperties,
+  topbar: { position: "sticky", top: 0, zIndex: 10, background: "rgba(255,255,255,0.82)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", borderBottom: "1px solid var(--border-subtle)" } as React.CSSProperties,
+  topLeft: { minWidth: 0 } as React.CSSProperties,
   backLink: { display: "inline-flex", alignItems: "center", gap: 6, font: "500 13px var(--font-body)", color: "var(--text-muted)", textDecoration: "none" } as React.CSSProperties,
   divider: { width: 1, height: 18, background: "var(--border-default)", flexShrink: 0 } as React.CSSProperties,
   projName: { font: "700 14px var(--font-display)", color: "var(--text-strong)" } as React.CSSProperties,
-  projUrl: { font: "400 12px var(--font-body)", color: "var(--text-faint)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const } as React.CSSProperties,
-  body: { display: "grid", gridTemplateColumns: "250px 1fr", gap: 24, maxWidth: 1240, margin: "0 auto", padding: "24px 24px 50px" } as React.CSSProperties,
-  topActions: { display: "flex", gap: 10, flexShrink: 0 } as React.CSSProperties,
+  projUrl: { font: "400 12px var(--font-body)", color: "var(--text-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const } as React.CSSProperties,
+  topActions: {} as React.CSSProperties,
 };
 
 export default function WorkspacePage() {
@@ -211,15 +210,15 @@ export default function WorkspacePage() {
   return (
     <div style={{ background: "transparent", minHeight: "100vh" }}>
       {/* Topbar */}
-      <div style={ws.topbar}>
-        <div style={ws.topLeft}>
+      <div style={ws.topbar} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-7">
+        <div style={ws.topLeft} className="flex flex-wrap items-center gap-3 sm:gap-4">
           <Link to="/dashboard" style={ws.backLink}>
             <ArrowLeft size={15} /> Dashboard
           </Link>
-          <span style={ws.divider} />
-          <div style={{ minWidth: 0 }}>
+          <span style={ws.divider} className="hidden sm:inline-block" />
+          <div className="min-w-0 max-w-[75vw] sm:max-w-none">
             <div style={ws.projName}>{project?.name || "Loading…"}</div>
-            <div style={ws.projUrl}>{project?.companyUrl ?? project?.company_url ?? "No website — idea stage"}</div>
+            <div style={ws.projUrl} className="max-w-[220px] sm:max-w-[260px]">{project?.companyUrl ?? project?.company_url ?? "No website — idea stage"}</div>
           </div>
           {project && (
             <Badge tone={statusTone[project.status] ?? "neutral"} dot>
@@ -227,7 +226,7 @@ export default function WorkspacePage() {
             </Badge>
           )}
         </div>
-        <div style={ws.topActions}>
+        <div style={ws.topActions} className="flex flex-shrink-0 flex-wrap items-center gap-2 sm:gap-2.5">
           {(isDraft || isError) && deckPrice != null && (
             <span
               style={{
@@ -272,7 +271,7 @@ export default function WorkspacePage() {
       </div>
 
       {/* Body */}
-      <div style={ws.body}>
+      <div className="mx-auto grid max-w-[1240px] grid-cols-1 gap-5 px-4 py-5 pb-12 sm:px-6 sm:py-6 lg:grid-cols-[250px_1fr] lg:gap-6 lg:px-6">
         <aside>
           {project?.brandingData && <BrandingPanel branding={project.brandingData} project={project} />}
         </aside>
@@ -319,17 +318,18 @@ export default function WorkspacePage() {
               const isQuota = errMsg.includes("QUOTA_EXCEEDED") || errMsg.includes("quota") || errMsg.includes("429");
               return isQuota ? (
                 <motion.div key="quota" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ border: "1px solid rgba(245,158,11,0.35)", background: "rgba(245,158,11,0.04)", borderRadius: "var(--radius-lg)", padding: 28 }}>
-                  <div style={{ display: "flex", gap: 16 }}>
+                  className="p-5 sm:p-7"
+                  style={{ border: "1px solid rgba(245,158,11,0.35)", background: "rgba(245,158,11,0.04)", borderRadius: "var(--radius-lg)" }}>
+                  <div className="flex gap-4">
                     <span style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "rgba(245,158,11,0.12)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <KeyRound size={20} style={{ color: "#f59e0b" }} />
                     </span>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <h2 style={{ font: "700 16px var(--font-display)", color: "#b45309", marginBottom: 6 }}>Gemini API Quota Exceeded</h2>
                       <p style={{ font: "400 13px var(--font-body)", color: "var(--text-muted)", marginBottom: 16 }}>
                         Your Gemini API key has hit its free-tier daily limit for gemini-3.8-flash. The quota resets every 24 hours.
                       </p>
-                      <div style={{ display: "flex", gap: 10 }}>
+                      <div className="flex flex-wrap gap-2.5">
                         <Button variant="secondary" onClick={() => triggerAnalysis()} loading={isTriggering} icon={<RefreshCw size={14} />}>Retry Analysis</Button>
                         <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer"
                           style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "0 14px", height: 36, borderRadius: "var(--radius-md)", border: "1px solid rgba(245,158,11,0.4)", font: "500 13px var(--font-body)", color: "#b45309", textDecoration: "none" }}>
@@ -341,7 +341,8 @@ export default function WorkspacePage() {
                 </motion.div>
               ) : (
                 <motion.div key="error" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                  style={{ border: "1px solid var(--danger-border, rgba(220,38,38,.25))", background: "var(--danger-surface)", borderRadius: "var(--radius-lg)", padding: "28px 28px 32px", textAlign: "center" }}>
+                  className="px-5 pt-5 pb-7 sm:px-7 sm:pt-7 sm:pb-8"
+                  style={{ border: "1px solid var(--danger-border, rgba(220,38,38,.25))", background: "var(--danger-surface)", borderRadius: "var(--radius-lg)", textAlign: "center" }}>
                   <div style={{ marginBottom: 4 }}>
                     <Tv404 screenText="FAILED" scale={0.85} watermark={false} />
                   </div>

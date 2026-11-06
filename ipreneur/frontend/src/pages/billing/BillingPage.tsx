@@ -12,17 +12,17 @@ function PriceCard({
   deck, busy, onBuy,
 }: { deck: PricingRow; busy: boolean; onBuy: () => void }) {
   return (
-    <article className="flex flex-col rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm">
-      <h3 className="text-[14px] font-semibold text-slate-900">{deck.label}</h3>
-      <div className="mt-3 flex-1 text-[26px] font-bold leading-none tracking-tight text-slate-900">
+    <article className="flex flex-col rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-5">
+      <h3 className="text-[12px] font-semibold leading-snug text-slate-900 sm:text-[14px]">{deck.label}</h3>
+      <div className="mt-1.5 flex-1 text-[19px] font-bold leading-none tracking-tight text-slate-900 sm:mt-3 sm:text-[26px]">
         ₹{deck.priceInr}
       </div>
-      <p className="mt-2 text-[12px] text-slate-500">One-time, per deck. Yours to generate and re-generate.</p>
+      <p className="mt-1.5 hidden text-[12px] text-slate-500 sm:mt-2 sm:block">One-time, per deck. Yours to generate and re-generate.</p>
       <button
         type="button"
         onClick={onBuy}
         disabled={busy}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60"
+        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-[11.5px] font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60 sm:mt-5 sm:px-4 sm:py-2 sm:text-[13px]"
       >
         {busy && <Loader2 size={14} className="animate-spin" />}
         {busy ? "Opening checkout" : `Buy ₹${deck.priceInr}`}
@@ -138,13 +138,13 @@ export default function BillingPage() {
           <h2 className="text-[15px] font-semibold text-slate-900">Deck pricing</h2>
         </div>
         {pricingLoading ? (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-40 animate-pulse rounded-xl border border-slate-200/80 bg-slate-50" />
+              <div key={i} className="h-28 animate-pulse rounded-xl border border-slate-200/80 bg-slate-50 sm:h-40" />
             ))}
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3">
             {(pricing ?? []).map((deck) => (
               <PriceCard key={deck.key} deck={deck} busy={buying === deck.key} onBuy={() => buy(deck)} />
             ))}
@@ -162,8 +162,8 @@ export default function BillingPage() {
             <p className="mt-1 text-[12px] text-slate-500">Buy a deck type above, or pay when you create your first deck.</p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white">
-            <table className="w-full text-left text-[13px]">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/80 bg-white">
+            <table className="w-full min-w-[480px] text-left text-[13px]">
               <thead>
                 <tr className="border-b border-slate-200/80 text-[11px] uppercase tracking-wide text-slate-500">
                   <th className="px-4 py-2.5 font-medium">Deck type</th>

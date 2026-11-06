@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Globe, ArrowRight, ArrowLeft, Upload, X, Image as ImageIcon, Plus,
   TrendingUp, Target, Layers, Handshake, ClipboardCheck, Activity, Compass, Check,
-  FileText, Zap, Mic, Route, Briefcase, Library,
+  FileText, Zap, Mic, Route, Briefcase, Library, ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -274,10 +274,10 @@ const TYPE_TINTS: Record<string, { bg: string; fg: string }> = {
 /** Filter tabs for the deck-type picker. A type belongs to exactly one. */
 const CATEGORIES: { key: string; label: string; types: string[] }[] = [
   { key: "fundraising", label: "Fundraising", types: ["investor", "update", "demoday", "elevator"] },
-  { key: "sales", label: "Sales & Clients", types: ["sales", "partnership"] },
+  { key: "sales", label: "Sales & Clients", types: ["sales" /* , "partnership" — hidden, see backend registry.HIDDEN_DECK_TYPES */] },
   { key: "product", label: "Product", types: ["product"] },
-  { key: "internal", label: "Internal", types: ["internal", "vision"] },
-  { key: "strategy", label: "Strategy", types: ["general", "gtm", "business", "master"] },
+  { key: "internal", label: "Internal", types: ["internal" /* , "vision" — hidden, see backend registry.HIDDEN_DECK_TYPES */] },
+  { key: "strategy", label: "Strategy", types: ["general", "gtm", "business" /* , "master" — hidden, see backend registry.HIDDEN_DECK_TYPES */] },
 ];
 
 /**
@@ -428,6 +428,9 @@ export default function NewProjectPage() {
   const [dir, setDir] = useState<1 | -1>(1);
   const reduceMotion = useReducedMotion();
   const [category, setCategory] = useState<string>("all");
+  // Collapsed by default on phones, where the full running order eats the
+  // screen before the user has even picked a type — desktop always shows it.
+  const [orderOpen, setOrderOpen] = useState(false);
   const [startNow, setStartNow] = useState(true);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
@@ -844,7 +847,7 @@ export default function NewProjectPage() {
         </span>
         <span>
           <span style={{ ...ndS.stepName, ...(active || done ? null : ndS.stepNameOff) }}>{name}</span>
-          <div style={ndS.stepSub}>{sub}</div>
+          <div className="np-step-sub" style={ndS.stepSub}>{sub}</div>
         </span>
       </button>
     );
@@ -852,19 +855,61 @@ export default function NewProjectPage() {
 
   return (
     <div style={{ background: "transparent", minHeight: "100vh" }}>
+      <style>{`
+        .np-order-chevron { display: none; }
+        @media (max-width: 640px) {
+          .np-order-toggle { cursor: pointer !important; }
+          .np-order-chevron { display: block !important; }
+          .np-order-list { display: none; }
+          .np-order-list.np-order-list-open { display: block !important; }
+          .np-page { padding-left: 16px !important; padding-right: 16px !important; }
+          .np-topbar { flex-direction: column; align-items: flex-start; }
+          .np-topbar .np-steps { align-self: stretch; justify-content: center; }
+          .np-topbar-spacer { display: none; }
+          .np-step-sub { display: none; }
+          .np-h1 { font-size: 23px !important; }
+          .np-type-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .np-type-card { padding: 10px 10px 9px !important; gap: 6px !important; }
+          .np-type-top { flex-direction: column !important; align-items: flex-start !important; gap: 5px !important; }
+          .np-type-icon { width: 24px !important; height: 24px !important; border-radius: 7px !important; }
+          .np-type-icon svg { width: 13px !important; height: 13px !important; }
+          .np-type-name { font-size: 12.5px !important; }
+          .np-type-badge { display: block !important; margin-left: 0 !important; margin-top: 3px !important; width: fit-content; font-size: 9px !important; padding: 1px 6px !important; }
+          .np-type-desc { font-size: 10.5px !important; margin-top: 2px !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+          .np-type-meta { flex-direction: row !important; align-items: center !important; gap: 6px !important; }
+          .np-type-count { font-size: 10px !important; }
+          .np-type-price { font-size: 10px !important; }
+          .np-type-tick { top: 8px !important; right: 8px !important; width: 15px !important; height: 15px !important; }
+          .np-order { position: static !important; top: auto !important; max-height: none !important; flex: 1 1 100% !important; }
+          .np-founder-row, .np-founder-contact-row, .np-two-col { grid-template-columns: 1fr !important; }
+          .np-form { gap: 10px !important; }
+          .np-panel { padding: 14px 16px !important; gap: 10px !important; }
+          .np-toggle-row { padding: 9px 12px !important; gap: 10px !important; }
+          .np-sunken { padding: 10px 12px !important; gap: 10px !important; }
+          .np-two-col { gap: 8px !important; }
+          .np-currency-row { flex-wrap: wrap !important; gap: 6px !important; }
+          .np-seg { flex-wrap: nowrap !important; }
+          .np-currency-desc { flex-basis: 100% !important; font-size: 10.5px !important; }
+          .np-page .ipr-field { gap: 4px !important; }
+          .np-page .ipr-input { height: 40px !important; }
+          .np-page .ipr-field__label { font-size: 11.5px !important; }
+          .np-page .ipr-field__hint, .np-page .ipr-field__err { font-size: 10px !important; }
+          .np-thumb-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+      `}</style>
       {/* Step 1 is wider to make room for the running-order panel. */}
-      <div style={step === 1 ? { ...ndS.page, maxWidth: 1180 } : ndS.page}>
+      <div className="np-page" style={step === 1 ? { ...ndS.page, maxWidth: 1180 } : ndS.page}>
         {/* Back on the left, the two steps centred: one bar, as in the redesign. */}
-        <div style={ndS.topbar}>
+        <div className="np-topbar" style={ndS.topbar}>
           <Link to="/dashboard" style={{ ...ndS.back, marginBottom: 0 }}>
             <ArrowLeft size={15} /> Dashboard
           </Link>
-          <div style={ndS.steps}>
+          <div className="np-steps" style={ndS.steps}>
             {stepMarker(1, "Deck type", "Audience & structure")}
             <span style={{ ...ndS.stepBar, flex: "0 0 36px" }} />
             {stepMarker(2, "Details", "Company & context")}
           </div>
-          <span style={{ width: 90 }} aria-hidden="true" />
+          <span className="np-topbar-spacer" style={{ width: 90 }} aria-hidden="true" />
         </div>
 
         {restoredDraft && (
@@ -897,7 +942,7 @@ export default function NewProjectPage() {
           /* ── Step 1: which deck ─────────────────────────────────────── */
           <>
             <div style={ndS.head}>
-              <h1 style={ndS.h1}>Choose a deck type</h1>
+              <h1 className="np-h1" style={ndS.h1}>Choose a deck type</h1>
               <p style={ndS.sub}>
                 Each type has its own slide sequence and asks for different information.
                 You can edit every slide afterwards.
@@ -926,7 +971,7 @@ export default function NewProjectPage() {
               </span>
             </div>
 
-            <div style={ndS.typeGrid}>
+            <div className="np-type-grid" style={ndS.typeGrid}>
               {visibleTypes.map((t) => {
                 const on = t.key === deckType;
                 const Icon = TYPE_ICONS[t.key] ?? Layers;
@@ -939,11 +984,13 @@ export default function NewProjectPage() {
                     type="button"
                     onClick={() => setValue("deckType", t.key, { shouldValidate: true })}
                     aria-pressed={on}
+                    className="np-type-card"
                     style={{ ...ndS.typeCard, ...(wide ? ndS.typeCardWide : null), ...(on ? ndS.typeCardOn : null) }}
                   >
-                    {on && <span style={ndS.tick}><Check size={12} /></span>}
-                    <div style={ndS.typeTop}>
+                    {on && <span className="np-type-tick" style={ndS.tick}><Check size={12} /></span>}
+                    <div className="np-type-top" style={ndS.typeTop}>
                       <span
+                        className="np-type-icon"
                         style={{
                           ...ndS.typeIcon,
                           ...(on
@@ -954,16 +1001,16 @@ export default function NewProjectPage() {
                         <Icon size={17} />
                       </span>
                       <span style={{ minWidth: 0 }}>
-                        <div style={ndS.typeName}>
+                        <div className="np-type-name" style={ndS.typeName}>
                           {t.label}
-                          {wide && <span style={ndS.popular}>Popular</span>}
+                          {wide && <span className="np-type-badge" style={ndS.popular}>Popular</span>}
                         </div>
-                        <div style={ndS.typeDesc}>{t.description}</div>
+                        <div className="np-type-desc" style={ndS.typeDesc}>{t.description}</div>
                       </span>
-                      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                        <span style={on ? ndS.countPill : ndS.typeCount}>{t.slideCount} slides</span>
+                      <span className="np-type-meta" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                        <span className="np-type-count" style={on ? ndS.countPill : ndS.typeCount}>{t.slideCount} slides</span>
                         {priceByType[t.key] != null && (
-                          <span style={{ fontSize: 11, fontWeight: 600, color: on ? "#2563EB" : "#64748B" }}>
+                          <span className="np-type-price" style={{ fontSize: 11, fontWeight: 600, color: on ? "#2563EB" : "#64748B" }}>
                             ₹{priceByType[t.key]}
                           </span>
                         )}
@@ -981,11 +1028,37 @@ export default function NewProjectPage() {
 
             {/* Inspector: the sequence for the chosen type, with the way
                 forward kept beside it so the choice and the action share a view. */}
-            <aside style={ndS.order} aria-label="Slide running order">
-              <div style={ndS.orderHead}>
+            <aside className="np-order" style={ndS.order} aria-label="Slide running order">
+              <button
+                type="button"
+                className="np-order-toggle"
+                style={{
+                  ...ndS.orderHead,
+                  display: "block",
+                  width: "100%",
+                  textAlign: "left",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: ndS.orderHead.borderBottom,
+                  font: "inherit",
+                  cursor: "default",
+                }}
+                onClick={() => setOrderOpen((o) => !o)}
+                aria-expanded={orderOpen}
+              >
                 <div style={ndS.orderTitleRow}>
                   <span style={ndS.orderTitle}>Slide running order</span>
                   <span style={ndS.orderMeta}>{runningOrder.length} slides</span>
+                  <ChevronDown
+                    size={15}
+                    className="np-order-chevron"
+                    style={{
+                      marginLeft: "auto",
+                      color: "var(--text-faint)",
+                      transition: "transform var(--dur-base)",
+                      transform: orderOpen ? "rotate(180deg)" : "none",
+                    }}
+                  />
                 </div>
                 {selectedType && (
                   <div style={ndS.orderPreset}>
@@ -995,8 +1068,8 @@ export default function NewProjectPage() {
                     )}
                   </div>
                 )}
-              </div>
-              <ol style={ndS.orderList}>
+              </button>
+              <ol className={orderOpen ? "np-order-list np-order-list-open" : "np-order-list"} style={ndS.orderList}>
                 {runningOrder.map((label, i) => (
                   <li key={label + i} style={ndS.orderRow}>
                     <span style={ndS.orderNum}>{String(i + 1).padStart(2, "0")}</span>
@@ -1017,7 +1090,7 @@ export default function NewProjectPage() {
           /* ── Step 2: the details that type needs ────────────────────── */
           <>
             <div style={ndS.head}>
-              <h1 style={ndS.h1}>Tell us about the company</h1>
+              <h1 className="np-h1" style={ndS.h1}>Tell us about the company</h1>
               <p style={ndS.sub}>
                 {hasWebsite
                   ? "Drop in a company URL and we'll research the rest."
@@ -1029,22 +1102,22 @@ export default function NewProjectPage() {
               <span style={ndS.typeIcon}>
                 {(() => { const Icon = TYPE_ICONS[deckType] ?? Layers; return <Icon size={17} />; })()}
               </span>
-              <span>
-                <div style={ndS.chosenName}>{selectedType?.label ?? "Investor / Fundraising"}</div>
+              <span style={{ minWidth: 0, overflow: "hidden" }}>
+                <div style={{ ...ndS.chosenName, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selectedType?.label ?? "Investor / Fundraising"}</div>
                 <div style={ndS.chosenMeta}>{runningOrder.length} slides</div>
               </span>
-              <button type="button" style={ndS.changeBtn} onClick={() => { setDir(-1); setStep(1); saveDraft(1); }}>Change</button>
+              <button type="button" style={{ ...ndS.changeBtn, flexShrink: 0 }} onClick={() => { setDir(-1); setStep(1); saveDraft(1); }}>Change</button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} style={ndS.form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="np-form" style={ndS.form}>
               {/* ── Company ─────────────────────────────────────────────── */}
-              <div style={ndS.panel}>
+              <div className="np-panel" style={ndS.panel}>
                 <div>
                   <div style={ndS.panelHead}>Company</div>
                   <div style={ndS.panelSub}>Where we start researching from.</div>
                 </div>
 
-                <div style={ndS.toggleRow}>
+                <div className="np-toggle-row" style={ndS.toggleRow}>
                   <div>
                     <div style={ndS.toggleTitle}>I don't have a website yet</div>
                     <div style={ndS.toggleSub}>New or idea-stage company — tell us about it instead</div>
@@ -1072,8 +1145,8 @@ export default function NewProjectPage() {
                     </div>
                   </div>
                 ) : (
-                  <div style={ndS.sunken}>
-                    <div style={ndS.twoCol}>
+                  <div className="np-sunken" style={ndS.sunken}>
+                    <div className="np-two-col" style={ndS.twoCol}>
                       <Input label="Company name" {...register("companyName")} placeholder="e.g. Zomato" error={errors.companyName?.message} />
                       {asks("industry") && (
                         <Input label="Industry" {...register("industry")} placeholder="e.g. Fintech, SaaS" error={errors.industry?.message} />
@@ -1112,7 +1185,7 @@ export default function NewProjectPage() {
                         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                           {founderFields.map((field, i) => (
                             <div key={field.id} style={ndS.founderCard}>
-                              <div style={ndS.founderRow}>
+                              <div className="np-founder-row" style={ndS.founderRow}>
                                 <Input {...register(`founders.${i}.name` as const)} placeholder="Full name"
                                   error={i === 0 ? errors.founders?.[0]?.name?.message : undefined} />
                                 <Input {...register(`founders.${i}.role` as const)} placeholder="Role, e.g. Co-founder & CEO"
@@ -1124,7 +1197,7 @@ export default function NewProjectPage() {
                                   </button>
                                 )}
                               </div>
-                              <div style={ndS.founderContactRow}>
+                              <div className="np-founder-contact-row" style={ndS.founderContactRow}>
                                 <Input {...register(`founders.${i}.email` as const)} placeholder="Email (optional)"
                                   error={i === 0 ? errors.founders?.[0]?.email?.message : undefined} />
                                 <Input {...register(`founders.${i}.phone` as const)} placeholder="Phone (optional)" />
@@ -1165,7 +1238,7 @@ export default function NewProjectPage() {
               </div>
 
               {/* ── About this deck ─────────────────────────────────────── */}
-              <div style={ndS.panel}>
+              <div className="np-panel" style={ndS.panel}>
                 <div>
                   <div style={ndS.panelHead}>About this deck</div>
                   <div style={ndS.panelSub}>
@@ -1199,7 +1272,7 @@ export default function NewProjectPage() {
                 ))}
 
                 {(asks("funding_stage") || asks("business_model") || asks("round_type")) && (
-                <div style={ndS.twoCol}>
+                <div className="np-two-col" style={ndS.twoCol}>
                   {asks("funding_stage") && (
                     <Select
                       label="Funding stage"
@@ -1259,7 +1332,7 @@ export default function NewProjectPage() {
                 </div>
                 )}
 
-                <div style={ndS.toggleRow}>
+                <div className="np-toggle-row" style={ndS.toggleRow}>
                   <div>
                     <div style={ndS.toggleTitle}>Someone will present this</div>
                     <div style={ndS.toggleSub}>
@@ -1276,7 +1349,7 @@ export default function NewProjectPage() {
               </div>
 
               {/* ── Optional details ────────────────────────────────────── */}
-              <div style={ndS.panel}>
+              <div className="np-panel" style={ndS.panel}>
                 <div>
                   <div style={ndS.panelHead}>{numberFields.length ? "Numbers & branding" : "Branding"}</div>
                   <div style={ndS.panelSub}>
@@ -1287,9 +1360,9 @@ export default function NewProjectPage() {
                 </div>
 
                 {numberFields.length > 0 && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div className="np-currency-row" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ font: "600 12.5px var(--font-body)", color: "var(--text-strong)" }}>Currency</span>
-                    <div style={ndS.seg} role="tablist" aria-label="Currency">
+                    <div className="np-seg" style={ndS.seg} role="tablist" aria-label="Currency">
                       {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => (
                         <button
                           key={c}
@@ -1303,19 +1376,19 @@ export default function NewProjectPage() {
                         </button>
                       ))}
                     </div>
-                    <span style={ndS.filterCount}>All the figures below are entered in {CURRENCIES[currency].name}.</span>
+                    <span className="np-currency-desc" style={ndS.filterCount}>All the figures below are entered in {CURRENCIES[currency].name}.</span>
                   </div>
                 )}
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {hasWebsite && (
-                    <div style={ndS.twoCol}>
+                    <div className="np-two-col" style={ndS.twoCol}>
                       <Input label="Company name" {...register("companyName")} placeholder="e.g. Zomato" />
                       <Input label="Industry" hint="AI will detect" {...register("industry")} placeholder="e.g. Fintech, SaaS" />
                     </div>
                   )}
                   {numberFields.length > 0 && (
-                    <div style={ndS.twoCol}>
+                    <div className="np-two-col" style={ndS.twoCol}>
                       {numberFields.map((f) => (
                         <Input
                           key={f.name}
@@ -1356,7 +1429,7 @@ export default function NewProjectPage() {
                   <div>
                     <div style={ndS.uploadLabel}>Gallery photos <span style={ndS.uploadHint}>· up to 5, shown on the Gallery slide</span></div>
                     {galleryFiles.length > 0 && (
-                      <div style={ndS.thumbGrid}>
+                      <div className="np-thumb-grid" style={ndS.thumbGrid}>
                         {galleryFiles.map((f, i) => (
                           <div key={i} style={ndS.thumbWrap}>
                             <img src={URL.createObjectURL(f)} alt={f.name} style={ndS.thumb} />

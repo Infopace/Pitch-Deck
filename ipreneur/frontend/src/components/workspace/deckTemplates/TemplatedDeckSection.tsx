@@ -120,7 +120,7 @@ export function TemplatedDeckSection({ data: rawData, deckType, slideOrder: stor
     <div className="space-y-5">
       {/* ── Template picker strip ─────────────────────────────────── */}
       <div>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div className="flex items-center gap-2">
             <h3 style={{ font: "600 13px var(--font-display)", color: "var(--text-strong)" }}>
               Templates

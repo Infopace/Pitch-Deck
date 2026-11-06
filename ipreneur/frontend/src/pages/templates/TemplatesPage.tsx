@@ -124,14 +124,14 @@ export default function TemplatesPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="relative">
+        <div className="relative w-full sm:w-[240px]">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
             id="template-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search templates"
-            className="h-9 w-[240px] rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
           />
         </div>
 
@@ -221,7 +221,7 @@ export default function TemplatesPage() {
           onClick={(e) => { if (e.target === e.currentTarget) setPreview(null); }}
         >
           <div className="w-full max-w-[1120px] rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-start gap-4 border-b border-slate-100 p-5">
+            <div className="flex flex-wrap items-start gap-4 border-b border-slate-100 p-5">
               <div className="min-w-0">
                 <h3 className="text-[19px] font-bold tracking-tight text-slate-900">{preview.name}</h3>
                 <p className="mt-0.5 text-[13.5px] text-slate-500">

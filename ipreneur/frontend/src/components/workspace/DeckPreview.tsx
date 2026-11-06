@@ -215,9 +215,9 @@ function SlideCanvas({ slide, index, primaryColor, secondaryColor }: { slide: Sl
 
 function FullBleedSlide({ slide, primaryColor, secondaryColor }: { slide: Slide; primaryColor: string; secondaryColor: string }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[420px] px-12 py-10 text-center relative">
+    <div className="flex flex-col items-center justify-center min-h-[420px] px-6 py-10 text-center relative sm:px-12">
       <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: `linear-gradient(90deg, ${primaryColor}, ${secondaryColor})` }} />
-      <h1 className="text-3xl font-bold text-text-primary mb-3">{slide.title}</h1>
+      <h1 className="text-2xl font-bold text-text-primary mb-3 sm:text-3xl">{slide.title}</h1>
       {slide.subtitle && <p className="text-lg text-text-secondary mb-4">{slide.subtitle}</p>}
       {(slide.body || slide.content) && (
         <p className="text-sm text-text-muted max-w-md">{slide.body || slide.content}</p>
@@ -237,7 +237,7 @@ function BigNumberSlide({ slide, primaryColor, secondaryColor }: { slide: Slide;
       {metrics.length > 0 && (
         <div className={clsx(
           "grid gap-3 mt-4",
-          metrics.length <= 2 ? "grid-cols-2" : metrics.length === 3 ? "grid-cols-3" : "grid-cols-4"
+          metrics.length <= 2 ? "grid-cols-2" : metrics.length === 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-4"
         )}>
           {metrics.map((dp, i) => (
             <div key={i} className="p-4 rounded-xl text-center" style={{ background: "rgba(255,255,255,0.06)", borderColor: i % 2 === 0 ? primaryColor : secondaryColor, borderWidth: "1px" }}>
@@ -282,7 +282,7 @@ function CardsSlide({ slide, primaryColor, secondaryColor }: { slide: Slide; pri
       {cards.length > 0 ? (
         <div className={clsx(
           "grid gap-3 mt-4",
-          cards.length <= 2 ? "grid-cols-2" : cards.length === 3 ? "grid-cols-3" : "grid-cols-2 md:grid-cols-4"
+          cards.length <= 2 ? "grid-cols-2" : cards.length === 3 ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 md:grid-cols-4"
         )}>
           {cards.map((card, i) => (
             <div key={i} className="p-4 rounded-xl border-t-2"
@@ -336,7 +336,7 @@ function TwoColumnSlide({ slide, primaryColor, secondaryColor }: { slide: Slide;
   return (
     <div className="p-6 min-h-[420px]">
       <SlideHeader slide={slide} primaryColor={primaryColor} secondaryColor={secondaryColor} />
-      <div className="grid grid-cols-2 gap-4 mt-4">
+      <div className="grid grid-cols-1 gap-4 mt-4 sm:grid-cols-2">
         {(cols.length >= 2 ? cols : [cols[0] ?? {}, cols[1] ?? {}]).slice(0, 2).map((col, i) => (
           <div key={i} className="p-4 rounded-xl border"
             style={{ background: "rgba(255,255,255,0.05)", borderColor: i === 0 ? primaryColor : secondaryColor }}>
@@ -459,7 +459,7 @@ function MarketSizingSlide({ slide, primaryColor, secondaryColor }: { slide: Sli
       <SlideHeader slide={slide} primaryColor={primaryColor} secondaryColor={secondaryColor} />
 
       {/* ══ ROW 1: Chart + Market sizing cards ══ */}
-      <div className="flex gap-4 flex-1 items-center">
+      <div className="flex flex-col gap-4 flex-1 items-center sm:flex-row">
 
         {/* LEFT — concentric circles */}
         <div className="flex-shrink-0 flex flex-col items-center gap-2">
@@ -507,7 +507,7 @@ function MarketSizingSlide({ slide, primaryColor, secondaryColor }: { slide: Sli
       {cards.length > 0 && (
         <div>
           <p className="text-[9px] font-bold text-text-muted tracking-widest uppercase mb-1.5">Company Financials</p>
-          <div className={clsx("grid gap-2", cards.length === 1 ? "grid-cols-1" : cards.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+          <div className={clsx("grid gap-2", cards.length === 1 ? "grid-cols-1" : cards.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3")}>
             {cards.slice(0, 3).map((card, i) => (
               <div key={i} className="rounded-lg px-3 py-2.5 text-center" style={{ background: "rgba(255,255,255,0.06)", border: `1px solid ${METRIC_COLORS[i % 3]}44` }}>
                 <p className="text-[9px] font-bold text-text-muted tracking-wide uppercase">{card.title}</p>
@@ -525,7 +525,7 @@ function MarketSizingSlide({ slide, primaryColor, secondaryColor }: { slide: Sli
       {bullets.length > 0 && (
         <div>
           <p className="text-[9px] font-bold text-text-muted tracking-widest uppercase mb-1.5">Revenue Projections</p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {bullets.slice(0, 3).map((b, i) => (
               <div key={i} className="rounded-lg px-3 py-2"
                 style={{ background: "rgba(255,255,255,0.05)", borderTop: `2px solid ${METRIC_COLORS[i]}`, border: `1px solid rgba(255,255,255,0.08)` }}>

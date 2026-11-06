@@ -1413,9 +1413,10 @@ export function TemplatedDeck({ data, theme, order = DEFAULT_ORDER, editable = f
   const fsScale = Math.max(0.1, Math.min((vp.w - 48) / 1280, (vp.h - 110) / 720));
 
   const dots = (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 overflow-x-auto px-1">
       {order.map((s, k) => (
         <button key={s.key} onClick={() => setSi(k)} title={s.eyebrow || s.key}
+          className="shrink-0"
           style={{ width: k === si ? 22 : 8, height: 8, borderRadius: 999, border: "none", padding: 0, cursor: "pointer", background: k === si ? theme.accent : "rgba(120,120,140,.35)", transition: "all .18s ease" }} />
       ))}
     </div>
@@ -1444,14 +1445,14 @@ export function TemplatedDeck({ data, theme, order = DEFAULT_ORDER, editable = f
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <button onClick={prev} disabled={si === 0}
-          className="px-3 py-1.5 rounded-lg border border-border text-text-secondary text-sm disabled:opacity-40 hover:bg-surface transition-colors">
+          className="shrink-0 px-3 py-1.5 rounded-lg border border-border text-text-secondary text-sm disabled:opacity-40 hover:bg-surface transition-colors">
           ← Prev
         </button>
-        {dots}
+        <div className="min-w-0 flex-1 flex justify-center">{dots}</div>
         <button onClick={next} disabled={si === LAST}
-          className="px-3 py-1.5 rounded-lg border border-border text-text-secondary text-sm disabled:opacity-40 hover:bg-surface transition-colors">
+          className="shrink-0 px-3 py-1.5 rounded-lg border border-border text-text-secondary text-sm disabled:opacity-40 hover:bg-surface transition-colors">
           Next →
         </button>
       </div>
@@ -1475,10 +1476,11 @@ export function TemplatedDeck({ data, theme, order = DEFAULT_ORDER, editable = f
           <button onClick={next} disabled={si === LAST} aria-label="Next"
             style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "12%", border: "none", background: "transparent", cursor: si === LAST ? "default" : "pointer" }} />
 
-          <div style={{ position: "absolute", bottom: 22, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+          <div style={{ position: "absolute", bottom: 22, left: 0, right: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }} className="px-4">
             {dots}
             <span style={{ font: "400 12px var(--font-body)", color: theme.muted }}>
-              {si + 1} / {order.length} · ← → to navigate · Esc to exit
+              {si + 1} / {order.length}
+              <span className="hidden sm:inline"> · ← → to navigate · Esc to exit</span>
             </span>
           </div>
         </div>

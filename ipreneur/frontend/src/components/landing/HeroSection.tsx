@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   Download,
   Zap,
+  Menu,
+  X,
 } from "lucide-react";
 import { MintLogo } from "@/components/brand/MintLogo";
 import "./HeroSection.css";
@@ -17,6 +19,16 @@ export default function HeroSection() {
   const navigate = useNavigate();
   const [promptText, setPromptText] = useState("");
   const [activeCard, setActiveCard] = useState<number>(1); // center card active by default
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const navLinks = [
+    { href: "#showcase", label: "Live Deck" },
+    { href: "#how-it-works", label: "How It Works" },
+    { href: "#designs", label: "Designs" },
+    { href: "#pricing", label: "Pricing" },
+    { href: "#why-mint", label: "Why Mint" },
+    { href: "#faq", label: "FAQ" },
+  ];
 
   const handleBuildDeck = (e?: React.FormEvent, preset?: string) => {
     if (e) e.preventDefault();
@@ -41,12 +53,9 @@ export default function HeroSection() {
         </Link>
 
         <nav className="hero-c1-nav">
-          <a href="#showcase">Live Deck</a>
-          <a href="#how-it-works">How It Works</a>
-          <a href="#designs">Designs</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#why-mint">Why Mint</a>
-          <a href="#faq">FAQ</a>
+          {navLinks.map((l) => (
+            <a key={l.href} href={l.href}>{l.label}</a>
+          ))}
         </nav>
 
         <div className="hero-c1-nav-actions">
@@ -55,7 +64,25 @@ export default function HeroSection() {
             <span>Start free</span>
             <ArrowRight size={14} />
           </Link>
+          <button
+            type="button"
+            className="hero-c1-mobile-toggle"
+            aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((o) => !o)}
+          >
+            {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
+
+        {mobileNavOpen && (
+          <div className="hero-c1-mobile-menu" role="menu">
+            <Link to="/login" onClick={() => setMobileNavOpen(false)}>Sign in</Link>
+            {navLinks.map((l) => (
+              <a key={l.href} href={l.href} onClick={() => setMobileNavOpen(false)}>{l.label}</a>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* ── CENTER HERO HERO CONTENT ── */}

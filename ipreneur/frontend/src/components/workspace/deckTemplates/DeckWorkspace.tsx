@@ -270,7 +270,7 @@ export function DeckWorkspace({
           </button>
 
           {pickerOpen && (
-            <div className="absolute right-0 z-40 mt-2 max-h-[70vh] w-[min(560px,90vw)] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 shadow-[0_18px_50px_rgba(15,23,42,.18)]">
+            <div className="absolute left-0 right-auto z-40 mt-2 max-h-[70vh] w-[min(560px,calc(100vw-2rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 shadow-[0_18px_50px_rgba(15,23,42,.18)] sm:left-auto sm:right-0 sm:w-[min(560px,90vw)]">
               {FAMILIES.map(([label, group]) => (
                 <div key={label} className="mb-3 last:mb-0">
                   <div className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-[.1em] text-slate-400">
@@ -313,6 +313,30 @@ export function DeckWorkspace({
         >
           <Maximize2 size={14} /> Present
         </button>
+
+        <div className="flex shrink-0 items-center gap-1 md:hidden">
+          <button
+            type="button"
+            aria-label="Previous slide"
+            onClick={() => goTo(Math.max(current - 1, 0))}
+            disabled={current === 0}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:opacity-30"
+          >
+            <ChevronLeft size={15} />
+          </button>
+          <span className="min-w-[44px] text-center text-[12px] tabular-nums text-slate-500">
+            {current + 1} / {order.length}
+          </span>
+          <button
+            type="button"
+            aria-label="Next slide"
+            onClick={() => goTo(Math.min(current + 1, LAST))}
+            disabled={current === LAST}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:opacity-30"
+          >
+            <ChevronRight size={15} />
+          </button>
+        </div>
 
         {actions}
       </div>
@@ -452,19 +476,20 @@ export function DeckWorkspace({
             className="absolute bottom-0 right-0 top-0 w-[12%] cursor-pointer border-0 bg-transparent disabled:cursor-default"
           />
 
-          <div className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-3">
+          <div className="absolute inset-x-0 bottom-3 flex items-center justify-center gap-2 px-4 sm:bottom-5 sm:gap-3">
             <button
               type="button" onClick={() => setPIdx((s) => Math.max(s - 1, 0))} disabled={pIdx === 0}
-              className="rounded-md p-1 disabled:opacity-30" style={{ color: theme.muted }}
+              className="flex h-9 w-9 items-center justify-center rounded-md p-1 disabled:opacity-30 sm:h-auto sm:w-auto" style={{ color: theme.muted }}
             >
               <ChevronLeft size={18} />
             </button>
             <span style={{ font: "400 12px var(--font-body)", color: theme.muted }}>
-              {pIdx + 1} / {order.length} · ← → to navigate · Esc to exit
+              {pIdx + 1} / {order.length}
+              <span className="hidden sm:inline"> · ← → to navigate · Esc to exit</span>
             </span>
             <button
               type="button" onClick={() => setPIdx((s) => Math.min(s + 1, LAST))} disabled={pIdx === LAST}
-              className="rounded-md p-1 disabled:opacity-30" style={{ color: theme.muted }}
+              className="flex h-9 w-9 items-center justify-center rounded-md p-1 disabled:opacity-30 sm:h-auto sm:w-auto" style={{ color: theme.muted }}
             >
               <ChevronRight size={18} />
             </button>
