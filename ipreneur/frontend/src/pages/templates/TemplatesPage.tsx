@@ -186,7 +186,7 @@ export default function TemplatesPage() {
                 <span className="text-[13px] text-slate-400">{f.note}</span>
               </div>
 
-              <div className="grid gap-5 [grid-template-columns:repeat(auto-fill,minmax(248px,1fr))]">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-5 sm:[grid-template-columns:repeat(auto-fill,minmax(248px,1fr))]">
                 {f.items.map((t, i) => (
                   <button
                     key={t.key}
@@ -197,9 +197,9 @@ export default function TemplatesPage() {
                     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-lg group-hover:border-slate-300">
                       <Thumb t={t} data={sampleDeckVariant(startIdx + i)} />
                     </div>
-                    <div className="mt-2.5 px-0.5">
-                      <div className="text-[14px] font-semibold text-slate-900">{t.name}</div>
-                      <div className="text-[12.5px] text-slate-500">
+                    <div className="mt-1.5 px-0.5 sm:mt-2.5">
+                      <div className="truncate text-[11.5px] font-semibold text-slate-900 sm:text-[14px]">{t.name}</div>
+                      <div className="truncate text-[10px] text-slate-500 sm:text-[12.5px]">
                         {t.mood} · {t.mode === "dark" ? "Dark" : "Light"}
                       </div>
                     </div>
