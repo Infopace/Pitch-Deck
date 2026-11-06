@@ -369,3 +369,39 @@ class DeckCredit(Base):
 
     def __repr__(self) -> str:
         return f"<DeckCredit id={self.id} deck_type={self.deck_type} status={self.status}>"
+
+
+# ─── EmailOtp ────────────────────────────────────────────────────────────
+
+class EmailOtp(Base):
+    """A one-time code emailed to verify ownership of an email/password
+    account's address. Google sign-ins never need this — Google already
+    verified the email, so `User.is_verified` is set True at creation.
+
+    Several rows can exist per user (register, then resends); only the
+    most recent unconsumed, unexpired one is ever accepted.
+    """
+    __tablename__ = "email_otps"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    #: bcrypt hash of the 6-digit code — never stored in the clear.
+    code_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    #: Wrong guesses against this specific code. Capped in the endpoint so a
+    #: 6-digit space can't be brute-forced before it expires.
+    attempts: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    consumed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    user: Mapped["User"] = relationship("User")
+
+    def __repr__(self) -> str:
+        return f"<EmailOtp id={self.id} user_id={self.user_id} consumed={self.consumed}>"

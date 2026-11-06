@@ -13,6 +13,8 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  verifyOtp: (email: string, code: string) => Promise<void>;
+  resendOtp: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   setUser: (user: User) => void;
@@ -55,11 +57,19 @@ export const useAuthStore = create<AuthState>()(
       register: async (name, email, password) => {
         set({ isLoading: true });
         try {
-          const { data } = await apiClient.post("/auth/register", {
-            name,
-            email,
-            password,
-          });
+          // No user/accessToken here on purpose — a new password account
+          // isn't usable until its email is verified (see /verify-email).
+          // Google sign-in skips all of this; it's already verified.
+          await apiClient.post("/auth/register", { name, email, password });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      verifyOtp: async (email, code) => {
+        set({ isLoading: true });
+        try {
+          const { data } = await apiClient.post("/auth/verify-otp", { email, code });
           set({
             user: data.data.user,
             accessToken: data.data.accessToken,
@@ -67,6 +77,10 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           set({ isLoading: false });
         }
+      },
+
+      resendOtp: async (email) => {
+        await apiClient.post("/auth/resend-otp", { email });
       },
 
       logout: async () => {

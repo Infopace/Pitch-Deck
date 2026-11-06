@@ -29,6 +29,12 @@ limiter = Limiter(
 #: Credential endpoints — tight, because the cost of a wrong guess is an account.
 AUTH_LIMIT = "10/minute"
 
+#: Resending a verification code — looser than AUTH_LIMIT would allow abuse
+#: of someone else's inbox, tighter than unlimited. A per-account cooldown
+#: (in the endpoint itself) backstops this against a single IP spamming one
+#: victim slower than this limit, which this alone can't catch.
+OTP_RESEND_LIMIT = "5/minute"
+
 #: Deck generation — each one is a paid model call, so this is a spend ceiling
 #: as much as an abuse control.
 GENERATION_LIMIT = "20/hour"

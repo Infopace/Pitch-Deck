@@ -60,6 +60,21 @@ class Settings(BaseSettings):
     #: secret. Empty disables the endpoint (503).
     google_client_id: str = ""
 
+    # ── Email (SMTP) ──────────────────────────────────────────────────────────
+    #: Sends the sign-up email-verification OTP. Empty host disables sending
+    #: — the OTP is still generated, nothing blocks on this being unset in
+    #: dev, but production needs it or no one can verify a password account.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    #: What recipients see in "From". Many providers reject or rewrite this
+    #: unless it matches (or is allowed to send as) smtp_username.
+    smtp_from_email: str = "Mint <noreply@infopaceindia.com>"
+    #: True = implicit TLS from connection start (typically port 465).
+    #: False = plaintext connect then STARTTLS upgrade (typically port 587).
+    smtp_use_ssl: bool = False
+
     # ── Google Gemini (primary — better quality) ─────────────────────────────
     # Supports both AQ. OAuth2 tokens (new format) and AIzaSy... API keys (legacy)
     gemini_api_key: str = ""

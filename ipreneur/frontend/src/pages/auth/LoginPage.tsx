@@ -30,7 +30,13 @@ export default function LoginPage() {
       await login(email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Login failed");
+      const detail = err?.response?.data?.detail;
+      if (err?.response?.status === 403 && detail?.error === "email_not_verified") {
+        // The backend already sent a fresh code on this same request.
+        navigate(`/verify-email?email=${encodeURIComponent(detail.email)}`);
+        return;
+      }
+      setError(typeof detail === "string" ? detail : "Login failed");
     }
   };
 

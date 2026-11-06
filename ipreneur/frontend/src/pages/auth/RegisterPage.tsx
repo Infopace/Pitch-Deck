@@ -40,12 +40,24 @@ export default function RegisterPage() {
     }
   };
 
+  // Carries prompt/format through to the dashboard once verification (and,
+  // for Google, nothing further) completes — a password account just isn't
+  // usable yet, so this goes to /verify-email instead of straight in.
+  const goToVerifyEmail = () => {
+    const params = new URLSearchParams({ email });
+    if (promptParam) {
+      params.set("prompt", promptParam);
+      params.set("format", formatParam || "pitch-deck");
+    }
+    navigate(`/verify-email?${params.toString()}`);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     try {
       await register(name, email, password);
-      goToDashboard();
+      goToVerifyEmail();
     } catch (err: any) {
       setError(err?.response?.data?.detail || "Registration failed");
     }
