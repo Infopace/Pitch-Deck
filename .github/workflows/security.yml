@@ -1,0 +1,41 @@
+name: Security Review
+
+# AI-powered security review of pull-request diffs via Claude Code.
+# https://github.com/anthropics/claude-code-security-review
+#
+# Pinned to a commit SHA rather than `@main` (the README's own example),
+# since this is a third-party Action with write access to PR comments —
+# floating refs make supply-chain tampering invisible. Bump the SHA/date
+# below when you want the latest version:
+#   pinned 2026-02-11, commit 0c6a49f1fa56a1d472575da86a94dbc1edb78eda
+#
+# Requires a repo secret named CLAUDE_API_KEY (Settings > Secrets and
+# variables > Actions > New repository secret) — an Anthropic API key from
+# https://console.anthropic.com/ enabled for both the Claude API and Claude
+# Code. Not set here: nobody but you should be able to add that secret.
+#
+# This only fires on pull_request, so it won't run against the direct
+# pushes to main this repo currently uses — it's wired up for whenever a PR
+# workflow is adopted, or for manual runs via workflow_dispatch below.
+
+permissions:
+  pull-requests: write # needed for leaving PR comments
+  contents: read
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda
+        with:
+          comment-pr: true
+          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
