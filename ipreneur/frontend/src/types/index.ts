@@ -6,6 +6,10 @@ export interface User {
   is_active: boolean;
   is_verified: boolean;
   avatar_url?: string;
+  /** True only for the one explicitly-exempted account (see the backend's
+   *  app.core.free_accounts) — camelCased by the API client's response
+   *  interceptor, unlike the snake_case fields above which nothing reads. */
+  billingExempt?: boolean;
 }
 
 /** The `projects.branding_data` blob.

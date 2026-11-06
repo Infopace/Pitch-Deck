@@ -22,6 +22,7 @@ from app.api.deps.auth import get_current_user
 from app.api.v1.endpoints.billing import consume_credit, has_paid_credit, project_already_paid
 from app.core.ratelimit import limiter, GENERATION_LIMIT, CREATE_LIMIT
 from app.db.session import get_db, get_db_context
+from app.core.free_accounts import is_free_account
 from app.decks.pricing import price_for
 from app.decks.registry import DEFAULT_DECK_FORMAT, DEFAULT_DECK_TYPE, resolve_sections
 from app.models.models import Job, Project, User, Presentation
@@ -43,6 +44,12 @@ def _payment_required(deck_type: str) -> HTTPException:
         status_code=status.HTTP_402_PAYMENT_REQUIRED,
         detail={"error": "payment_required", "deck_type": deck_type, "price_inr": price},
     )
+
+
+def _needs_payment(deck_type: str, user: User) -> bool:
+    """False for a sellable deck type if this account is the one explicit
+    billing exemption (see app.core.free_accounts) — otherwise unchanged."""
+    return price_for(deck_type) is not None and not is_free_account(user.email)
 
 
 # ─── Inline analysis pipeline (runs without Celery) ──────────────────────────
@@ -383,7 +390,7 @@ async def create_project(
     (see app.decks.pricing) — checked before the project row even exists, so
     an unpaid request never creates an orphaned draft.
     """
-    if payload.start_analysis and price_for(payload.deck_type) is not None:
+    if payload.start_analysis and _needs_payment(payload.deck_type, current_user):
         if not await has_paid_credit(db, current_user.id, payload.deck_type):
             raise _payment_required(payload.deck_type)
 
@@ -401,7 +408,7 @@ async def create_project(
         await db.flush()
 
         if payload.start_analysis:
-            if price_for(payload.deck_type) is not None:
+            if _needs_payment(payload.deck_type, current_user):
                 await consume_credit(db, current_user.id, payload.deck_type, project_id=project.id)
             project.status = "analyzing"
             job = Job(project_id=project.id, status="queued", message="Queued for processing")
@@ -573,7 +580,7 @@ async def trigger_analysis(
             detail="Analysis already in progress for this project",
         )
 
-    if price_for(project.deck_type) is not None and not await project_already_paid(db, project.id):
+    if _needs_payment(project.deck_type, current_user) and not await project_already_paid(db, project.id):
         if not await consume_credit(db, current_user.id, project.deck_type, project.id):
             raise _payment_required(project.deck_type)
 

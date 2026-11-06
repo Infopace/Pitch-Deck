@@ -89,7 +89,11 @@ export default function WorkspacePage() {
     queryFn: billingApi.listCredits,
     staleTime: 10_000,
   });
-  const deckPrice = pricing?.find((p) => p.key === project?.deckType)?.priceInr;
+  // undefined for the one billing-exempt account — every `deckPrice != null`
+  // check below then shows no price and skips payment entirely.
+  const deckPrice = user?.billingExempt
+    ? undefined
+    : pricing?.find((p) => p.key === project?.deckType)?.priceInr;
   // Covered either by an unspent paid credit, or by one already spent on
   // this exact project (so a retry after a failure never charges twice).
   const deckCovered = (credits ?? []).some(

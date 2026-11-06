@@ -486,9 +486,14 @@ export default function NewProjectPage() {
     queryFn: billingApi.listCredits,
     staleTime: 10_000,
   });
+  // Empty for the one billing-exempt account — every `priceByType[x] != null`
+  // check below then naturally shows no price and skips payment entirely.
   const priceByType = useMemo(
-    () => Object.fromEntries((pricing ?? []).map((p) => [p.key, p.priceInr])),
-    [pricing]
+    () =>
+      user?.billingExempt
+        ? {}
+        : Object.fromEntries((pricing ?? []).map((p) => [p.key, p.priceInr])),
+    [pricing, user?.billingExempt]
   );
   const payment = useDeckPayment();
 

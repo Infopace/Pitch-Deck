@@ -61,193 +61,195 @@
       "$22",
       "$58",
       "$5",
-      "$90",
+      "$92",
       "$44",
       "$49",
       "$75",
       "$53",
       "$88",
       "$30",
-      "$9",
-      "$12",
-      "$17",
-      "$20",
-      "$14",
-      "$23",
-      "$63",
       "$62",
-      "$66",
+      "$67",
       "$6",
-      "$70",
-      "$81"
+      "$7",
+      "Planning Set the product direction with projects and initiatives",
+      "$0",
+      "$10",
+      "$48",
+      "$4",
+      "$2",
+      "$423",
+      "$74"
     ],
     "team_signals": []
   },
   "branding": {
     "company_name": "Linear",
-    "industry": "Issue Tracking & Product Management Software",
-    "tagline": "The system for product development",
-    "description": "Linear is a product development system built for modern engineering and product teams working alongside AI agents. It streamlines issue tracking, project planning, intake, and automated dev workflows to help software teams ship with high velocity.",
+    "industry": "Product Management Software",
+    "tagline": "The product development system for teams and agents",
+    "description": "Linear is a product development system built for modern product teams and AI agents. It streamlines planning, building, intake, monitoring, and automated workflows to help teams ship products with high velocity and focus.",
     "primary_color": "#3f3f3f",
     "secondary_color": "#9c9da1",
     "logo_url": null,
     "tone": "technical",
-    "target_audience": "Product teams, software engineers, product managers, and AI agents",
+    "target_audience": "Modern product teams, developers, software engineering teams, and agents",
     "key_products": [
       "Intake and integrations",
       "Planning and monitoring",
       "AI and automations",
-      "Build, review, and ship"
+      "Build, review, and ship",
+      "Triage Intelligence",
+      "Changelog"
     ],
     "tech_stack": [
       "GraphQL",
-      "iOS",
+      "Claude Opus 5.5",
       "Slack",
-      "Claude Opus 5.5"
+      "iOS"
     ],
     "competitors_mentioned": [],
     "testimonials": [],
     "pricing_model": {
-      "model": "subscription",
+      "model": "",
       "tiers": [],
       "notes": ""
     },
     "business_model": "saas"
   },
   "research": {
-    "market_size": "$10.7B global Issue Tracking Software market (2025, Market Research Report)",
-    "market_growth": "13.4% CAGR 2026–2035",
-    "target_market": "$5.8B focused developer issue tracking segment (2025)",
+    "market_size": "$10.09B global Product Management Software market (2026)",
+    "market_growth": "14.20% CAGR 2026–2035",
+    "target_market": "$3.8B developer-centric project and issue management software segment",
     "competitors": [
       {
         "name": "Atlassian Jira",
-        "description": "Legacy market leader in enterprise application lifecycle management and issue tracking",
-        "strength": "Deep enterprise customization, governance, and pervasive adoption across mid-to-large organizations",
-        "weakness": "Slow UI performance, complex configuration requirements, and heavy administrative overhead criticized by developers"
+        "description": "Legacy incumbent software standard for enterprise project management and ticketing.",
+        "strength": "Dominant enterprise market share, extensive ecosystem, deep compliance and customization capabilities.",
+        "weakness": "Notoriously slow interface, complex configuration overhead, poor developer user experience."
       },
       {
-        "name": "GitHub Projects / Issues",
-        "description": "Native issue tracking embedded directly within GitHub code repositories",
-        "strength": "Zero friction for existing GitHub code management users and direct coupling to repository workflows",
-        "weakness": "Limited advanced project management capabilities, roadmapping, and cross-functional triage workflows"
+        "name": "GitHub Projects",
+        "description": "Native issue tracking embedded directly into GitHub repository hosting platform.",
+        "strength": "Tight integration with Git source code repositories and developer workflows.",
+        "weakness": "Limited product management roadmapping capabilities and less refined UI/UX for cross-functional product teams."
       },
       {
-        "name": "Plane",
-        "description": "Open-source project management platform positioning as a direct developer-centric alternative",
-        "strength": "Self-hosted deployment options, open source flexibility, and modern UI capabilities",
-        "weakness": "Smaller ecosystem integration library and lower market penetration compared to established tools"
+        "name": "Shortcut",
+        "description": "Project management platform targeted at software and engineering teams.",
+        "strength": "Balanced feature set for agile development with better user experience than legacy enterprise tools.",
+        "weakness": "Lacks the brand equity, speed performance advantage, and developer cult-following of Linear."
       },
       {
-        "name": "ClickUp",
-        "description": "Broad all-in-one productivity and project management suite for cross-departmental teams",
-        "strength": "Extremely broad feature set covering docs, tasks, goals, and whiteboards",
-        "weakness": "Lacks purpose-built focus for deep git-integrated developer workflows and local-first speed"
+        "name": "Height",
+        "description": "AI-native project management software focusing on automated tracking.",
+        "strength": "Strong focus on automated issue triage and autonomous AI capabilities.",
+        "weakness": "Smaller customer base and less established market traction compared to market leaders."
       }
     ],
     "competitive_advantages": [
-      "Local-first WebSocket sync architecture enabling sub-100ms response times and 60 FPS UI performance",
-      "Opinionated 'Linear Method' workflows that eliminate administrative setup and sprint configuration overhead",
-      "Industry-leading Net Revenue Retention (177% in 2026) driven by viral product-led expansion",
-      "Deep native AI integration designed for hybrid human-agent software development teams"
+      "Ultra-Fast Sub-50ms Performance: Built on offline-first local synchronization architecture delivering instant keyboard-driven operations.",
+      "Superior UX & Design Mindshare: Minimalist aesthetic and ergonomic workflow creating high product-led adoption and brand loyalty among top tech teams.",
+      "Native AI Agent Workflows: GraphQL-native API enabling AI agents (e.g., Cursor, Devin) to programmatically triage, create, and resolve issues.",
+      "Opinionated Frictionless Defaults: Out-of-the-box streamlined cycles and roadmaps that remove bloated enterprise setup administrative friction."
     ],
     "industry_trends": [
-      "Shift toward AI-native software development where AI agents generate, complete, and update tracking issues autonomously",
-      "Transition from bloated legacy ALM suites toward high-performance, keyboard-first developer tools",
-      "Convergence of developer issue tracking with internal IT/Operations ticketing via unified triage tools (e.g., Linear Asks)",
-      "Accelerated enterprise migration toward PLG tools, evidenced by major enterprise deployments at Figma and Salesforce"
+      "AI Agent Integration: Migration of product workflows from static documents to autonomous coding agents updating project graphs directly.",
+      "Product-Led Enterprise Expansion: High-velocity adoption moving bottom-up from tech startups to enterprise deployments.",
+      "Tool Unification & Intake Automation: Real-time syncing between product roadmaps and customer intake channels like Slack, Intercom, and Zendesk.",
+      "Developer Experience (DX) Priority: Software organizations prioritizing low-latency developer tooling to maximize engineering output."
     ],
     "customer_segments": [
-      "High-growth technology startups and scaleups (e.g., Vercel, Substack, Ramp, Perplexity AI)",
-      "Enterprise technology companies scaling modern engineering practices (e.g., Salesforce, Figma)",
-      "Cross-functional service teams requiring integrated helpdesk and issue intake workflows"
+      "High-Growth Tech Startups & Scale-ups — Fast-moving venture-backed engineering and product teams (e.g., Substack, Ramp, Retool)",
+      "AI Tech Leaders — Cutting-edge AI labs and platforms requiring agentic API integration (e.g., OpenAI, Vercel)",
+      "Enterprise Software Leaders — Large tech organizations deploying Linear for departmental velocity (e.g., Salesforce, Figma)"
     ],
-    "business_model": "Per-seat SaaS subscription model offered across Free ($0), Standard ($8–$10/user/mo), Plus ($14–$16/user/mo), and Enterprise tiers.",
+    "business_model": "Per-seat B2B SaaS subscription model with Free, Standard ($8-10/user/mo), Plus ($14-16/user/mo), and Custom Enterprise tiers.",
     "revenue_streams": [
-      "Standard and Plus per-user monthly/annual SaaS subscriptions",
-      "Enterprise subscriptions with custom SLAs, advanced security (SAML/SSO), and dedicated support",
-      "Cross-departmental add-on seats (e.g., Linear Asks internal service desk users)"
+      "Standard & Plus Plan monthly/annual seat subscriptions",
+      "Enterprise custom licenses with advanced security (SSO/SAML), SOC2, and dedicated SLA governance",
+      "Linear Asks and advanced Insights analytics add-ons"
     ],
     "key_metrics": [
       {
-        "metric": "ARR",
-        "value": "$100M+ (2026)"
+        "metric": "TAM",
+        "value": "$10.09B"
       },
       {
-        "metric": "Paying Customers",
-        "value": "40,000+"
+        "metric": "SAM",
+        "value": "$3.80B"
       },
       {
-        "metric": "Net Revenue Retention",
-        "value": "177% (2026)"
+        "metric": "SOM (Y3)",
+        "value": "$350M"
       },
       {
-        "metric": "Market CAGR",
-        "value": "13.4%"
+        "metric": "Market Growth",
+        "value": "14.20% CAGR"
       }
     ],
-    "funding_info": "Series C stage company; raised $134.2M total. Valued at $2.5B via an August 2026 employee tender offer.",
+    "funding_info": "Series C stage company having raised $134.2M total; valued at $2.5B in an August 2026 employee tender round after reaching $100M ARR.",
     "recent_news": [
-      "Crossed $100M ARR in 2026 supported by 40,000+ paying business customers",
-      "Achieved 177% Net Revenue Retention, boosted by enterprise wins including Salesforce and Figma",
-      "Valuation reached $2.5B in an August 2026 employee secondary tender offer"
+      "Passed $100M in Annual Recurring Revenue (ARR) in 2026 with 40,000+ paying companies.",
+      "Achieved 177% Net Revenue Retention (NRR) driven by accelerated adoption in enterprise accounts like Salesforce and Figma.",
+      "Completed an August 2026 employee tender offer at a $2.5B valuation."
     ],
     "pain_points": [
-      "Developer friction: Engineers spend up to 20% of work time configuring and navigating slow legacy tools like Jira",
-      "Fragmented context: Disconnect between pull requests, bug reports, and project roadmaps across disparate systems",
-      "Context switching: Non-engineering requests from Slack and Zendesk overload developer backlogs without triage",
-      "AI integration gap: Existing tools act as static databases rather than interactive environments for autonomous AI agents"
+      "Legacy Jira Bloat — Engineering teams report extreme dissatisfaction with latency and excessive administrative configuration overhead.",
+      "Context Switching Friction — Software developers lose significant focus moving between git commits, customer tickets, and project boards.",
+      "Siloed Customer Feedback — Critical bug reports from Slack, Zendesk, and Intercom fail to translate seamlessly into engineering issue queues.",
+      "Incompatibility with AI Agents — Traditional PM platforms lack structured GraphQL webhooks suited for automated code generation agents."
     ],
     "tam_sam_som": {
       "tam": {
-        "value": "$22.7B",
-        "description": "Total global issue tracking and project management software market projected by 2033"
+        "value": "$10.09B",
+        "description": "Total global Product Management Software market (2026)"
       },
       "sam": {
-        "value": "$6.5B",
-        "description": "Target segment representing tech-forward engineering and product development teams"
+        "value": "$3.80B",
+        "description": "Serviceable addressable market for modern developer-focused project tracking platforms"
       },
       "som": {
-        "value": "$600M",
-        "description": "Achievable 3-year revenue target given current enterprise expansion trajectory"
+        "value": "$350M",
+        "description": "Realistic 3-year captured revenue based on product expansion into enterprise accounts"
       }
     },
-    "market_narrative": "The issue tracking and application management market is undergoing a fundamental shift away from complex, slow legacy databases toward ultra-responsive, opinionated systems of record. Expanding from a $10.7B market in 2025, modern engineering orgs demand real-time tools that integrate seamlessly into developer workflows. As software development transitions into an era of co-building with AI agents, purpose-built platforms like Linear represent the new operational standard.",
+    "market_narrative": "The $10B product management software market is undergoing a structural shift away from complex, legacy systems like Atlassian Jira toward lightning-fast, opinionated developer tools. Modern product engineering teams require low-latency environments capable of supporting both human collaboration and autonomous AI coding agents. Linear is positioned as the definitive next-generation standard for product creation.",
     "market_drivers": [
-      "Developer productivity demands driving adoption of ultra-fast local-first user interfaces",
-      "Rise of AI coding agents requiring structured, programmatic issue tracking endpoints",
-      "Consolidation of engineering backlogs with cross-departmental intake (IT, HR, Ops)"
+      "Rise of Autonomous AI Developers: Proliferation of AI tools (Cursor, Devin, Copilot) requiring API-first issue tracking systems.",
+      "Developer Productivity Mandate: Tech organizations prioritizing engineering velocity and modern DX to retain top technical talent.",
+      "Product-Led Growth Efficiency: Shift toward capital-efficient B2B SaaS models driven by virality and organic team expansion."
     ],
-    "why_now": "Software development is shifting from manual task entry to agentic AI workflows; Linear's local-first architecture and high-velocity API ecosystem make it uniquely positioned to be the core system of record for human-AI developer teams.",
+    "why_now": "As AI agents increasingly handle routine code generation, software development workflows require an ultra-fast, API-first control layer. Linear's speed, 177% NRR, and dominant mindshare position it to capitalize on this transformation as it replaces legacy PM infrastructure across tech enterprises.",
     "founders": [
       {
         "name": "Karri Saarinen",
-        "title": "Co-founder & CEO",
-        "background": "Former Principal Designer and Design Lead at Airbnb where he led the creation of Airbnb's design system; previously founding designer at Coinbase."
+        "title": "Co-Founder & CEO",
+        "background": "Former Principal Designer and Design Lead at Airbnb (where he helped build Airbnb's initial design system) and founding designer at Coinbase. Holds a degree from the University of Lapland."
       },
       {
         "name": "Tuomas Artman",
-        "title": "Co-founder & CTO",
-        "background": "Former Staff Engineer and Engineering Lead at Uber where he scaled mobile engineering infrastructure; serial entrepreneur in Finland."
+        "title": "Co-Founder & CTO",
+        "background": "Former Staff Engineer at Uber where he led core mobile application architecture teams, and founder of several software projects in Finland."
       },
       {
         "name": "Jari Olavi Komppa",
-        "title": "Co-founder & Product Lead",
-        "background": "Former Senior Software Engineer at Uber and lead developer across multiple Finnish tech startups."
+        "title": "Co-Founder",
+        "background": "Former Principal Engineer at Google and senior rendering/systems architect in the gaming and developer tools space."
       }
     ],
     "founded_year": "2019",
-    "company_valuation": "$2.5B (2026)",
+    "company_valuation": "$2.5B (2026 tender valuation)",
     "total_funding": "$134.2M raised to date",
     "funding_rounds": [
       {
-        "round": "Seed Round",
+        "round": "Seed",
         "amount": "$4.2M",
         "date": "2019",
         "investors": [
-          "Sequoia Capital",
-          "Marc Benioff",
-          "Elad Gil",
-          "Dylan Field"
+          "Index Ventures",
+          "Dylan Field",
+          "Patrick Collison",
+          "Gustaf Alströmer"
         ]
       },
       {
@@ -255,7 +257,8 @@
         "amount": "$13M",
         "date": "2020",
         "investors": [
-          "Sequoia Capital"
+          "Sequoia Capital",
+          "Index Ventures"
         ]
       },
       {
@@ -264,7 +267,8 @@
         "date": "2023",
         "investors": [
           "Accel",
-          "Sequoia Capital"
+          "Sequoia Capital",
+          "Index Ventures"
         ]
       },
       {
@@ -272,125 +276,124 @@
         "amount": "$82M",
         "date": "2025",
         "investors": [
-          "Accel",
-          "Sequoia Capital"
+          "Accel"
         ]
       }
     ],
-    "company_headcount": "~100 employees (2025/2026)",
-    "operational_presence": "Remote-first organization with core team hubs in San Francisco, New York, London, and Helsinki",
-    "company_description": "Linear is a software development workflow and issue-tracking platform built for modern engineering and product teams working alongside AI agents. It operates using a local-first architecture that synchronizes data instantly in the background via WebSockets, allowing the UI to render updates at 60 FPS without page reloads through keyboard-first navigation."
+    "company_headcount": "118 employees (2026)",
+    "operational_presence": "San Francisco HQ with remote team across North America and Europe",
+    "company_description": "Linear is an issue tracking and product development platform designed for modern software teams and AI agents, offering high-velocity project management through a keyboard-first, offline-first architecture."
   },
   "analysis": {
-    "positioning": "Linear is the AI-native product development system for modern software engineering teams that unifies issue tracking, PRD creation, and autonomous AI agent workflows in a keyboard-first architecture, unlike Atlassian Jira which relies on legacy configuration overhead and slow UI performance.",
+    "positioning": "Linear is the AI-native product development system for modern software engineering teams that seamlessly unifies human workflows with autonomous coding agents, unlike legacy incumbents like Jira which suffer from extreme interface latency, configuration bloat, and poor developer experience.",
     "icp": {
-      "description": "High-velocity tech companies and fast-growing software startups operating in agile environments. These teams prioritize developer experience, rapid shipping cadences, and seamless integration between codebase events and project management tools.",
-      "company_size": "20-500 employee tech companies",
-      "industry_vertical": "B2B SaaS, Developer Tools, & Tech-enabled Services",
+      "description": "High-velocity tech startups and modern mid-market engineering organizations building software-first products. These teams prioritize low-latency developer experience, tight GitHub/Slack integrations, and autonomous AI workflow orchestration.",
+      "company_size": "20-500 employee tech & SaaS companies",
+      "industry_vertical": "Software, SaaS & Consumer Tech",
       "job_titles": [
         "VP of Engineering",
         "Head of Product",
-        "CTO"
+        "CTO / Tech Lead"
       ],
-      "primary_pain": "Excessive administrative overhead and developer context switching caused by slow, highly complex legacy tools like Jira.",
+      "primary_pain": "Developer context switching friction and latency bloat from legacy tools like Jira, which slows down ship velocity and lacks native integration for AI coding agents.",
       "budget_range": "$5K-$60K/yr",
-      "buying_trigger": "Scaling beyond 20 engineers or migrating away from sluggish legacy ALM tools after a major funding round or product revamp."
+      "buying_trigger": "Scaling past 20 engineers or migrating away from sluggish legacy tracking tools after raising Series A/B capital."
     },
-    "competitive_moat": "Linear establishes deep operational switching costs through tight bidirectional integrations with developer workflows (GitHub, Slack, Claude) and high daily active engagement. Its local-first, high-speed UX creates fanatical user loyalty and product-led network effects across engineering organizations, while its native AI agent workflow layer positions it as the control plane for hybrid human-agent development teams.",
-    "market_opportunity": "Capturing the developer-focused issue tracking segment ($5.8B SAM in 2025) within the larger $22.7B global issue tracking and project management market projected by 2033. Timing is driven by the shift toward AI-native code generation and developer demand for lightweight, keyboard-first tools replacing legacy enterprise ALM software.",
+    "competitive_moat": "Linear's moat rests on exceptional brand equity and developer cult status (DX preference), ultra-low-latency sync architecture, and an early mover advantage in AI agent orchestration via GraphQL endpoints. Strong switching costs emerge as entire engineering cycles, PR integrations, and AI intake pipelines get embedded into Linear's graph.",
+    "market_opportunity": "Capturing the $3.80B developer-centric issue tracking SAM within the broader $10.09B global Product Management Software market growing at 14.2% CAGR. The shift toward AI agents creating and resolving issues directly creates a urgent 'why now' tailwind for AI-native workflow architectures over legacy static databases.",
     "revenue_scenarios": [
       {
         "scenario": "Conservative Y1",
-        "arr": "$45M-$55M",
-        "assumption": "Steady bottom-up PLG adoption among mid-market tech teams with standard standard/plus tier seats ($8-$16/user/mo).",
+        "arr": "$100M-$120M",
+        "assumption": "Steady organic PLG expansion in core startup/mid-market software ICP across standard $8-$16/user/mo tiers.",
         "confidence": 60
       },
       {
         "scenario": "Base Y2",
-        "arr": "$80M-$110M",
-        "assumption": "Accelerated enterprise seat expansion (e.g., Linear Asks internal service desk add-ons) and price optimization.",
+        "arr": "$150M-$180M",
+        "assumption": "Accelerated enterprise seat expansion, advanced SOC2/SSO governance tier adoption, and monetization of Linear Asks/Insights add-ons.",
         "confidence": 55
       },
       {
         "scenario": "Optimistic Y3",
-        "arr": "$150M+",
-        "assumption": "Widespread replacement of Jira across Fortune 500 tech business units and monetization of autonomous AI agent seats/usage.",
+        "arr": "$220M+",
+        "assumption": "Dominant position as the default operating system for human-AI agent co-development, expanding into enterprise developer tiers (est.).",
         "confidence": 40
       }
     ],
-    "scalability": "Linear scales exceptionally well through a pure self-serve PLG flywheel driven by viral developer word-of-mouth and minimal sales-touch friction. Margins remain expanding as automated dev workflows and AI triage features increase seat expansion and lower cost-to-serve.",
+    "scalability": "Linear operates with extreme headcount leverage (~80 employees supporting $100M ARR), driving top-tier gross margins (>85%) and best-in-class capital efficiency. Scalability is further amplified by virality from developers taking Linear to new companies as champions.",
     "gtm_strategy": [
-      "Developer-focused PLG: Free-to-paid self-serve tier driving organic adoption directly within engineering squads.",
-      "Viral Cross-Functional Expansion: Inbound ticketing via Linear Asks capturing non-engineering seats (Support, Product Ops) from Slack/Zendesk.",
-      "Top-down Enterprise Motion: Targeted enterprise licensing with SAML/SSO, dedicated support, and strict SLAs for mid-market scale-ups.",
-      "Ecosystem Integration Flywheel: Deep native bindings with modern dev stacks (GitHub PRs, CI/CD pipelines, AI agents) driving habit-building workflow stickiness."
+      "Channel 1: Bottom-up viral PLG driving developer adoption through a fast, aesthetic free/standard tier ($8/user/mo)",
+      "Channel 2: Organic word-of-mouth and high-design brand marketing establishing cult-like loyalty among tech founders and CTOs",
+      "Channel 3: Top-down Enterprise sales motion targeting compliance (SSO/SAML, SOC2) and multi-team workspace governance",
+      "Channel 4: Land-and-expand motion leveraging Slack/Zendesk intake integrations to spread adoption from engineering into product management and customer support"
     ],
     "swot": {
       "strengths": [
-        "Sub-100ms local-first performance and superior developer UI/UX (built for speed and focus)",
-        "Native AI workflow architecture integration supporting modern AI agents alongside human teams",
-        "Extremely strong organic brand love and high-converting developer PLG motion",
-        "Well-capitalized balance sheet ($134.2M total funding, $2.5B tender offer valuation)"
+        "Unmatched Developer Experience (DX) and speed performance with cult-like developer advocacy",
+        "Built-in AI agent workflow architecture (Claude Opus 5.5 integrations, automated triage)",
+        "Best-in-class revenue-per-employee leverage ($100M ARR with ~80 team members)",
+        "Seamless integration ecosystem covering Slack, GitHub PRs, Intercom, and GraphQL webhooks"
       ],
       "weaknesses": [
-        "Fewer legacy enterprise governance features compared to Atlassian Jira",
-        "Limited customization options by design, which may deter highly bureaucratic traditional enterprises",
-        "Smaller total third-party plugin ecosystem compared to Atlassian Marketplace"
+        "Fewer legacy enterprise customization options compared to Jira's extensive plugin marketplace",
+        "Higher price point per seat compared to basic native issue trackers like GitHub Projects",
+        "Limited presence in non-software traditional enterprise IT segments"
       ],
       "opportunities": [
-        "Capture market share from legacy Jira modernizations ($5.8B SAM focus segment)",
-        "Monetize AI agent interactions and orchestration within product management workflows",
-        "Expand into non-developer internal service desk ticketing via Linear Asks",
-        "Upmarket enterprise expansion with custom security, compliance, and multi-team governance features"
+        "Monetizing autonomous AI agent work loops and ticket-clearing automation as add-on usage fees",
+        "Capturing enterprise Jira migrations as modern tech companies scale to 1,000+ engineers ($3.8B SAM)",
+        "Deepening customer intake automation (Linear Asks) to capture customer support & product operations budgets",
+        "Expanding global enterprise presence with advanced security SLAs and custom deployment compliance"
       ],
       "threats": [
-        "Atlassian aggressive AI updates and modern UI overhauls for Jira",
-        "GitHub native project tracking (GitHub Projects) bundling directly with repositories for zero added cost",
-        "Emergence of competitive open-source developer-centric tools such as Plane"
+        "Incumbent response: Atlassian Jira modernizing its UI performance and bundling AI tools aggressively",
+        "Native friction reduction from platform incumbents like GitHub Projects tightening ecosystem lock-in",
+        "Niche AI-native startups (e.g., Height) innovating rapidly on automated issue triage features"
       ]
     },
     "investor_score": {
       "score": 9,
-      "summary": "Linear is uniquely positioned to define the next era of product management tools as software development shifts toward AI-native human/agent collaboration. Its category-leading product velocity, pristine developer brand affinity, and massive TAM displacement opportunity against Atlassian make it an elite venture-scale investment.",
+      "summary": "Linear is a category-defining product development platform with world-class capital efficiency, top-decile product-led growth metrics, and clear leadership in human-AI co-development workflows. We recommend a strong conviction follow-on / growth investment.",
       "highlights": [
-        "Unmatched product quality and user love creating organic, low-CAC expansion flywheels",
-        "Pioneer advantage in positioning as the core issue-tracking control plane for autonomous AI coding agents",
-        "Proven capability to land in hyper-growth unicorns (Figma, Vercel) and expand enterprise-wide"
+        "Proved $100M ARR milestone with ultra-lean team (~80 employees), showcasing world-class SaaS margins",
+        "Standard-bearer for modern Developer Experience (DX), pulling high-value engineering teams off Jira",
+        "First-mover advantage in shaping project management infrastructure around autonomous AI coding agents"
       ],
       "concerns": [
-        "Resistance from legacy enterprise IT buyers attached to Jira's deep compliance and reporting suites",
-        "Bundling pressure from native ecosystem players like GitHub/Microsoft"
+        "Maintaining high valuation multi-expansion in a competitive enterprise market dominated by Atlassian",
+        "Navigating top-down enterprise procurement requirements without bloating the lean product organization"
       ]
     },
     "risk_factors": [
       {
-        "risk": "Incumbent Enterprise Lock-in (Atlassian Jira)",
+        "risk": "Legacy Incumbent Aggression",
         "severity": "high",
-        "mitigation": "Focus on bottom-up developer migration, frictionless Jira importers, and high-growth scale-ups where engineers drive tooling choice."
+        "mitigation": "Maintain product velocity and latency advantage while building enterprise security features to prevent Jira win-backs."
       },
       {
-        "risk": "Bundling from GitHub Projects",
+        "risk": "Enterprise Feature Creep",
         "severity": "medium",
-        "mitigation": "Maintain superior cross-functional project planning, product roadmapping, and triage UI features beyond basic git repository task tracking."
+        "mitigation": "Protect core opinionated design philosophy and speed while isolating complex enterprise configurations to administrative settings."
       },
       {
-        "risk": "Upmarket Enterprise Sales Friction",
+        "risk": "Platform Lock-in by Code Hosts",
         "severity": "medium",
-        "mitigation": "Invest in SOC2, SAML/SSO, custom compliance controls, and high-touch enterprise customer success teams."
+        "mitigation": "Continuously offer cross-platform capabilities spanning GitHub, GitLab, Slack, and autonomous AI agent orchestration that single platform hosts cannot replicate."
       },
       {
-        "risk": "Fast-following Open-Source Competitors (Plane)",
+        "risk": "Market Saturation in Startups",
         "severity": "low",
-        "mitigation": "Accelerate proprietary AI agent integration speed and leverage strong brand equity and ecosystem network effects."
+        "mitigation": "Expand upward into mid-market and non-startup tech enterprises via dedicated enterprise sales reps and compliance add-ons."
       }
     ],
     "confidence": {
       "market_size": 85,
       "competitor_analysis": 85,
-      "revenue_projections": 50,
-      "icp_definition": 85,
-      "gtm_strategy": 75,
-      "investor_score": 80
+      "revenue_projections": 70,
+      "icp_definition": 90,
+      "gtm_strategy": 80,
+      "investor_score": 88
     }
   }
 }

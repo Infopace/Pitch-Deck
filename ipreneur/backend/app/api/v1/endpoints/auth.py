@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.email import send_email
+from app.core.free_accounts import is_free_account
 from app.core.ratelimit import limiter, AUTH_LIMIT, OTP_RESEND_LIMIT
 from app.db.session import get_db
 from app.models.models import EmailOtp, User
@@ -65,6 +66,15 @@ class UserOut(BaseModel):
 def _create_access_token(user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_access_token_expire_minutes)
     return jwt.encode({"sub": user_id, "exp": expire}, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+
+def _user_dict(user: User) -> dict:
+    """UserOut plus billing_exempt — the frontend's single source of truth
+    for whether to show prices/payment prompts at all (see
+    app.core.free_accounts and app.api.v1.endpoints.projects)."""
+    data = UserOut.model_validate(user).model_dump()
+    data["billing_exempt"] = is_free_account(user.email)
+    return data
 
 
 def _as_utc(dt: datetime) -> datetime:
@@ -158,8 +168,7 @@ async def login(request: Request, response: Response, payload: LoginRequest, db:
             detail={"error": "email_not_verified", "email": user.email},
         )
 
-    user_dict = UserOut.model_validate(user).model_dump()
-    return {"success": True, "data": {"user": user_dict, "access_token": _create_access_token(user.id)}}
+    return {"success": True, "data": {"user": _user_dict(user), "access_token": _create_access_token(user.id)}}
 
 
 class VerifyOtpRequest(BaseModel):
@@ -215,8 +224,7 @@ async def verify_otp(request: Request, response: Response, payload: VerifyOtpReq
     otp.consumed = True
     user.is_verified = True
 
-    user_dict = UserOut.model_validate(user).model_dump()
-    return {"success": True, "data": {"user": user_dict, "access_token": _create_access_token(user.id)}}
+    return {"success": True, "data": {"user": _user_dict(user), "access_token": _create_access_token(user.id)}}
 
 
 @router.post("/resend-otp")
@@ -291,8 +299,7 @@ async def login_with_google(
         await db.flush()
         await db.refresh(user)
 
-    user_dict = UserOut.model_validate(user).model_dump()
-    return {"success": True, "data": {"user": user_dict, "access_token": _create_access_token(user.id)}}
+    return {"success": True, "data": {"user": _user_dict(user), "access_token": _create_access_token(user.id)}}
 
 
 @router.post("/logout")
