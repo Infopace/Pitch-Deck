@@ -1,31 +1,29 @@
-﻿import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Clock, CreditCard, Layers, Loader2 } from "lucide-react";
+﻿import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { CheckCircle2, Clock, CreditCard, Layers } from "lucide-react";
 
 import { billingApi, type CreditRow, type PricingRow } from "@/services/api/billing";
-import { useDeckPayment } from "@/hooks/useDeckPayment";
-import { useCurrentUser } from "@/stores/authStore";
 import { OfflineScreen } from "@/components/ui/OfflineScreen";
 import { isNetworkError } from "@/utils/isNetworkError";
 
-function PriceCard({
-  deck, busy, onBuy,
-}: { deck: PricingRow; busy: boolean; onBuy: () => void }) {
+function PriceCard({ deck, onSelect }: { deck: PricingRow; onSelect: () => void }) {
   return (
     <article className="flex flex-col rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-5">
       <h3 className="text-[12px] font-semibold leading-snug text-slate-900 sm:text-[14px]">{deck.label}</h3>
       <div className="mt-1.5 flex-1 text-[19px] font-bold leading-none tracking-tight text-slate-900 sm:mt-3 sm:text-[26px]">
         ₹{deck.priceInr}
       </div>
-      <p className="mt-1.5 hidden text-[12px] text-slate-500 sm:mt-2 sm:block">One-time, per deck. Yours to generate and re-generate.</p>
+      <p className="mt-1.5 hidden text-[12px] text-slate-500 sm:mt-2 sm:block">One-time, per deck, charged when you generate it.</p>
+      {/* No checkout here — this only takes you to the generator. The charge
+          (or a credit already bought there) happens when you actually
+          generate the deck, same as every other deck type. */}
       <button
         type="button"
-        onClick={onBuy}
-        disabled={busy}
-        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-[11.5px] font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60 sm:mt-5 sm:px-4 sm:py-2 sm:text-[13px]"
+        onClick={onSelect}
+        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-[11.5px] font-semibold text-white transition-colors hover:bg-slate-800 sm:mt-5 sm:px-4 sm:py-2 sm:text-[13px]"
       >
-        {busy && <Loader2 size={14} className="animate-spin" />}
-        {busy ? "Opening checkout" : `Buy ₹${deck.priceInr}`}
+        Create this deck
       </button>
     </article>
   );
@@ -54,9 +52,7 @@ function statusBadge(status: CreditRow["status"]) {
 }
 
 export default function BillingPage() {
-  const user = useCurrentUser();
-  const qc = useQueryClient();
-  const [notice, setNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+  const navigate = useNavigate();
 
   const {
     data: pricing, isLoading: pricingLoading, isError: pricingError,
@@ -72,30 +68,6 @@ export default function BillingPage() {
     staleTime: 10_000,
   });
 
-  const payment = useDeckPayment();
-  const [buying, setBuying] = useState<string | null>(null);
-
-  const buy = async (deck: PricingRow) => {
-    setNotice(null);
-    setBuying(deck.key);
-    try {
-      const paid = await payment.mutateAsync({
-        deckType: deck.key,
-        deckLabel: deck.label,
-        name: user?.name,
-        email: user?.email,
-      });
-      if (paid) {
-        setNotice({ kind: "ok", text: `Paid for a ${deck.label} deck. It's ready to use from New Deck.` });
-        qc.invalidateQueries({ queryKey: ["billing-credits"] });
-      }
-    } catch (e: any) {
-      setNotice({ kind: "error", text: e?.response?.data?.detail || e?.message || "Checkout failed. Try again." });
-    } finally {
-      setBuying(null);
-    }
-  };
-
   const unused = useMemo(() => (credits ?? []).filter((c) => c.status === "paid").length, [credits]);
 
   if (pricingError && isNetworkError(pricingErrorObj)) {
@@ -110,19 +82,6 @@ export default function BillingPage() {
           Each deck type is a one-time purchase — no subscription, no monthly quota.
         </p>
       </header>
-
-      {notice && (
-        <div
-          role="status"
-          className={`mb-4 rounded-lg border px-4 py-3 text-[13px] ${
-            notice.kind === "ok"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
-          {notice.text}
-        </div>
-      )}
 
       {unused > 0 && (
         <div className="mb-6 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-[13px] text-blue-800">
@@ -146,11 +105,11 @@ export default function BillingPage() {
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3">
             {(pricing ?? []).map((deck) => (
-              <PriceCard key={deck.key} deck={deck} busy={buying === deck.key} onBuy={() => buy(deck)} />
+              <PriceCard key={deck.key} deck={deck} onSelect={() => navigate(`/projects/new?type=${deck.key}`)} />
             ))}
           </div>
         )}
-        <p className="mt-4 text-[12px] text-slate-500">Payments are processed securely by Razorpay.</p>
+        <p className="mt-4 text-[12px] text-slate-500">Payments are processed securely by Razorpay, when you generate the deck.</p>
       </section>
 
       {/* Invoices */}
@@ -159,7 +118,7 @@ export default function BillingPage() {
         {!credits || credits.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center">
             <p className="text-[13px] font-medium text-slate-700">No purchases yet</p>
-            <p className="mt-1 text-[12px] text-slate-500">Buy a deck type above, or pay when you create your first deck.</p>
+            <p className="mt-1 text-[12px] text-slate-500">Pick a deck type above, or from New Deck — you'll pay when you generate your first deck.</p>
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-200/80 bg-white">

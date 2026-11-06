@@ -602,6 +602,22 @@ export default function NewProjectPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Billing's "Buy" button sends the shopper here instead of opening
+  // checkout directly — ?type=<deckTypeKey> preselects that type and skips to
+  // the details step, so payment happens where it always has, at generation
+  // time, rather than as a standalone purchase before the deck exists.
+  const typePresetApplied = useRef(false);
+  useEffect(() => {
+    if (typePresetApplied.current || !deckTypes) return;
+    const k = searchParams.get("type");
+    if (!k) { typePresetApplied.current = true; return; }
+    typePresetApplied.current = true;
+    if (deckTypes.some((d) => d.key === k)) {
+      setValue("deckType", k, { shouldValidate: true });
+      setStep(2);
+    }
+  }, [searchParams, deckTypes, setValue]);
+
   /**
    * `stepOverride` exists because the three places that change `step` (the
    * buttons below) call this in the same breath as `setStep`, when the
