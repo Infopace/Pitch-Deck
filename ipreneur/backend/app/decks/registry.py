@@ -743,10 +743,18 @@ def parameter_groups_for(deck_type: Optional[str], *, stage: Optional[str] = Non
     return out
 
 
+# Temporarily pulled from the New Deck picker and pricing — not deleted, so
+# existing decks of these types still resolve, render and export normally.
+# Re-list a key here to bring it back.
+HIDDEN_DECK_TYPES: frozenset[str] = frozenset({"vision", "partnership", "master", "appendix"})
+
+
 def serialize_deck_types() -> list[dict]:
     """Registry as JSON for `GET /api/v1/deck-types` — drives the intake form."""
     out = []
     for dt in DECK_TYPES.values():
+        if dt.key in HIDDEN_DECK_TYPES:
+            continue
         out.append({
             "key": dt.key,
             "label": dt.label,

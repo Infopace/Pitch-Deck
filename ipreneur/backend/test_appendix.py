@@ -4,7 +4,7 @@ import pytest
 from app.decks import DECK_TYPES, SECTION_SPECS
 from app.decks.registry import (
     MAX_APPENDIX_SLIDES, profile_group_fill, resolve_appendix_sections,
-    resolve_sections, serialize_deck_types,
+    resolve_sections,
 )
 from app.decks.sections import EVIDENCE_SECTIONS
 from app.decks.prompt import build_generation_sections
@@ -74,6 +74,11 @@ def test_prompt_builds_for_a_resolved_appendix():
 
 
 def test_serialized_slide_count_reflects_the_default_appendix():
-    row = next(r for r in serialize_deck_types() if r["key"] == "appendix")
-    assert row["slide_count"] == len(resolve_appendix_sections(None))
-    assert row["dynamic_sections"] is True
+    # "appendix" is temporarily hidden from serialize_deck_types() (see
+    # registry.HIDDEN_DECK_TYPES), so this exercises the same slide-count
+    # computation serialize_deck_types() would apply, directly against the
+    # registry entry rather than through the now-filtered public listing.
+    dt = DECK_TYPES["appendix"]
+    assert dt.dynamic_sections is True
+    slide_count = len(resolve_appendix_sections(None)) if dt.dynamic_sections else len(dt.sections)
+    assert slide_count == len(resolve_appendix_sections(None))

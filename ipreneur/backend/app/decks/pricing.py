@@ -11,10 +11,10 @@ DECK_PRICES_INR: dict[str, int] = {
     "investor": 699,
     "gtm": 699,
     "business": 699,
-    "partnership": 699,
-    "master": 699,
+    # "partnership": 699,  # hidden — see registry.HIDDEN_DECK_TYPES
+    # "master": 699,       # hidden — see registry.HIDDEN_DECK_TYPES
     "general": 599,
-    "vision": 599,
+    # "vision": 599,       # hidden — see registry.HIDDEN_DECK_TYPES
     "sales": 499,
     "product": 499,
     "demoday": 499,

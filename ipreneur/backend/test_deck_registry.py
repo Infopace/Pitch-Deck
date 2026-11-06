@@ -21,6 +21,7 @@ from app.decks.prompt import (
 )
 from app.decks.registry import (
     DEFAULT_DECK_TYPE,
+    HIDDEN_DECK_TYPES,
     INTAKE_FIELD_PARAMS,
     intake_fields_for,
     serialize_deck_types,
@@ -207,7 +208,7 @@ def test_brief_field_names_are_unique(dt):
 
 def test_serialize_deck_types_covers_every_type():
     payload = serialize_deck_types()
-    assert {d["key"] for d in payload} == set(DECK_TYPES)
+    assert {d["key"] for d in payload} == set(DECK_TYPES) - HIDDEN_DECK_TYPES
     by_key = {d["key"]: d for d in payload}
     for entry in payload:
         assert entry["slide_count"] > 0
