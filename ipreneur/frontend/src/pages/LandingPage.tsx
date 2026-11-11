@@ -325,11 +325,13 @@ const FAQS = [
 function DeckTypeRow({ k }: { k: string }) {
   const n = useMemo(() => slideOrder(k).length, [k]);
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-slate-200/80 py-2.5 last:border-b-0">
-      <span className="text-[14px] font-medium tracking-[-0.01em] text-slate-900">
+    <div className="flex items-baseline justify-between gap-2 border-b border-slate-200/80 py-1.5 last:border-b-0 sm:gap-4 sm:py-2.5">
+      <span className="truncate text-[11px] font-medium tracking-[-0.01em] text-slate-900 sm:text-[14px]">
         {deckTypeLabel(k)}
       </span>
-      <span className="l-meta shrink-0 tabular-nums text-[12px]">{n} slides</span>
+      <span className="l-meta shrink-0 tabular-nums text-[10px] sm:text-[12px]">
+        {n}<span className="hidden sm:inline"> slides</span>
+      </span>
     </div>
   );
 }
@@ -388,14 +390,23 @@ export default function LandingPage() {
 
         <MintStoryGraphic />
 
-        <div className="mt-14 grid gap-px bg-slate-200/70 md:grid-cols-3">
-          {PRODUCT_INTRO_CARDS.map((c) => (
-            <div key={c.step} className="l-panel p-7">
-              <span className="l-meta mb-3 block tabular-nums">{c.step}</span>
-              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-14 sm:gap-5 md:grid-cols-3">
+          {PRODUCT_INTRO_CARDS.map((c, i) => (
+            <div
+              key={c.step}
+              className={`l-panel rounded-xl p-3 sm:p-7 ${i === PRODUCT_INTRO_CARDS.length - 1 ? "col-span-2 md:col-span-1" : ""}`}
+            >
+              <span className="l-meta mb-1.5 block text-[11px] tabular-nums sm:mb-3 sm:text-[13px]">{c.step}</span>
+              <h3 className="mb-1 text-[13px] font-semibold tracking-[-0.015em] text-slate-900 sm:mb-2.5 sm:text-[18px]">
                 {c.title}
               </h3>
-              <p className="l-body text-[14px] leading-relaxed">{c.body}</p>
+              <p
+                className={`l-body text-[11.5px] leading-relaxed sm:text-[14px] ${
+                  i === PRODUCT_INTRO_CARDS.length - 1 ? "max-w-[30rem] md:max-w-none" : ""
+                }`}
+              >
+                {c.body}
+              </p>
             </div>
           ))}
         </div>
@@ -411,19 +422,29 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
-          {STEPS.map((s) => (
-            <div key={s.step} className="l-panel p-7">
-              <div className="mb-5 flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
-                  <s.icon size={16} />
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3">
+          {STEPS.map((s, i) => (
+            <div
+              key={s.step}
+              className={`l-panel rounded-xl p-3 sm:p-7 ${i === STEPS.length - 1 ? "col-span-2 md:col-span-1" : ""}`}
+            >
+              <div className="mb-2 flex items-center gap-2 sm:mb-5 sm:gap-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm sm:h-9 sm:w-9">
+                  <s.icon size={13} className="sm:hidden" />
+                  <s.icon size={16} className="hidden sm:block" />
                 </span>
-                <span className="l-meta tabular-nums">{s.step}</span>
+                <span className="l-meta text-[11px] tabular-nums sm:text-[13px]">{s.step}</span>
               </div>
-              <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+              <h3 className="mb-1 text-[13px] font-semibold tracking-[-0.015em] text-slate-900 sm:mb-2.5 sm:text-[18px]">
                 {s.title}
               </h3>
-              <p className="l-body text-[14px] leading-relaxed">{s.body}</p>
+              <p
+                className={`l-body text-[11.5px] leading-relaxed sm:text-[14px] ${
+                  i === STEPS.length - 1 ? "max-w-[30rem] md:max-w-none" : ""
+                }`}
+              >
+                {s.body}
+              </p>
             </div>
           ))}
         </div>
@@ -499,16 +520,26 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-px bg-slate-200/70 md:grid-cols-3">
-            {TRUST_POINTS.map((t) => (
-              <div key={t.title} className="l-panel p-7">
-                <span className="mb-5 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
-                  <t.icon size={16} />
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3">
+            {TRUST_POINTS.map((t, i) => (
+              <div
+                key={t.title}
+                className={`l-panel rounded-xl p-3 sm:p-7 ${i === TRUST_POINTS.length - 1 ? "col-span-2 md:col-span-1" : ""}`}
+              >
+                <span className="mb-2 flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm sm:mb-5 sm:h-9 sm:w-9">
+                  <t.icon size={13} className="sm:hidden" />
+                  <t.icon size={16} className="hidden sm:block" />
                 </span>
-                <h3 className="mb-2.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+                <h3 className="mb-1 text-[13px] font-semibold tracking-[-0.015em] text-slate-900 sm:mb-2.5 sm:text-[18px]">
                   {t.title}
                 </h3>
-                <p className="l-body text-[14px] leading-relaxed">{t.body}</p>
+                <p
+                  className={`l-body text-[11.5px] leading-relaxed sm:text-[14px] ${
+                    i === TRUST_POINTS.length - 1 ? "max-w-[30rem] md:max-w-none" : ""
+                  }`}
+                >
+                  {t.body}
+                </p>
               </div>
             ))}
           </div>
@@ -527,20 +558,20 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid gap-px bg-slate-200/70 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-2 lg:grid-cols-4">
           {DECK_GROUPS.map((g) => (
-            <div key={g.group} className="l-panel flex flex-col">
+            <div key={g.group} className="l-panel flex flex-col overflow-hidden rounded-xl">
               <img
                 src={g.img}
                 alt={g.alt}
                 loading="lazy"
                 className="aspect-[16/9] w-full object-cover"
               />
-              <div className="p-7">
-                <h3 className="mb-1.5 text-[16px] font-semibold tracking-[-0.015em] text-slate-900">
+              <div className="p-2.5 sm:p-7">
+                <h3 className="mb-1 text-[12px] font-semibold leading-snug tracking-[-0.015em] text-slate-900 sm:mb-1.5 sm:text-[16px]">
                   {g.group}
                 </h3>
-                <p className="l-body mb-4 text-[13px] leading-relaxed">{g.blurb}</p>
+                <p className="l-body mb-2 hidden text-[13px] leading-relaxed sm:mb-4 sm:block">{g.blurb}</p>
                 <div>
                   {g.keys.map((k) => (
                     <DeckTypeRow key={k} k={k} />
@@ -597,17 +628,18 @@ export default function LandingPage() {
             professional presentations.
           </p>
         </div>
-        <div className="grid gap-px bg-slate-200/70 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {FEATURES.map((c) => (
-            <div key={c.title} className="l-panel p-7">
-              <span className="mb-5 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
-                <c.icon size={16} />
+            <div key={c.title} className="l-panel rounded-xl p-3 sm:p-7">
+              <span className="mb-2 flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm sm:mb-5 sm:h-9 sm:w-9">
+                <c.icon size={13} className="sm:hidden" />
+                <c.icon size={16} className="hidden sm:block" />
               </span>
-              <h3 className="mb-1.5 text-[18px] font-semibold tracking-[-0.015em] text-slate-900">
+              <h3 className="mb-1 text-[13px] font-semibold tracking-[-0.015em] text-slate-900 sm:mb-1.5 sm:text-[18px]">
                 {c.title}
               </h3>
-              <p className="mb-2.5 text-[13px] font-medium text-slate-500">{c.blurb}</p>
-              <p className="l-body text-[14px] leading-relaxed">{c.body}</p>
+              <p className="mb-1 hidden text-[13px] font-medium text-slate-500 sm:mb-2.5 sm:block">{c.blurb}</p>
+              <p className="l-body text-[11.5px] leading-relaxed sm:text-[14px]">{c.body}</p>
             </div>
           ))}
         </div>
@@ -626,17 +658,26 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid gap-px bg-slate-200/70 sm:grid-cols-2 lg:grid-cols-3">
-            {USE_CASES.map((u) => (
-              <div key={u.title} className="l-panel flex flex-col p-7">
-                <h3 className="mb-1.5 text-[16px] font-semibold tracking-[-0.015em] text-slate-900">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+            {USE_CASES.map((u, i) => (
+              <div
+                key={u.title}
+                className={`l-panel rounded-xl flex flex-col p-3 sm:p-7 ${i === USE_CASES.length - 1 ? "col-span-2 lg:col-span-1" : ""}`}
+              >
+                <h3 className="mb-1 text-[13px] font-semibold leading-snug tracking-[-0.015em] text-slate-900 sm:mb-1.5 sm:text-[16px]">
                   {u.title}
                 </h3>
-                <p className="mb-3 text-[14px] font-medium text-slate-700">{u.tagline}</p>
-                <p className="l-body mb-5 flex-1 text-[13px] leading-relaxed">{u.body}</p>
+                <p className="mb-1.5 text-[11.5px] font-medium text-slate-700 sm:mb-3 sm:text-[14px]">{u.tagline}</p>
+                <p
+                  className={`l-body mb-2 hidden flex-1 text-[13px] leading-relaxed sm:mb-5 sm:block ${
+                    i === USE_CASES.length - 1 ? "sm:max-w-[26rem] lg:max-w-none" : ""
+                  }`}
+                >
+                  {u.body}
+                </p>
                 <button
                   onClick={() => navigate(`/register?prompt=${encodeURIComponent(`Build a ${u.preset} deck`)}`)}
-                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-blue-600 hover:text-blue-700"
+                  className="inline-flex items-center gap-1 text-[11.5px] font-medium text-blue-600 hover:text-blue-700 sm:gap-1.5 sm:text-[13px]"
                 >
                   {u.cta} <ArrowRight size={14} />
                 </button>
@@ -778,18 +819,22 @@ export default function LandingPage() {
             Worth knowing before you sign up, rather than after.
           </p>
         </div>
-        <div className="grid gap-px bg-slate-200/70 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
           {[
             ["No PDF export", "PowerPoint only for now. PowerPoint will export a PDF for you."],
             ["No shareable link", "You send the file. There is no hosted link for investors yet."],
             ["No view tracking", "Nothing tells you when a deck was opened or for how long."],
-          ].map(([t, b]) => (
-            <div key={t} className="l-panel p-7">
-              <div className="mb-2.5 flex items-center gap-2">
-                <Minus size={14} className="shrink-0 text-slate-400" />
-                <h3 className="text-[15px] font-semibold tracking-[-0.015em] text-slate-900">{t}</h3>
+          ].map(([t, b], i, arr) => (
+            <div
+              key={t}
+              className={`l-panel rounded-xl p-3 sm:p-7 ${i === arr.length - 1 ? "col-span-2 sm:col-span-1" : ""}`}
+            >
+              <div className="mb-1.5 flex items-center gap-1.5 sm:mb-2.5 sm:gap-2">
+                <Minus size={12} className="shrink-0 text-slate-400 sm:hidden" />
+                <Minus size={14} className="hidden shrink-0 text-slate-400 sm:block" />
+                <h3 className="text-[12px] font-semibold leading-snug tracking-[-0.015em] text-slate-900 sm:text-[15px]">{t}</h3>
               </div>
-              <p className="l-body text-[13px] leading-relaxed">{b}</p>
+              <p className="l-body hidden text-[13px] leading-relaxed sm:block">{b}</p>
             </div>
           ))}
         </div>

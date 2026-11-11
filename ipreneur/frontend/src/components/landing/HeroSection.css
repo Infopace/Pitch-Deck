@@ -822,8 +822,10 @@
     max-width: 480px;
     height: auto;
     margin: 0;
-    transform: none !important;
-    opacity: 1 !important;
+    /* Not !important: the sub-640px carousel below needs to animate this
+       property, and plain cascade order already beats the desktop rule. */
+    transform: none;
+    opacity: 1;
   }
 
   .c1-ribbon-grid {
@@ -832,9 +834,141 @@
   }
 }
 
+/* Phones: the hero card, financial projection first (it carries the KPI row
+   and chart, so it keeps the full width), then the TAM and team cards paired
+   side by side underneath — same total height as three stacked cards, but
+   it reads as a balanced two-row layout instead of one long scroll. */
+@media (max-width: 640px) {
+  .hero-c1-fanout-deck {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "center center"
+      "left right";
+    gap: 10px;
+  }
+
+  .fanout-card.card-center { grid-area: center; }
+  .fanout-card.card-left { grid-area: left; }
+  .fanout-card.card-right { grid-area: right; }
+
+  .fanout-card.card-left,
+  .fanout-card.card-center,
+  .fanout-card.card-right {
+    max-width: none;
+    border-radius: 13px;
+    padding: 12px;
+  }
+
+  .hero-c1-showcase-stage { padding: 4px 8px 16px; }
+
+  .card-topbar { margin-bottom: 8px; }
+  .card-tag { font-size: 9.5px; gap: 4px; }
+  .card-tag svg { width: 10px; height: 10px; }
+  .card-slide-num { font-size: 9.5px; }
+  .card-slide-num.badge-pill { padding: 2px 6px; }
+  .card-title { font-size: 12.5px; }
+  .card-caption { font-size: 10px; margin-bottom: 7px; }
+
+  /* TAM card */
+  .tam-number { font-size: 21px; }
+  .tam-bars-graphic { height: 46px; gap: 5px; }
+  .bar-year { font-size: 8.5px; }
+  .card-footer-metric { margin-top: 4px; }
+  .metric-chip { font-size: 9px; padding: 2px 6px; white-space: normal; line-height: 1.3; }
+
+  /* Financial projection card */
+  .financial-kpi-row { gap: 6px; }
+  .kpi-box { padding: 6px; }
+  .kpi-val { font-size: 14px; }
+  .financial-chart-container { height: 56px; }
+  .footer-export-info { font-size: 9.5px; }
+  .footer-export-info svg { width: 11px; height: 11px; }
+
+  /* Team card: the background line is the first thing to go at this width */
+  .team-member-card { padding: 7px 8px; gap: 8px; }
+  .team-avatar { width: 26px; height: 26px; font-size: 10px; }
+  .team-name { font-size: 11px; }
+  .team-role { font-size: 9.5px; }
+  .team-prev { display: none; }
+  .trust-pill { font-size: 9px; padding: 3px 6px; }
+}
+
+/* ── Phones, motion allowed: the three sample slides take turns in front
+   instead of sitting in a static two-row grid — each settles at full size,
+   holds long enough to read, then hands off to the next while the other two
+   wait stacked and tilted behind it. Gated on prefers-reduced-motion so the
+   plain two-row grid above remains the static fallback. ── */
+@media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .hero-c1-fanout-deck {
+    display: block;
+    position: relative;
+    height: 304px;
+  }
+
+  .fanout-card.card-left,
+  .fanout-card.card-center,
+  .fanout-card.card-right {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 84%;
+    height: 100%;
+    margin: 0;
+    animation: mobile-card-rotate 13.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  /* Each card cycles through the same three roles — front, peeking left,
+     peeking right — offset from the other two so exactly one is ever
+     front-and-center. The shared keyframes below just read these per-card
+     values back at each stop. */
+  .fanout-card.card-center {
+    --l1: 50%; --sc1: 1;    --rot1: 0deg;  --op1: 1;    --z1: 3;
+    --l2: 30%; --sc2: 0.9;  --rot2: -5deg; --op2: 0.72; --z2: 1;
+    --l3: 70%; --sc3: 0.9;  --rot3: 5deg;  --op3: 0.72; --z3: 1;
+  }
+  .fanout-card.card-left {
+    --l1: 70%; --sc1: 0.9;  --rot1: 5deg;  --op1: 0.72; --z1: 1;
+    --l2: 50%; --sc2: 1;    --rot2: 0deg;  --op2: 1;    --z2: 3;
+    --l3: 30%; --sc3: 0.9;  --rot3: -5deg; --op3: 0.72; --z3: 1;
+  }
+  .fanout-card.card-right {
+    --l1: 30%; --sc1: 0.9;  --rot1: -5deg; --op1: 0.72; --z1: 1;
+    --l2: 70%; --sc2: 0.9;  --rot2: 5deg;  --op2: 0.72; --z2: 1;
+    --l3: 50%; --sc3: 1;    --rot3: 0deg;  --op3: 1;    --z3: 3;
+  }
+}
+
+@keyframes mobile-card-rotate {
+  0%, 27% {
+    left: var(--l1);
+    transform: translateX(-50%) scale(var(--sc1)) rotate(var(--rot1));
+    opacity: var(--op1);
+    z-index: var(--z1);
+  }
+  33%, 60% {
+    left: var(--l2);
+    transform: translateX(-50%) scale(var(--sc2)) rotate(var(--rot2));
+    opacity: var(--op2);
+    z-index: var(--z2);
+  }
+  66%, 93% {
+    left: var(--l3);
+    transform: translateX(-50%) scale(var(--sc3)) rotate(var(--rot3));
+    opacity: var(--op3);
+    z-index: var(--z3);
+  }
+  100% {
+    left: var(--l1);
+    transform: translateX(-50%) scale(var(--sc1)) rotate(var(--rot1));
+    opacity: var(--op1);
+    z-index: var(--z1);
+  }
+}
+
 @media (max-width: 768px) {
   .hero-c1-header {
-    padding: 16px 20px;
+    padding: 12px 18px;
   }
 
   .hero-c1-nav {
@@ -894,15 +1028,21 @@
   }
 
   .hero-c1-content {
-    padding: 24px 16px 20px;
+    padding: 14px 16px 2px;
+  }
+
+  .hero-c1-badge {
+    display: none;
   }
 
   .hero-c1-title {
-    font-size: 32px;
+    font-size: 26px;
+    margin-bottom: 8px;
   }
 
   .hero-c1-subtitle {
-    font-size: 15px;
+    font-size: 13.5px;
+    margin-bottom: 14px;
   }
 
   .hero-c1-input-bar {
@@ -910,6 +1050,7 @@
     border-radius: 16px;
     padding: 10px;
     gap: 10px;
+    margin-bottom: 8px;
   }
 
   .c1-input-group {
@@ -919,6 +1060,10 @@
   .c1-generate-btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .hero-c1-chips {
+    margin-bottom: 10px;
   }
 
   .c1-ribbon-grid {
