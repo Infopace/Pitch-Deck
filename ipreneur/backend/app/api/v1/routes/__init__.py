@@ -5,6 +5,7 @@ Each domain has its own router module for clean separation.
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    admin,
     auth,
     deck_types,
     projects,
@@ -20,6 +21,7 @@ from app.api.v1.endpoints import (
 router = APIRouter()
 
 router.include_router(auth.router, prefix="/auth", tags=["auth"])
+router.include_router(admin.router, prefix="/admin", tags=["admin"])
 router.include_router(users.router, prefix="/users", tags=["users"])
 router.include_router(projects.router, prefix="/projects", tags=["projects"])
 router.include_router(deck_types.router, prefix="/deck-types", tags=["deck-types"])

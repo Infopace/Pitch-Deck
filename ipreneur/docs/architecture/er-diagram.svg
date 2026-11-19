@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="950" viewBox="0 0 1600 950" font-family="Segoe UI, Arial, sans-serif">
+<rect x="0" y="0" width="1600" height="950" fill="#FFFFFF"/>
+<defs><marker id="arrow-cascade" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2540B5"/></marker><marker id="arrow-setnull" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#B45309"/></marker></defs>
+<text x="800.0" y="30" text-anchor="middle" font-size="20" font-weight="700" fill="#1E2A6B">Mint / iPreneur &#8212; Entity-Relationship Diagram</text>
+<path d="M 716 121.0 L 716 175.5 L 254.0 175.5 L 254.0 230" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<path d="M 716 121.0 L 716 175.5 L 564.0 175.5 L 564.0 230" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<path d="M 984 121.0 L 984 175.5 L 1420.0 175.5 L 1420.0 230" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<path d="M 984 121.0 L 984 175.5 L 1104.0 175.5 L 1104.0 230" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<path d="M 850.0 202 L 850.0 311.0 L 850.0 311.0 L 850.0 420" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<path d="M 254.0 370 L 254.0 441.0 L 716 441.0 L 716 512.0" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrow-setnull)"/>
+<path d="M 1104.0 414 L 1104.0 463.0 L 984 463.0 L 984 512.0" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrow-setnull)"/>
+<path d="M 1104.0 414 L 1104.0 417.0 L 1420.0 417.0 L 1420.0 420" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#arrow-setnull)"/>
+<path d="M 850.0 604 L 850.0 627.0 L 564.0 627.0 L 564.0 650" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<path d="M 850.0 604 L 850.0 627.0 L 1134.0 627.0 L 1134.0 650" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<path d="M 984 121.0 L 1580 121.0 L 1580 512.0 L 1554 512.0" fill="none" stroke="#2540B5" stroke-width="2" marker-end="url(#arrow-cascade)"/>
+<rect x="716" y="40" width="268" height="162" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="716" y="40" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="716" y="62" width="268" height="10" fill="#1E2A6B"/>
+<text x="850.0" y="61.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">users</text>
+<text x="730" y="96" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="762" y="96" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="762" y="118" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">email  (unique)</text>
+<text x="762" y="140" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">name</text>
+<text x="762" y="162" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">role</text>
+<text x="762" y="184" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">is_active, is_verified</text>
+<rect x="120" y="230" width="268" height="140" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="120" y="230" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="120" y="252" width="268" height="10" fill="#1E2A6B"/>
+<text x="254.0" y="251.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">company_profiles</text>
+<text x="134" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="166" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="134" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="166" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">user_id -&gt; users.id</text>
+<text x="166" y="330" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">name</text>
+<text x="166" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">values  (json, ~900 params)</text>
+<rect x="430" y="230" width="268" height="140" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="430" y="230" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="430" y="252" width="268" height="10" fill="#1E2A6B"/>
+<text x="564.0" y="251.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">subscriptions  (legacy)</text>
+<text x="444" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="476" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="444" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="476" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">user_id -&gt; users.id  (unique)</text>
+<text x="476" y="330" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">plan, status</text>
+<text x="476" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">projects/exports_used_this_month</text>
+<rect x="1286" y="230" width="268" height="140" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="1286" y="230" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="1286" y="252" width="268" height="10" fill="#1E2A6B"/>
+<text x="1420.0" y="251.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">email_otps</text>
+<text x="1300" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="1332" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="1300" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="1332" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">user_id -&gt; users.id</text>
+<text x="1332" y="330" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">code_hash, expires_at</text>
+<text x="1332" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">attempts, consumed</text>
+<rect x="970" y="230" width="268" height="184" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="970" y="230" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="970" y="252" width="268" height="10" fill="#1E2A6B"/>
+<text x="1104.0" y="251.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">deck_credits</text>
+<text x="984" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="1016" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="984" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="1016" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">user_id -&gt; users.id</text>
+<text x="984" y="330" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="1016" y="330" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">project_id -&gt; projects.id  (null)</text>
+<text x="1016" y="352" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">deck_type, amount_inr</text>
+<text x="1016" y="374" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">status: created|paid|consumed</text>
+<text x="1016" y="396" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">razorpay_order_id, payment_id</text>
+<rect x="1286" y="420" width="268" height="184" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="1286" y="420" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="1286" y="442" width="268" height="10" fill="#1E2A6B"/>
+<text x="1420.0" y="441.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">payments  (append-only ledger)</text>
+<text x="1300" y="476" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="1332" y="476" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="1300" y="498" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="1332" y="498" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">user_id -&gt; users.id</text>
+<text x="1300" y="520" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="1332" y="520" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">deck_credit_id -&gt; deck_credits.id  (null)</text>
+<text x="1332" y="542" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">deck_type, amount_inr</text>
+<text x="1332" y="564" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">razorpay_payment_id  (unique)</text>
+<text x="1332" y="586" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">created_at  (never updated)</text>
+<rect x="716" y="420" width="268" height="184" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="716" y="420" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="716" y="442" width="268" height="10" fill="#1E2A6B"/>
+<text x="850.0" y="441.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">projects</text>
+<text x="730" y="476" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="762" y="476" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="730" y="498" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="762" y="498" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">user_id -&gt; users.id</text>
+<text x="730" y="520" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="762" y="520" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">profile_id -&gt; company_profiles.id  (null)</text>
+<text x="762" y="542" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">name, company_url, deck_type</text>
+<text x="762" y="564" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">status, template_key</text>
+<text x="762" y="586" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">branding_data / research_data / deck_content  (json)</text>
+<rect x="430" y="650" width="268" height="140" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="430" y="650" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="430" y="672" width="268" height="10" fill="#1E2A6B"/>
+<text x="564.0" y="671.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">jobs</text>
+<text x="444" y="706" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="476" y="706" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="444" y="728" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="476" y="728" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">project_id -&gt; projects.id</text>
+<text x="476" y="750" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">status, current_step</text>
+<text x="476" y="772" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">step_progress, total_progress</text>
+<rect x="1000" y="650" width="268" height="140" rx="8" fill="#FFFFFF" stroke="#C7CCE0" stroke-width="1.5"/>
+<rect x="1000" y="650" width="268" height="32" rx="8" fill="#1E2A6B"/>
+<rect x="1000" y="672" width="268" height="10" fill="#1E2A6B"/>
+<text x="1134.0" y="671.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#FFFFFF">presentations</text>
+<text x="1014" y="706" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#B45309">PK</text>
+<text x="1046" y="706" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">id</text>
+<text x="1014" y="728" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="1046" y="728" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">project_id -&gt; projects.id</text>
+<text x="1014" y="750" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2540B5">FK</text>
+<text x="1046" y="750" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">user_id -&gt; users.id  (no ORM relation)</text>
+<text x="1046" y="772" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1F2430">file_url, status, slide_count</text>
+<line x1="40" y1="880" x2="80" y2="880" stroke="#2540B5" stroke-width="2.5" marker-end="url(#arrow-cascade)"/>
+<text x="90" y="884" font-size="12" fill="#1F2430">ON DELETE CASCADE (1 → many)</text>
+<line x1="40" y1="906" x2="80" y2="906" stroke="#B45309" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#arrow-setnull)"/>
+<text x="90" y="910" font-size="12" fill="#1F2430">ON DELETE SET NULL (1 → many)</text>
+<text x="320" y="884" font-size="12" font-weight="700" fill="#B45309">PK</text>
+<text x="345" y="884" font-size="12" fill="#6B7280">primary key</text>
+<text x="320" y="910" font-size="12" font-weight="700" fill="#2540B5">FK</text>
+<text x="345" y="910" font-size="12" fill="#6B7280">foreign key</text>
+<text x="520" y="884" font-size="11" fill="#6B7280">Arrow points from the "one" side to the "many" side.</text>
+<text x="520" y="910" font-size="11" fill="#6B7280">All primary keys are app-generated UUID strings, not native DB UUID columns.</text>
+</svg>

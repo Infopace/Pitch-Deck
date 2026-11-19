@@ -1372,3 +1372,18 @@ The thumbnail CSS used `transform: scale(calc(100cqw / 1280))`. `scale()` takes 
 
 `Files: .github/workflows/firebase-hosting-deploy.yml (new)`
 
+---
+
+## Session: 2026-11-19
+
+### 62. Admin overview charts, clickable metrics, and new-user date filters
+
+**Objective:** Make the admin overview easier to explore and understand, and let admins open the users who registered recently.
+
+**Changes:**
+1. **Clickable metric cards (`frontend/src/pages/admin/AdminOverviewPage.tsx`):** linked user, deck, and revenue cards to their matching admin pages. The new-users card opens `/admin/users?period=7d`; its hover underline is disabled while it remains clickable.
+2. **Overview charts:** replaced the sparse revenue plot with a 30-day area chart that includes zero-revenue days, total and best-day context, and explicit responsive sizing. Replaced the deck-type bars with a donut chart showing revenue share, totals, and sales counts.
+3. **User registration filters (`frontend/src/pages/admin/AdminUsersPage.tsx`, `frontend/src/services/api/admin.ts`, `backend/app/api/v1/endpoints/admin.py`):** added last-7-days, last-30-days, and all-time filters. The users API accepts a `created_since` timestamp; the filtered view also checks returned records client-side so an unfiltered API response does not display older sign-ups. Join dates use `DD/MM/YYYY`.
+
+`Files: frontend/src/pages/admin/AdminOverviewPage.tsx, frontend/src/pages/admin/AdminUsersPage.tsx, frontend/src/services/api/admin.ts, backend/app/api/v1/endpoints/admin.py`
+

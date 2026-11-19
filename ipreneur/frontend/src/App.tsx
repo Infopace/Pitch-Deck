@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { AdminGuard } from "@/components/auth/AdminGuard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { PageLoader } from "@/components/shared/PageLoader";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -22,6 +23,11 @@ const TemplatesPage = lazy(() => import("@/pages/templates/TemplatesPage"));
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
 const BillingPage = lazy(() => import("@/pages/billing/BillingPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+const AdminOverviewPage = lazy(() => import("@/pages/admin/AdminOverviewPage"));
+const AdminUsersPage = lazy(() => import("@/pages/admin/AdminUsersPage"));
+const AdminTransactionsPage = lazy(() => import("@/pages/admin/AdminTransactionsPage"));
+const AdminProjectsPage = lazy(() => import("@/pages/admin/AdminProjectsPage"));
+const AdminSettingsPage = lazy(() => import("@/pages/admin/AdminSettingsPage"));
 
 // ── React Query client ────────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -66,6 +72,15 @@ export default function App() {
                 <Route path="/templates" element={<TemplatesPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/billing" element={<BillingPage />} />
+
+                {/* Admin-only */}
+                <Route element={<AdminGuard />}>
+                  <Route path="/admin" element={<AdminOverviewPage />} />
+                  <Route path="/admin/users" element={<AdminUsersPage />} />
+                  <Route path="/admin/transactions" element={<AdminTransactionsPage />} />
+                  <Route path="/admin/projects" element={<AdminProjectsPage />} />
+                  <Route path="/admin/settings" element={<AdminSettingsPage />} />
+                </Route>
               </Route>
             </Route>
 

@@ -20,6 +20,7 @@ from loguru import logger
 
 from app.api.deps.auth import get_current_user
 from app.api.v1.endpoints.billing import consume_credit, has_paid_credit, project_already_paid
+from app.core.admin_events import log_event
 from app.core.ratelimit import limiter, GENERATION_LIMIT, CREATE_LIMIT
 from app.db.session import get_db, get_db_context
 from app.core.free_accounts import is_free_account
@@ -47,9 +48,10 @@ def _payment_required(deck_type: str) -> HTTPException:
 
 
 def _needs_payment(deck_type: str, user: User) -> bool:
-    """False for a sellable deck type if this account is the one explicit
-    billing exemption (see app.core.free_accounts) — otherwise unchanged."""
-    return price_for(deck_type) is not None and not is_free_account(user.email)
+    """False for a sellable deck type if this account is exempt — either the
+    one explicit hardcoded exemption (app.core.free_accounts) or an
+    admin-granted one (User.is_billing_exempt) — otherwise unchanged."""
+    return price_for(deck_type) is not None and not (is_free_account(user.email) or user.is_billing_exempt)
 
 
 # ─── Inline analysis pipeline (runs without Celery) ──────────────────────────
@@ -406,6 +408,11 @@ async def create_project(
         )
         db.add(project)
         await db.flush()
+        await log_event(
+            db, "deck_created", user=current_user,
+            summary=f"{current_user.email} created a {payload.deck_type} deck \"{payload.name}\"",
+            meta={"deck_type": payload.deck_type, "project_id": project.id},
+        )
 
         if payload.start_analysis:
             if _needs_payment(payload.deck_type, current_user):

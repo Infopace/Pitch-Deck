@@ -34,16 +34,22 @@ def price_for(deck_type: str) -> int | None:
     return DECK_PRICES_INR.get(deck_type)
 
 
-def list_pricing() -> list[dict]:
+def list_pricing(visibility_overrides: dict[str, bool] | None = None) -> list[dict]:
     """Deck type, label and price for every sellable, currently-offered deck
     type, cheapest last within each tier — this is what the billing page's
     pricing table renders from. Types in HIDDEN_DECK_TYPES are left priced
     (see DECK_PRICES_INR) but excluded from this listing, the same way
-    registry.serialize_deck_types() excludes them from the New Deck picker."""
+    registry.serialize_deck_types() excludes them from the New Deck picker.
+
+    `visibility_overrides` is the admin panel's AdminSetting("deck_type_overrides")
+    — {deck_type: True} reveals an otherwise-hidden type, {deck_type: False}
+    hides an otherwise-visible one. None/omitted means "no overrides".
+    """
+    overrides = visibility_overrides or {}
     rows = [
         {"key": key, "label": DECK_TYPES[key].label, "price_inr": price}
         for key, price in DECK_PRICES_INR.items()
-        if key in DECK_TYPES and key not in HIDDEN_DECK_TYPES
+        if key in DECK_TYPES and overrides.get(key, key not in HIDDEN_DECK_TYPES)
     ]
     rows.sort(key=lambda r: (-r["price_inr"], r["label"]))
     return rows

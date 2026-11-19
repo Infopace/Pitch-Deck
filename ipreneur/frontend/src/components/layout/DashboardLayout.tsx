@@ -12,6 +12,10 @@ import {
   LayoutTemplate,
   CreditCard,
   Plus,
+  ShieldCheck,
+  Users,
+  Receipt,
+  SlidersHorizontal,
 } from "lucide-react";
 
 import { useAuthStore, useCurrentUser } from "@/stores/authStore";
@@ -192,6 +196,29 @@ export function DashboardLayout() {
           <NavLink to="/settings" onClick={() => setMobileOpen(false)} className={navLinkClass}>
             {({ isActive }) => (<><Settings size={14} className={icon(isActive)} /><span className="truncate">Settings</span></>)}
           </NavLink>
+
+          {user?.role === "admin" && (
+            <>
+              <div className="px-1 pb-1 pt-3 text-[9.5px] font-semibold uppercase tracking-wider text-slate-400">
+                Admin
+              </div>
+              <NavLink to="/admin" end onClick={() => setMobileOpen(false)} className={navLinkClass}>
+                {({ isActive }) => (<><ShieldCheck size={14} className={icon(isActive)} /><span className="truncate">Overview</span></>)}
+              </NavLink>
+              <NavLink to="/admin/users" onClick={() => setMobileOpen(false)} className={navLinkClass}>
+                {({ isActive }) => (<><Users size={14} className={icon(isActive)} /><span className="truncate">Users</span></>)}
+              </NavLink>
+              <NavLink to="/admin/transactions" onClick={() => setMobileOpen(false)} className={navLinkClass}>
+                {({ isActive }) => (<><Receipt size={14} className={icon(isActive)} /><span className="truncate">Transactions</span></>)}
+              </NavLink>
+              <NavLink to="/admin/projects" onClick={() => setMobileOpen(false)} className={navLinkClass}>
+                {({ isActive }) => (<><LayoutGrid size={14} className={icon(isActive)} /><span className="truncate">All decks</span></>)}
+              </NavLink>
+              <NavLink to="/admin/settings" onClick={() => setMobileOpen(false)} className={navLinkClass}>
+                {({ isActive }) => (<><SlidersHorizontal size={14} className={icon(isActive)} /><span className="truncate">Global settings</span></>)}
+              </NavLink>
+            </>
+          )}
         </nav>
 
         {/* ── Recent decks — real, and what fills the rail ── */}

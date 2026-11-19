@@ -49,3 +49,5 @@ Thumbs.db
 # Editor swap files
 *.swp
 *.swo
+
+.playwright-mcp/

@@ -1,129 +1,48 @@
-# iPreneur · AI Pitch Deck Studio
+# Mint (iPreneur)
 
-> Transform any company URL into an investor-grade pitch deck in minutes.
+Mint is a web product for founders and teams who need a presentation tailored to a specific business audience. A user supplies a company website and/or structured business information, chooses a deck type, and gets an AI-generated, editable-in-app presentation with a PPTX download.
 
-## What It Does
+The repository name and package names use **iPreneur**; the product UI and backend application name use **Mint**. They refer to the same product.
 
-iPreneur is an AI-powered SaaS platform that:
-1. **Crawls** your company website (Playwright BFS crawler, up to 50 pages)
-2. **Researches** your market, competitors, and positioning via parallel AI agents
-3. **Analyzes** your business with a full SWOT, investor score, and revenue scenarios
-4. **Generates** a complete investor-grade pitch deck narrative
-5. **Renders** a professionally designed PPTX presentation
+## Documentation
 
-## Monorepo Structure
+Start at [the internal documentation index](docs/README.md). The [product and architecture report](docs/product-and-architecture-report.md) is the overview; focused engineering and operational references are linked from there.
 
-```
-ipreneur/
-├── frontend/          # React + TypeScript + Vite SPA
-├── backend/           # Python FastAPI + Celery workers
-│   ├── app/agents/    # BrandingExtractor, ResearchAgent, AnalysisAgent
-│   ├── app/services/  # Playwright BFS crawler, PPT renderer
-│   ├── app/api/       # REST endpoints
-│   └── app/workers/   # Celery task queue
-├── infrastructure/    # Docker, Nginx configs
-├── docs/              # Architecture, API, deployment docs
-└── scripts/           # Setup, DB, and deploy automation
-```
+## Local development
 
-## Quick Start (Docker)
+Prerequisites: Python 3.11, Node.js/npm, PostgreSQL, and API credentials for Gemini. Playwright also needs its Chromium browser installed. SQLite support is an implementation fallback, not the normal development or production database path. For the simplest local setup, use the Docker Compose file, noting that it starts legacy Celery services which the current product generation route does not use.
+
+Backend (PowerShell, from `ipreneur`):
 
 ```powershell
-# 1. Copy and fill in environment variables
-cp backend/.env.example backend/.env
-
-# 2. Build and start all services
-docker-compose up -d
-
-# 3. Check logs
-docker-compose logs -f worker
-```
-
-App runs at:
-- Frontend: http://localhost:3001
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-
-### Rebuilding after dependency changes
-
-If you update `requirements.txt` (especially `playwright`), always force a clean rebuild:
-
-```powershell
-docker-compose build --no-cache backend worker beat
-docker-compose up -d
-```
-
-> **Important:** Playwright browser binaries are tied to the installed package version.
-> An unpinned upgrade without `--no-cache` will cause a `BrowserType.launch` error at runtime.
-
-## Local Development (without Docker)
-
-```powershell
-# Backend
+Copy-Item backend/.env.example backend/.env
+# Edit backend/.env with local database and Gemini settings.
 cd backend
 python -m venv .venv
-.\.venv\Scripts\Activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 playwright install chromium
+uvicorn app.main:app --reload --port 8000
+```
 
-uvicorn app.main:app --reload
+Frontend (a second terminal, from `ipreneur`):
 
-# Frontend (separate terminal)
+```powershell
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-## Tech Stack
+The Vite dev server defaults to `http://localhost:3000`; the API defaults to `http://localhost:8000`. Set `VITE_API_URL` if the frontend should call a different API URL. API docs are available at `/docs` outside production.
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Zustand, React Query |
-| Backend | Python 3.11, FastAPI, SQLAlchemy, Alembic |
-| AI | Google Gemini 2.5 Flash (dual-key architecture) |
-| Queue | Celery + Redis |
-| Database | PostgreSQL 15 |
-| Cache | Redis 7 |
-| Storage | S3-compatible (MinIO for dev / AWS S3 for prod) |
-| PPT Engine | python-pptx |
-| Crawler | Playwright (async BFS) + BeautifulSoup4 |
+## Current architecture in one sentence
 
-## AI Pipeline
+A React/Vite SPA calls a FastAPI API; FastAPI persists users, projects, jobs, and generated content in PostgreSQL, uses Gemini and a Playwright crawler for generation, renders PPTX files, and stores deck outputs through an S3-compatible storage adapter. In the live request path, generation runs in a daemon thread in the API process; Celery/Redis configuration remains in the repository but is not the production job runner.
 
-```
-POST /api/v1/pipeline/generate  (company URL + optional metrics)
-  ↓
-Step 1: WebCrawler — Playwright BFS, up to crawl_max_pages
-  ↓
-Step 2: BrandingExtractor [Gemini Key 1]  +  ResearchAgent [Gemini Key 2]  ← parallel
-  ↓
-Step 3: AnalysisAgent [Gemini Key 1 + thinking_budget=8192]
-  ↓
-Returns: branding, research, analysis, crawl_summary  (~2.5 min end-to-end)
-```
+## Important operational note
 
-Two separate Gemini API keys are used to avoid rate limits during parallel agent execution.
-
-## Design System
-
-- **Background**: `#0A0716` (Obsidian)
-- **Primary**: `#2540B5` → `#7B2CBF` (Electric Blue → Violet)
-- **Font**: Inter (UI), JetBrains Mono (code)
-- **Style**: Premium dark AI-native SaaS
-
-## Development Phases
-
-1. ✅ Project scaffolding & architecture
-2. ✅ Frontend foundation & design system
-3. ✅ Backend API + auth
-4. ✅ Website analysis engine (Playwright BFS crawler)
-5. ✅ AI agent orchestration (Branding + Research + Analysis pipeline)
-6. 🔄 PPT generation system (python-pptx wiring in progress)
-7. ⬜ Presentation editor
-8. ⬜ Export pipeline
-9. ⬜ Billing & settings
-10. ⬜ Production deployment
+Use the docs as the source of truth for current behavior. Several alternate deployment files, legacy agents, and old README claims remain in the repository. The [deployment guide](docs/deployment.md), [pipeline guide](docs/ai-pipeline.md), and [security review](docs/security.md) distinguish active behavior from legacy configuration. Do not copy secrets from deployment manifests or commit local environment files.
 
 ## License
 
-Proprietary — iPreneur Inc.
+Proprietary. See the organization’s applicable license and customer terms.

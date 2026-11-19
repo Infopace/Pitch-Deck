@@ -10,6 +10,8 @@ from jose import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.admin_events import log_event
+from app.core.admin_settings import get_setting
 from app.core.config import settings
 from app.core.email import send_email
 from app.core.free_accounts import is_free_account
@@ -73,8 +75,18 @@ def _user_dict(user: User) -> dict:
     for whether to show prices/payment prompts at all (see
     app.core.free_accounts and app.api.v1.endpoints.projects)."""
     data = UserOut.model_validate(user).model_dump()
-    data["billing_exempt"] = is_free_account(user.email)
+    data["billing_exempt"] = is_free_account(user.email) or user.is_billing_exempt
     return data
+
+
+async def _require_not_in_maintenance(db: AsyncSession) -> None:
+    if await get_setting(db, "maintenance_mode", False):
+        raise HTTPException(status_code=503, detail="Mint is temporarily down for maintenance. Try again shortly.")
+
+
+async def _require_signups_enabled(db: AsyncSession) -> None:
+    if not await get_setting(db, "signups_enabled", True):
+        raise HTTPException(status_code=503, detail="New sign-ups are temporarily closed.")
 
 
 def _as_utc(dt: datetime) -> datetime:
@@ -124,6 +136,9 @@ async def _maybe_issue_otp(db: AsyncSession, user: User) -> bool:
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 @limiter.limit(AUTH_LIMIT)
 async def register(request: Request, response: Response, payload: RegisterRequest, db: AsyncSession = Depends(get_db)):
+    await _require_not_in_maintenance(db)
+    await _require_signups_enabled(db)
+
     # Check if user exists
     result = await db.execute(select(User).where(User.email == payload.email))
     existing = result.scalar_one_or_none()
@@ -148,6 +163,8 @@ async def register(request: Request, response: Response, payload: RegisterReques
 @router.post("/login")
 @limiter.limit(AUTH_LIMIT)
 async def login(request: Request, response: Response, payload: LoginRequest, db: AsyncSession = Depends(get_db)):
+    await _require_not_in_maintenance(db)
+
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     if not user:
@@ -168,6 +185,8 @@ async def login(request: Request, response: Response, payload: LoginRequest, db:
             detail={"error": "email_not_verified", "email": user.email},
         )
 
+    await log_event(db, "user_login", user=user, summary=f"{user.email} signed in")
+    await db.commit()
     return {"success": True, "data": {"user": _user_dict(user), "access_token": _create_access_token(user.id)}}
 
 
@@ -224,6 +243,8 @@ async def verify_otp(request: Request, response: Response, payload: VerifyOtpReq
     otp.consumed = True
     user.is_verified = True
 
+    await log_event(db, "user_registered", user=user, summary=f"{user.email} verified their email and registered")
+    await db.commit()
     return {"success": True, "data": {"user": _user_dict(user), "access_token": _create_access_token(user.id)}}
 
 
@@ -271,6 +292,8 @@ async def login_with_google(
     if not settings.google_client_id:
         raise HTTPException(status_code=503, detail="Google sign-in is not configured yet.")
 
+    await _require_not_in_maintenance(db)
+
     try:
         idinfo = google_id_token.verify_oauth2_token(
             payload.credential, _google_request, settings.google_client_id
@@ -285,6 +308,7 @@ async def login_with_google(
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     if user is None:
+        await _require_signups_enabled(db)
         user = User(
             email=email,
             name=idinfo.get("name") or email.split("@")[0],
@@ -298,7 +322,11 @@ async def login_with_google(
         db.add(user)
         await db.flush()
         await db.refresh(user)
+        await log_event(db, "user_registered", user=user, summary=f"{user.email} signed up with Google")
+    else:
+        await log_event(db, "user_login", user=user, summary=f"{user.email} signed in with Google")
 
+    await db.commit()
     return {"success": True, "data": {"user": _user_dict(user), "access_token": _create_access_token(user.id)}}
 
 

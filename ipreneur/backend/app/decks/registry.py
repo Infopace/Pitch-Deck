@@ -749,11 +749,18 @@ def parameter_groups_for(deck_type: Optional[str], *, stage: Optional[str] = Non
 HIDDEN_DECK_TYPES: frozenset[str] = frozenset({"vision", "partnership", "master", "appendix"})
 
 
-def serialize_deck_types() -> list[dict]:
-    """Registry as JSON for `GET /api/v1/deck-types` — drives the intake form."""
+def serialize_deck_types(visibility_overrides: Mapping[str, bool] | None = None) -> list[dict]:
+    """Registry as JSON for `GET /api/v1/deck-types` — drives the intake form.
+
+    `visibility_overrides` is the admin panel's AdminSetting("deck_type_overrides")
+    — {deck_type: True} reveals an otherwise-hidden type, {deck_type: False}
+    hides an otherwise-visible one. None/omitted means "no overrides", i.e.
+    today's hardcoded HIDDEN_DECK_TYPES behaviour, unchanged.
+    """
+    overrides = visibility_overrides or {}
     out = []
     for dt in DECK_TYPES.values():
-        if dt.key in HIDDEN_DECK_TYPES:
+        if not overrides.get(dt.key, dt.key not in HIDDEN_DECK_TYPES):
             continue
         out.append({
             "key": dt.key,

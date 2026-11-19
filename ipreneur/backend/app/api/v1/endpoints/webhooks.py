@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.endpoints.billing import _record_payment
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.models import DeckCredit
@@ -50,5 +51,6 @@ async def razorpay_webhook(request: Request, db: AsyncSession = Depends(get_db))
 
     credit.status = "paid"
     credit.razorpay_payment_id = payment_id
+    await _record_payment(db, credit, payment_id)
     await db.commit()
     return {"received": True}

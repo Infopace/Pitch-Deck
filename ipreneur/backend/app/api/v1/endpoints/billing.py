@@ -14,14 +14,17 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps.auth import get_current_user
+from app.core.admin_events import log_event
+from app.core.admin_settings import get_setting
 from app.core.config import settings
 from app.db.session import get_db
 from app.decks.pricing import list_pricing, price_for
 from app.decks.registry import DECK_TYPES
-from app.models.models import DeckCredit, User
+from app.models.models import DeckCredit, Payment, User
 
 router = APIRouter()
 
@@ -110,9 +113,10 @@ class PricingRow(BaseModel):
 
 
 @router.get("/pricing", response_model=list[PricingRow])
-async def get_pricing():
+async def get_pricing(db: AsyncSession = Depends(get_db)):
     """Every deck type that's sold individually, and what it costs."""
-    return [PricingRow(**row) for row in list_pricing()]
+    overrides = await get_setting(db, "deck_type_overrides", None)
+    return [PricingRow(**row) for row in list_pricing(overrides)]
 
 
 # ── Credits (purchase history / invoices) ───────────────────────────────────
@@ -251,5 +255,41 @@ async def verify_credit_payment(
 
     credit.status = "paid"
     credit.razorpay_payment_id = body.razorpay_payment_id
+    await _record_payment(db, credit, body.razorpay_payment_id)
     await db.commit()
     return VerifiedCredit(deck_type=credit.deck_type, status="paid")
+
+
+async def _record_payment(db: AsyncSession, credit: DeckCredit, payment_id: str) -> None:
+    """Write the permanent payments-ledger row for a confirmed payment.
+
+    Both this endpoint and the Razorpay webhook call this for the same
+    payment in a race; razorpay_payment_id is unique, so whichever write
+    loses is swallowed here via a savepoint rather than failing the caller's
+    own commit (which already has credit.status="paid" staged).
+    """
+    try:
+        async with db.begin_nested():
+            db.add(Payment(
+                user_id=credit.user_id,
+                deck_credit_id=credit.id,
+                deck_type=credit.deck_type,
+                amount_inr=credit.amount_inr,
+                razorpay_order_id=credit.razorpay_order_id,
+                razorpay_payment_id=payment_id,
+            ))
+            await db.flush()
+    except IntegrityError:
+        return  # already recorded (webhook got there first) — not an error, and not a second event
+
+    user = (await db.execute(select(User).where(User.id == credit.user_id))).scalar_one_or_none()
+    await log_event(
+        db, "payment_received", user=user,
+        summary=f"{user.email if user else credit.user_id} paid ₹{credit.amount_inr} for a {credit.deck_type} deck",
+        meta={
+            "deck_type": credit.deck_type,
+            "amount_inr": credit.amount_inr,
+            "project_id": credit.project_id,
+            "razorpay_payment_id": payment_id,
+        },
+    )

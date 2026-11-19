@@ -65,6 +65,9 @@ class User(Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Admin-grantable billing exemption — separate from the single hardcoded
+    # email in app.core.free_accounts, which predates this and is left alone.
+    is_billing_exempt: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="false")
     stripe_customer_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
 
     created_at: Mapped[datetime] = mapped_column(
@@ -371,6 +374,53 @@ class DeckCredit(Base):
         return f"<DeckCredit id={self.id} deck_type={self.deck_type} status={self.status}>"
 
 
+# ─── Payment ──────────────────────────────────────────────────────────────
+
+class Payment(Base):
+    """Append-only ledger of confirmed Razorpay payments.
+
+    DeckCredit is a mutable state machine (created -> paid -> consumed) that
+    exists to gate deck generation; once a credit is consumed, its status no
+    longer says "paid" anywhere, so answering "has this person paid" by
+    reading DeckCredit.status alone misses every consumed credit. A row is
+    written here exactly once, at the moment a payment is confirmed (by
+    either the client-side verify call or the Razorpay webhook — whichever
+    fires first; the unique constraint on razorpay_payment_id makes the
+    second write a no-op) — and is never updated or deleted after that. A row
+    existing here always means a real, successful payment, independent of
+    whatever later happens to the credit or project.
+    """
+    __tablename__ = "payments"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    # Which credit this payment was for. Kept for traceability back to the
+    # order/consumption lifecycle; nullable so deleting an old credit row
+    # (if that's ever done) can never delete payment history.
+    deck_credit_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("deck_credits.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    deck_type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    amount_inr: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    razorpay_order_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    razorpay_payment_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    user: Mapped["User"] = relationship("User")
+    deck_credit: Mapped[Optional["DeckCredit"]] = relationship("DeckCredit")
+
+    def __repr__(self) -> str:
+        return f"<Payment id={self.id} deck_type={self.deck_type} amount_inr={self.amount_inr}>"
+
+
 # ─── EmailOtp ────────────────────────────────────────────────────────────
 
 class EmailOtp(Base):
@@ -405,3 +455,54 @@ class EmailOtp(Base):
 
     def __repr__(self) -> str:
         return f"<EmailOtp id={self.id} user_id={self.user_id} consumed={self.consumed}>"
+
+
+# ─── AdminEvent ──────────────────────────────────────────────────────────────
+
+class AdminEvent(Base):
+    """Append-only activity log: logins, registrations, deck creations,
+    payments, and admin actions. Doubles as the admin dashboard's
+    notification feed — see app.core.admin_events.log_event, the one place
+    rows get written.
+    """
+    __tablename__ = "admin_events"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=generate_uuid
+    )
+    type: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    user_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    summary: Mapped[str] = mapped_column(String(512), nullable=False)
+    meta: Mapped[Optional[dict]] = mapped_column(JSONType)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
+
+    user: Mapped[Optional["User"]] = relationship("User")
+
+    def __repr__(self) -> str:
+        return f"<AdminEvent id={self.id} type={self.type}>"
+
+
+# ─── AdminSetting ────────────────────────────────────────────────────────────
+
+class AdminSetting(Base):
+    """Small admin-editable key/value store for global switches
+    (maintenance mode, signups on/off, deck-type visibility overrides) —
+    see app.core.admin_settings. New keys need no migration."""
+    __tablename__ = "admin_settings"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[Optional[dict]] = mapped_column(JSONType)
+    updated_by: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<AdminSetting key={self.key}>"

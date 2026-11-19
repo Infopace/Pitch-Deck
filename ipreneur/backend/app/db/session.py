@@ -205,6 +205,13 @@ async def init_db() -> None:
                     "ALTER TABLE subscriptions ADD COLUMN razorpay_subscription_id VARCHAR(255)"
                 )
 
+            rows = await conn.exec_driver_sql("PRAGMA table_info('users')")
+            user_cols = {r[1] for r in rows.fetchall()}
+            if user_cols and "is_billing_exempt" not in user_cols:
+                await conn.exec_driver_sql(
+                    "ALTER TABLE users ADD COLUMN is_billing_exempt BOOLEAN NOT NULL DEFAULT 0"
+                )
+
     await check_schema_drift()
 
 
