@@ -70,4 +70,15 @@ EXPOSE 8000
 # PORT environment variable and route to it; a hardcoded 8000 only works if the
 # platform happens to probe that port. Falls back to 8000 for local docker run
 # and docker-compose, which set no PORT.
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+#
+# --proxy-headers --forwarded-allow-ips='*': Cloud Run (and Render) terminate
+# TLS at their own edge proxy and forward plain HTTP to this container, setting
+# X-Forwarded-Proto: https. Without this flag uvicorn ignores that header, so
+# request.url.scheme reads "http" — and any redirect Starlette emits (e.g. the
+# trailing-slash redirect) is built as an insecure http:// Location. Browsers
+# refuse to follow a same-request https->http downgrade on a cross-origin call,
+# which surfaces to users as an opaque "blocked by CORS policy" / net::ERR_FAILED
+# instead of the protocol-downgrade error it actually is. The container is only
+# reachable through the platform's own trusted proxy, so trusting all forwarded
+# IPs here is safe.
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'
